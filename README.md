@@ -7,7 +7,7 @@ Performs integrations of high dimensional functions.
 ```cd``` into the top level of this repo.  
 Ideally you would run all these commands inside an activated virtual environment. More on that here: https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/  
 To install dependencies run ```pip install -r requirements.txt```  
-Install the package locally using ```pip install -e . ```  
+Install the package locally using ```pip install -e . ```  Don't forget the ```.```!!  
 You should now be able to run a python shell inside your environment and ```import treeQuadrature```  
 
 ## Examples

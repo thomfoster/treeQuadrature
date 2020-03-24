@@ -4,7 +4,11 @@
 Performs integrations of high dimensional functions.
 
 ## Installation
-Preferably in a virtual environment run ```pip install -r requirements.txt```
+```cd``` into the top level of this repo.
+Ideally you would run all these commands inside an activated virtual environment.
+To install dependencies run ```pip install -r requirements.txt```
+Install the package locally using ```pip install -e . ``
+You should now be able to run a python shell inside your environment and ```import treeQuadrature```
 
 ## Examples
 There is an example notebook in examples/ that demonstrates how to write, run and plot an integrator.

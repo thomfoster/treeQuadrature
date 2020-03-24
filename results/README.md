@@ -21,9 +21,9 @@ All the scripts in this folder, bar runTestMultipleTimes.py, follow the same str
 4. define a main function that runs the experiment on multiple dimensions when the script is invoked.
 
 To run the a script, such as ```simpleIntegrator.py``` run  
-```python3 simpleIntegrator.py <tag>``` where <tag> is passed to the wandb run info dictionary to allow multiple runs to be grouped together.
+```python3 simpleIntegrator.py <tag>``` where ```<tag>``` is passed to the wandb run info dictionary to allow multiple runs to be grouped together.
   
   
 ## Running a test multiple times
 runTestMultipleTimes.py does this. When invoked as 
-`python3 runTestMultipleTimes.py simpleIntegrator.py 30 <groupTag>` , it runs the script simpleIntegrator.py 30 times, all with the tag <groupTag>. On wandb, we can then group all these runs together using this tag, and produce the error plots.
+`python3 runTestMultipleTimes.py simpleIntegrator.py 30 <groupTag>` , it runs the script simpleIntegrator.py 30 times, all with the tag ```<groupTag>```. On wandb, we can then group all these runs together using this tag, and produce the error plots.

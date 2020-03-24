@@ -1,0 +1,13 @@
+README.md
+setup.py
+treeQuadrature/__init__.py
+treeQuadrature/container.py
+treeQuadrature/containerIntegration.py
+treeQuadrature/exampleDistributions.py
+treeQuadrature/utils.py
+treeQuadrature/visualisation.py
+treeQuadrature.egg-info/PKG-INFO
+treeQuadrature.egg-info/SOURCES.txt
+treeQuadrature.egg-info/dependency_links.txt
+treeQuadrature.egg-info/not-zip-safe
+treeQuadrature.egg-info/top_level.txt

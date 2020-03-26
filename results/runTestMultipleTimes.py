@@ -24,4 +24,5 @@ else:
 key = tag + ' ' + str(uuid.uuid4())
 
 for t in tqdm(range(number_of_times)):
+    # subprocess.run(['source', '../../../4y'])
     subprocess.run(['python3', target_script, key])

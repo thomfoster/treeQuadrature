@@ -2,20 +2,18 @@ import wandb
 import numpy as np
 import sys
 
-from problems import SimpleGaussian
+from problems import QuadCamel
 from treeQuadrature import Container
-from treeQuadrature.splits import kdSplit
-from treeQuadrature.containerIntegration import midpointIntegral
+from treeQuadrature.splits import kdSplit, minSseSplit
+from treeQuadrature.containerIntegration import midpointIntegral, randomIntegral
 from queue import SimpleQueue
 from functools import partial
 
 from datetime import datetime
 
 Ds = list(range(1,11))  # dimensions to test
-N = 100_000
-P = 5
-split = kdSplit
-integral = midpointIntegral
+N = 7_000
+P = 10
 
 
 # Define the Integrator we gonna be testing today
@@ -28,11 +26,9 @@ class SimpleIntegrator:
         - Then perform  <integral> on each container and sum.
     '''
     
-    def __init__(self, N, P, split, integral):
+    def __init__(self, N, P):
         self.N = N
         self.P = P
-        self.split = split
-        self.integral = integral
         
     def __call__(self, problem):
         D = problem.D
@@ -55,12 +51,12 @@ class SimpleIntegrator:
             if c.N <= self.P:
                 finished_containers.append(c)
             else:
-                children = self.split(c)
+                children = minSseSplit(c, problem.pdf)
                 for child in children:
                     q.put(child)
 
         # Integrate containers
-        contributions = [self.integral(cont, problem.pdf) for cont in finished_containers]
+        contributions = [randomIntegral(cont, problem.pdf, n=100) for cont in finished_containers]
         G = np.sum(contributions)
         
         return G
@@ -84,21 +80,21 @@ def main():
     assert len(sys.argv) == 2, 'Usage: thisScript.py groupKey'
     
     # Set up experiment
-    wandb.init(project="BoilerPlate")
+    wandb.init(project="QuadCamel")
 
     # Params for config logging
     wandb.config.Ds = Ds
     wandb.config.key = str(sys.argv[1])
     wandb.config.N = N
     wandb.config.P = P
-    wandb.config.split = str(split)
-    wandb.config.integral = str(integral)
+    wandb.config.split = str(minSseSplit)
+    wandb.config.integral = str(randomIntegral)
 
     # Run the experiment
     for D in Ds:
-        problem = SimpleGaussian(D)
+        problem = QuadCamel(D)
         # make split, integral partials here if needed
-        integ = SimpleIntegrator(N, P, split, integral)
+        integ = SimpleIntegrator(N, P)
         experiment(problem, integ)
         
 if __name__ == '__main__':

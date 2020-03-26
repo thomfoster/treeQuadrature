@@ -39,7 +39,7 @@ def main():
     assert len(sys.argv) == 2, 'Usage: thisScript.py groupKey'
     
     # Set up experiment
-    wandb.init(project="SimpleGaussian")
+    wandb.init(project="BoilerPlate")
 
     # Params for config logging
     wandb.config.Ds = Ds

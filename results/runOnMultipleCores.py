@@ -15,7 +15,8 @@ parser = argparse.ArgumentParser(
     description='Run target script on multiple cores.',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
 )
-parser.add_argument('target', type=str, help="relative path to the script to be run")
+parser.add_argument('target', type=str, help="the script to be run by subprocess")
+parser.add_argument('--args_string', type=str, default="", help="the string of args to be passed to the subprocess")
 parser.add_argument('--num_runs', type=int, default=20, help="the total number of times to run the target script")
 parser.add_argument('--num_cores', type=int, default=6, help="size of worker pool")
 parser.add_argument('--key', type=str, default="", help="A common string to be passed to each process. Used to group runs together.")
@@ -25,12 +26,16 @@ args = parser.parse_args()
 # Post processing of key parameter
 assert (args.key != "") or (args.add_nonce), "Either provide a key using '--key my_key' or disable --add_nonce False to ensure key uniqueness."
 if args.add_nonce:
-    args.key += '-' + str(uuid.uuid4()).split('-')[0]
+    args.key += ' ' + str(uuid.uuid4()).split('-')[0]
 
 # The function that runs on each core -
 # performs system command line call to run the target script
 def f(run_number):
-    subprocess.run(['python3', args.target, args.key])
+    if len(args.args_string) > 0:
+        subprocess.run(['python3', args.target, '--key', args.key, *args.args_string.split(' ')])
+    else:
+        print(['python3', args.target, '--key', args.key])
+        subprocess.run(['python3', args.target, '--key', args.key])
 
 # Start multiple processes on multiple cores
 with Pool(processes=args.num_cores) as pool:

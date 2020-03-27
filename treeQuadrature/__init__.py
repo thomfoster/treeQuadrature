@@ -3,6 +3,6 @@ import treeQuadrature.containerIntegration
 import treeQuadrature.exampleDistributions
 import treeQuadrature.utils
 import treeQuadrature.visualisation
-import treeQuadrature.selection
+import treeQuadrature.integrators
 
 from .container import Container

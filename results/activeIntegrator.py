@@ -1,72 +1,80 @@
 import wandb
-import numpy as np
 import sys
+import argparse
+import problems
 
 import numpy as np
-from problems import SimpleGaussian
-from treeQuadrature import Container
-from treeQuadrature.splits import kdSplit, minSseSplit
-from treeQuadrature.containerIntegration import midpointIntegral, randomIntegral
-from treeQuadrature.visualisation import plotContainer
-from treeQuadrature.utils import scale
+import treeQuadrature as tq
+
 from queue import SimpleQueue
 from functools import partial
-
-import matplotlib.pyplot as plt
-from matplotlib import cm
 from datetime import datetime
 
-Ds = list(range(1,11))  # dimensions to test
-N = 20_000
-TOTAL_SPLITS = 6000
-P = 3
-accentuation_factor = 50
 
-class ReservoirQueue:
-    def __init__(self, accentuation_factor=1):
-        '''The higher the accentuation factor the more like a priority queue it is'''
-        self.items = []
-        self.weights = []
-        self.n = 0
-        self.accentuation_factor = accentuation_factor
+########################
+# Input processing
+########################
 
-    def put(self, item, weight):
-        self.items.append(item)
-        self.weights.append(weight)
-        self.n += 1
+parser = argparse.ArgumentParser(
+    description='Run the simpleIntegrator treeQuadrature method over dimensions 1,...,max_d.',
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter
+)
+parser.add_argument('--problem', type=str, default='SimpleGaussian', help='The problem to test on')
+parser.add_argument('--N', type=int, default=100_000, help="Number of samples to draw, in advance, from the distribution.")
+parser.add_argument('--P', type=int, default=10, help="Stop splitting containers when they have less than P samples")
+parser.add_argument('--split', type=str, default='kdSplit', help="Method used to split containers")
+parser.add_argument('--integral', type=str, default='midpointIntegral', help="Method used to integrate containers")
+parser.add_argument('--total_splits', type=int, default=6000, help='limit the number of splits the integrator is allowed to perform')
+parser.add_argument('--accentuation_factor', type=int, default=100, help="weights in the reservoir queue are raised to this power. The higher the value the more the reservoir becomes like a priority queue")
+parser.add_argument('--max_d', type=int, default=10, help="Maximum dimension to test the integrator in")
+parser.add_argument('--weight', type=str, default='yvar', help="name of function used to assign the probability weight for a container")
+parser.add_argument('--key', type=str, default='', help='Key to submit to weights and biases that can be used to group this run with other runs')
+parser.add_argument('--wandb_project', type=str, default='BoilerPlate', help='Weights and Bias project to log results to')
+parser.add_argument('--num_extra_samples', type=int, default=100, help="If randomIntegral is selected, this is the number of extra samples that this method draws uniformly over the container to integrate it. Else unused.")
+args = parser.parse_args()
 
-    def get(self):
-        if self.n == 0:
-            return None
-        else:
-            min_val = min(self.weights)
-            range_val = 1 + max(self.weights) - min_val
-            f = lambda w : ((w - min_val + 1)/range_val)**self.accentuation_factor
-            probabilities = [f(weight) for weight in self.weights]
-            sum_weights = sum(probabilities)
-            probabilities = [p / sum_weights for p in probabilities]
-            choice_of_index = np.random.choice(list(range(len(self.items))), p=probabilities)
-            choice = self.items.pop(choice_of_index)
-            chosen_weight = self.weights.pop(choice_of_index)
-            self.n -= 1
-            return choice
-    
-    def empty(self):
-        return self.n == 0
+Ds = list(range(1, args.max_d + 1))
+
+if args.problem == 'SimpleGaussian':
+    problem = problems.SimpleGaussian
+elif args.problem == 'Camel':
+    problem = problems.Camel
+elif args.problem == 'QuadCamel':
+    problem = problems.QuadCamel
+else:
+    raise Exception(f'Specified problem {args.problem} is not recognised - try CaptialisedCamelCase')
+
+if args.split == 'kdSplit':
+    split = tq.splits.kdSplit
+elif args.split == 'minSseSplit':
+    split = tq.splits.minSseSplit
+else:
+    raise Exception(f'Split method {args.split} not recognised')
+
+if args.integral == 'midpointIntegral':
+    integral = tq.containerIntegration.midpointIntegral
+elif args.integral == 'medianIntegral':
+    integral = tq.containerIntegration.medianIntegral
+elif args.integral == 'randomIntegral':
+    integral = partial(tq.containerIntegration.randomIntegral, n=args.num_extra_samples)
+else:
+    raise Exception(f'Integral method {args.integral} not recognised')
+
+if args.weight == 'yvar':
+    weight = lambda c: np.var(c.y)
+elif args.weight == 'volume':
+    weight = lambda c: c.volume
+else:
+    raise Exception(f'Weight method {args.weight} not recognised')
 
 
+######################################################
 # Define the Integrator we gonna be testing today
-# Define the Integrator we gonna be testing today
-class SimpleIntegrator:
-    '''
-    A simple integrator has the following pattern:
-        - Draw <N> samples
-        - Keep performing <split> method on containers...
-        - ...until each container has less than <P> samples
-        - Then perform  <integral> on each container and sum.
-    '''
+######################################################
+
+class ReservoirIntegrator:
     
-    def __init__(self, N, P, split, integral):
+    def __init__(self, base_N, active_N, ):
         self.N = N
         self.P = P
         self.split = split

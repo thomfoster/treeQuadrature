@@ -2,6 +2,10 @@ import numpy as np
 
 from scipy.stats import multivariate_normal
 
+# TODO: These multimodal distributions I've created - I'm not sure they're exactly 
+# what the say they are. Check with Ben whether the which_dist approach works.
+
+
 class Uniform:
     def __init__(self, D, low, high):
         self.D = D
@@ -17,6 +21,7 @@ class Uniform:
             return np.array([1/pdfVal for x in X]).reshape(X.shape[0], 1)
         else:
             return np.zeros(shape=(X.shape[0], 1))
+
 
 class MultivariateNormal:
     '''Example of how to wrap function to use in this module.'''
@@ -36,32 +41,28 @@ class MultivariateNormal:
         return self.d.pdf(X).reshape(-1, 1)
 
 
-class RandomMultimodal:
-    '''Unnormalised multimodal gaussian distro'''
-
-    def __init__(self, dims, n_modes):
+class MixtureDistribution:
+    """Base class for our multimodal distributions"""
+    def __init__(self, dims):
         self.dims = dims
-        self.n_modes = n_modes
-
-        # choose modes somewhere between {-10,10}^dims
-        means = np.random.uniform(size=(n_modes, dims))
-        means = 20*means - 10
-        self.dists = [multivariate_normal(mean=mean) for mean in means]
+        # Inherited classes define how to choose mixture dists
+        self.dists = []
 
     def rvs(self, n_samples):
-        n_samples_per_mode = n_samples // self.n_modes
-        samples = np.vstack(
-            [dist.rvs(n_samples_per_mode).reshape(-1, self.dims) for dist in self.dists])
-        return samples
-
+        dists = list(range(len(self.dists)))
+        which_dist = np.random.choice(dists, size=(n_samples,))
+        X = np.array([self.dists[i].rvs(1).reshape(-1,) for i in which_dist])
+        return X
+    
     def pdf(self, x):
-        fvals = [dist.pdf(x).reshape(-1,) for dist in self.dists]
+        n_dists = len(self.dists)
+        fvals = [dist.pdf(x).reshape(-1,) / n_dists for dist in self.dists]
         fvals = np.stack(fvals)
         sums = np.sum(fvals, axis=0)
-        return sums
+        return sums.reshape(-1, 1)
 
 
-class Camel:
+class Camel(MixtureDistribution):
     '''
     Specific multimodal distro used as a test in the literature.
 
@@ -82,25 +83,12 @@ class Camel:
             multivariate_normal(mean=[mean2]*dims, cov=cov)
             ]
 
-    def rvs(self, n_samples):
-        n_samples_per_mode = n_samples // 2
-        samples = np.vstack(
-            [dist.rvs(n_samples_per_mode).reshape(-1, self.dims) for dist in self.dists]
-        )
-        return samples
 
-    def pdf(self, x):
-        fvals = [dist.pdf(x).reshape(-1,) for dist in self.dists]
-        fvals = np.stack(fvals)
-        sums = np.sum(fvals, axis=0)
-        return sums
-
-
-class QuadCamel:
+class QuadCamel(MixtureDistribution):
     '''
     Complementary test to the camel, more humps, more spaced out.
 
-    It is 4 d dimensiona gaussians, with sigma=1/(10sqrt(2)), 
+    It is 4 d-dimensiona gaussians, with sigma=1/(10sqrt(2)), 
     placed at 1,3,5,7 along the unit hypercube.
     '''
 
@@ -120,16 +108,3 @@ class QuadCamel:
             multivariate_normal(mean=[mean3]*dims, cov=cov),
             multivariate_normal(mean=[mean4]*dims, cov=cov)
             ]
-
-    def rvs(self, n_samples):
-        n_samples_per_mode = n_samples // 4
-        samples = np.vstack(
-            [dist.rvs(n_samples_per_mode).reshape(-1, self.dims) for dist in self.dists]
-        )
-        return samples
-
-    def pdf(self, x):
-        fvals = [dist.pdf(x).reshape(-1,) for dist in self.dists]
-        fvals = np.stack(fvals)
-        sums = np.sum(fvals, axis=0)
-        return sums

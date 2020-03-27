@@ -1,101 +1,99 @@
 import wandb
-import numpy as np
 import sys
+import argparse
+import problems
 
-from problems import QuadCamel
-from treeQuadrature import Container
-from treeQuadrature.splits import kdSplit, minSseSplit
-from treeQuadrature.containerIntegration import midpointIntegral, randomIntegral
-from queue import SimpleQueue
+import numpy as np
+import treeQuadrature as tq
+
 from functools import partial
-
 from datetime import datetime
-
-Ds = list(range(1,11))  # dimensions to test
-N = 7_000
-P = 10
+from tqdm import tqdm
 
 
-# Define the Integrator we gonna be testing today
-class SimpleIntegrator:
-    '''
-    A simple integrator has the following pattern:
-        - Draw <N> samples
-        - Keep performing <split> method on containers...
-        - ...until each container has less than <P> samples
-        - Then perform  <integral> on each container and sum.
-    '''
-    
-    def __init__(self, N, P):
-        self.N = N
-        self.P = P
-        
-    def __call__(self, problem):
-        D = problem.D
-        
-        # Draw samples
-        X = problem.d.rvs(self.N)
-        y = problem.pdf(X)
-        
-        root = Container(X, y, mins=[problem.low]*D, maxs=[problem.high]*D)
-        
-        # Construct tree
-        finished_containers = []
-        q = SimpleQueue()
-        q.put(root)
+########################
+# Input processing
+########################
 
-        while not q.empty():
+parser = argparse.ArgumentParser(
+    description='Run the simpleIntegrator treeQuadrature method over dimensions 1,...,max_d.',
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter
+)
+parser.add_argument('--problem', type=str, default='SimpleGaussian', help='The problem to test on')
+parser.add_argument('--N', type=int, default=100_000, help="Number of samples to draw, in advance, from the distribution.")
+parser.add_argument('--P', type=int, default=10, help="Stop splitting containers when they have less than P samples")
+parser.add_argument('--split', type=str, default='kdSplit', help="Method used to split containers")
+parser.add_argument('--integral', type=str, default='midpointIntegral', help="Method used to integrate containers")
+parser.add_argument('--max_d', type=int, default=10, help="Maximum dimension to test the integrator in")
+parser.add_argument('--key', type=str, default='', help='Key to submit to weights and biases that can be used to group this run with other runs')
+parser.add_argument('--wandb_project', type=str, default='BoilerPlate', help='Weights and Bias project to log results to')
+parser.add_argument('--num_extra_samples', type=int, default=100, help="If randomIntegral is selected, this is the number of extra samples that this method draws uniformly over the container to integrate it. Else unused.")
+args = parser.parse_args()
 
-            c = q.get()
+print("Running with: ")
+for k, v in vars(args).items():
+    print(f'{k}: {v}')
+print()
 
-            if c.N <= self.P:
-                finished_containers.append(c)
-            else:
-                children = minSseSplit(c, problem.pdf)
-                for child in children:
-                    q.put(child)
+Ds = list(range(1, args.max_d + 1))
 
-        # Integrate containers
-        contributions = [randomIntegral(cont, problem.pdf, n=100) for cont in finished_containers]
-        G = np.sum(contributions)
-        
-        return G
-    
+if args.problem == 'SimpleGaussian':
+    problem = problems.SimpleGaussian
+elif args.problem == 'Camel':
+    problem = problems.Camel
+elif args.problem == 'QuadCamel':
+    problem = problems.QuadCamel
+else:
+    raise Exception(f'Specified problem {args.problem} is not recognised - try CaptialisedCamelCase')
 
+if args.split == 'kdSplit':
+    split = tq.splits.kdSplit
+elif args.split == 'minSseSplit':
+    split = tq.splits.minSseSplit
+else:
+    raise Exception(f'Split method {args.split} not recognised')
+
+if args.integral == 'midpointIntegral':
+    integral = tq.containerIntegration.midpointIntegral
+elif args.integral == 'medianIntegral':
+    integral = tq.containerIntegration.medianIntegral
+elif args.integral == 'randomIntegral':
+    integral = partial(tq.containerIntegration.randomIntegral, n=args.num_extra_samples)
+else:
+    raise Exception(f'Integral method {args.integral} not recognised')
+   
+
+
+#######################################
 # Define the test for each dimension
+# - largely the same for any integrator
+#######################################
+
 def experiment(problem, integ):
     start_time = datetime.now()
-    I_hat = integ(problem)
+    I_hat, N = integ(problem, return_N=True)
     end_time = datetime.now()
     
     d = {}
     d['D'] = problem.D
-    d['N'] = integ.N
+    d['N'] = N
     d['pcntError'] = 100 * (I_hat - problem.answer) / problem.answer
     d['time'] =  (end_time - start_time).total_seconds()
-    
+
     wandb.log(d)
-    
-def main():
-    assert len(sys.argv) == 2, 'Usage: thisScript.py groupKey'
-    
-    # Set up experiment
-    wandb.init(project="QuadCamel")
 
-    # Params for config logging
-    wandb.config.Ds = Ds
-    wandb.config.key = str(sys.argv[1])
-    wandb.config.N = N
-    wandb.config.P = P
-    wandb.config.split = str(minSseSplit)
-    wandb.config.integral = str(randomIntegral)
 
-    # Run the experiment
-    for D in Ds:
-        problem = QuadCamel(D)
-        # make split, integral partials here if needed
-        integ = SimpleIntegrator(N, P)
-        experiment(problem, integ)
-        
-if __name__ == '__main__':
-    main()
+#######################################################################
+# Start of script
+#######################################################################
+
+# Set up experiment
+wandb.init(project=args.wandb_project)
+
+# Log args
+wandb.config.update(vars(args))
+
+for D in tqdm(Ds):
+    problem_instance = problem(D)
+    integ = tq.integrators.SimpleIntegrator(args.N, args.P, split, integral)
+    experiment(problem_instance, integ)

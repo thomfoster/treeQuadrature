@@ -1,12 +1,12 @@
 import numpy as np
 
-def minSseSplit(container, f, **kwargs):
+def minSseSplit(container, **kwargs):
     '''Partition into k sets that minimize variance of f over each set'''
 
     samples = container.X
     dims = samples.shape[1]
 
-    ys = f(samples)
+    ys = container.y.reshape(-1)
     
     best_dimension = -1
     best_thresh = np.inf

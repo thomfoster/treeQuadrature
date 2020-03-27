@@ -5,7 +5,7 @@ import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 
-from problems import SimpleGaussian
+from problems import QuadCamel
 
 # define globals
 N = 100_000  # num samples to draw
@@ -50,7 +50,7 @@ def main():
 
     # Run the experiment
     for D in Ds:
-        problem = SimpleGaussian(D)
+        problem = QuadCamel(D)
         experiment(problem, integ)
         
 if __name__ == '__main__':

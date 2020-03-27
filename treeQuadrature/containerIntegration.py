@@ -23,5 +23,6 @@ def randomIntegral(container, f, n=1):
     '''Boxlike integral. Take height as mean value over n uniform samples.'''
     samples = container.rvs(n)
     ys = f(samples)
-    y = np.mean(ys)
+    container.add(samples, ys)
+    y = np.median(ys)  # I deliberately ignore previous samples which give skewed estimates
     return y * container.volume

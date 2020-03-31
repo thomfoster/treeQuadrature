@@ -1,59 +1,9 @@
 import numpy as np
 import warnings
 
+from ..queues import ReservoirQueue
 from ..container import Container
 from functools import partial
-
-class ReservoirQueue:
-    def __init__(self, accentuation_factor=1):
-        """
-        Queue that gets items randomly with probability accordingly to their weight.
-        
-        args
-        ------
-        accentuation_factor: float - weights are scaled to (0,1] then raised to the power of 
-                                     this accentuation factor. Higher accentuation factors make
-                                     the queue behaviour more and more deterministically, since 
-                                     the difference between the highest and lowest weights weights
-                                     are "accentuated."
-        """
-        self.items = []
-        self.weights = []
-        self.n = 0
-        self.accentuation_factor = accentuation_factor
-
-    def put(self, item, weight):
-        self.items.append(item)
-        self.weights.append(weight)
-        self.n += 1
-
-    def get(self):
-        if self.n == 0:
-            return None
-        else:
-            min_val = min(self.weights)
-            range_val = 1 + max(self.weights) - min_val
-            f = lambda w : ((w - min_val + 1e-5)/range_val)**self.accentuation_factor
-            probabilities = [f(weight) for weight in self.weights]
-            sum_weights = sum(probabilities)
-            probabilities = [p / sum_weights for p in probabilities]
-            choice_of_index = np.random.choice(list(range(len(self.items))), p=probabilities)
-            choice = self.items.pop(choice_of_index)
-            chosen_weight = self.weights.pop(choice_of_index)
-            self.n -= 1
-            return choice
-    
-    def empty(self):
-        return self.n == 0
-
-
-# TODO - Add priority queue support
-
-# class PriorityQueue:
-#     def __init__(self):
-#         self.q = 
-
-
 
 # Default finished condition will never prevent container being split
 default_stopping_condition = lambda container: False
@@ -90,7 +40,7 @@ class ReservoirIntegrator:
         self.integral = integral
         self.weighting_function = weighting_function
         self.active_N = active_N
-        self.num_splits = np.inf
+        self.num_splits = num_splits
         self.stopping_condition = stopping_condition
         self.queue = queue
         
@@ -141,5 +91,5 @@ class ReservoirIntegrator:
         N = sum([cont.N for cont in finished_containers])
         
         ret = (G,N) if return_N else G
-        ret = (G, finished_containers, contributions, N) if return_all else ret
+        ret = (G, finished_containers, contributions, N, current_n_splits) if return_all else ret
         return ret

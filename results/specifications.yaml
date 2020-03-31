@@ -1,0 +1,17 @@
+---
+defaults:
+  num_cores: 5
+  num_runs: 10
+  verbose: "True"
+experiments:
+  - target: "test_simpleIntegrator.py"
+    problem: "SimpleGaussian"
+    N: 100000
+
+  - target: "test_simpleIntegrator.py"
+    problem: "SimpleGaussian"
+    N: 50000
+    
+  - target: "test_simpleIntegrator.py"
+    problem: "QuadCamel"
+    N: 200000

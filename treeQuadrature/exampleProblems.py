@@ -1,6 +1,6 @@
 import numpy as np
 
-import treeQuadrature.exampleDistributions as distros
+from treeQuadrature import exampleDistributions
 
 """
 Defines the specific problems we want results for.
@@ -19,6 +19,7 @@ class Problem:
         # Combined pdf ie d(x) * p(x)
         return self.d.pdf(X) * self.p.pdf(X)
 
+
 class SimpleGaussian(Problem):
     """
     Likelihood: N(0, 1/(10*sqrt(2)))
@@ -26,10 +27,10 @@ class SimpleGaussian(Problem):
     """
     def __init__(self, D):
         self.D = D
-        self.d = distros.MultivariateNormal(D=D, mean=[0.0]*D, cov=1/200)
+        self.d = exampleDistributions.MultivariateNormal(D=D, mean=[0.0]*D, cov=1/200)
         self.low = -1.0
         self.high = 1.0
-        self.p = distros.Uniform(D=D, low=self.low, high=self.high)
+        self.p = exampleDistributions.Uniform(D=D, low=self.low, high=self.high)
         
         # Truth
         self.answer = 1/(2.0**D)
@@ -42,10 +43,10 @@ class Camel(Problem):
     """
     def __init__(self, D):
         self.D = D
-        self.d = distros.Camel(D)
+        self.d = exampleDistributions.Camel(D)
         self.low = -0.5
         self.high = 1.5
-        self.p = distros.Uniform(D=D, low=self.low, high=self.high)
+        self.p = exampleDistributions.Uniform(D=D, low=self.low, high=self.high)
 
         #Truth
         self.answer = 1/(2.0**D)
@@ -60,10 +61,10 @@ class QuadCamel(Problem):
     """
     def __init__(self, D):
         self.D = D
-        self.d = distros.QuadCamel(D)
+        self.d = exampleDistributions.QuadCamel(D)
         self.low = 0.0
         self.high = 10.0
-        self.p = distros.Uniform(D=D, low=self.low, high=self.high)
+        self.p = exampleDistributions.Uniform(D=D, low=self.low, high=self.high)
 
         #Truth
         self.answer = 1/(10.0**D)

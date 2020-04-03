@@ -43,7 +43,7 @@ class Container:
     def __init__(self, X, y, mins=None, maxs=None):
         assert X.ndim == 2
         assert y.ndim == 2
-        assert y.shape[0] == X.shape[0]
+        assert X.shape[0] == y.shape[0]
         assert y.shape[1] == 1
 
         self.D = X.shape[1]
@@ -70,8 +70,8 @@ class Container:
         assert new_X.shape[0] == new_y.shape[0]
         assert new_X.shape[1] == self.D
         assert new_y.shape[1] == 1
-        assert np.all(new_X >= self.mins)
-        assert np.all(new_X <= self.maxs)
+        assert np.all(new_X >= self.mins), new_X[new_X < self.mins]
+        assert np.all(new_X <= self.maxs), new_X[new_X > self.maxs]
         
         self._X.add(new_X)
         self._y.add(new_y)

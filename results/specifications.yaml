@@ -1,17 +1,38 @@
 ---
 defaults:
-  num_cores: 5
-  num_runs: 10
+  num_cores: 6
+  num_runs: 20
   verbose: "True"
+  problem: "QuadCamel"
+  wandb_project: "QuadCamel"
 experiments:
-  - target: "test_simpleIntegrator.py"
-    problem: "SimpleGaussian"
-    N: 100000
+  # - target: "test_smcIntegrator.py"
+  #   key: "AAAA"
+  #   N: 100000
 
-  - target: "test_simpleIntegrator.py"
-    problem: "SimpleGaussian"
-    N: 50000
+  - target: "test_vegasIntegrator.py"
+    key: "BBBB"
+    N: 10000
+    NITN: 10
     
-  - target: "test_simpleIntegrator.py"
-    problem: "QuadCamel"
-    N: 200000
+  # - target: "test_simpleIntegrator.py"
+  #   key: "DDDD"
+  #   N: 10_000
+  #   P: 20
+
+  # - target: "test_simpleIntegrator.py"
+  #   key: "EEEE"
+  #   N: 10_000
+  #   P: 40
+
+  # - target: "test_simpleIntegrator.py"
+  #   key: "GGGG"
+  #   split: "minSseSplit"
+  #   N: 10_000
+  #   P: 40
+
+  # - target: "test_simpleIntegrator.py"
+  #   key: "HHHH"
+  #   split: "minSseSplit"
+  #   N: 10_000
+  #   P: 5

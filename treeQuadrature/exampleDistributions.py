@@ -49,6 +49,9 @@ class MixtureDistribution:
         self.dists = []
 
     def rvs(self, n_samples):
+        if n_samples == 0:
+            return np.empty(shape=(0, self.dims))
+            
         dists = list(range(len(self.dists)))
         which_dist = np.random.choice(dists, size=(n_samples,))
         X = np.array([self.dists[i].rvs(1).reshape(-1,) for i in which_dist])

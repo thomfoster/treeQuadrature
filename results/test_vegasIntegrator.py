@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser(
 
 # Method specific args
 parser.add_argument('--N', type=int, default=10_000, help="Number of samples to draw, in advance, from the distribution.")
-parser.add_argument('--NITN', type=int, defualt=10, help="Number of adaptive iterations to perform")
+parser.add_argument('--NITN', type=int, default=10, help="Number of adaptive iterations to perform")
 
 # Method agnostic args
 parser.add_argument('--problem', type=str, default='SimpleGaussian', help='The problem to test on')
@@ -35,6 +35,9 @@ for k, v in vars(args).items():
 print()
 
 Ds = list(range(1, args.max_d + 1))
+
+if args.wandb_project == "by_problem_name":
+    args.wandb_project = args.problem
 
 if args.problem == 'SimpleGaussian':
     problem = tq.exampleProblems.SimpleGaussian
@@ -53,12 +56,12 @@ else:
 
 def experiment(problem, integ):
     start_time = datetime.now()
-    I_hat, N = integ(problem, return_N=True)
+    I_hat = integ(problem)
     end_time = datetime.now()
     
     d = {}
     d['D'] = problem.D
-    d['N'] = N
+    d['N'] = args.N * args.NITN
     d['pcntError'] = 100 * (I_hat - problem.answer) / problem.answer
     d['time'] =  (end_time - start_time).total_seconds()
 

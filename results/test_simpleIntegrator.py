@@ -19,10 +19,10 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
 )
 parser.add_argument('--N', type=int, default=10_000, help="Number of samples to draw, in advance, from the distribution.")
-parser.add_argument('--P', type=int, default=40, help="Stop splitting containers when they have less than P samples")
+parser.add_argument('--P', type=int, default=10, help="Stop splitting containers when they have less than P samples")
 parser.add_argument('--split', type=str, default='kdSplit', help="Method used to split containers")
-parser.add_argument('--integral', type=str, default='midpointIntegral', help="Method used to integrate containers")
-parser.add_argument('--num_extra_samples', type=int, default=100, help="If randomIntegral is selected, this is the number of extra samples that this method draws uniformly over the container to integrate it. Else unused.")
+parser.add_argument('--integral', type=str, default='randomIntegral', help="Method used to integrate containers")
+parser.add_argument('--num_extra_samples', type=int, default=10, help="If randomIntegral is selected, this is the number of extra samples that this method draws uniformly over the container to integrate it. Else unused.")
 
 parser.add_argument('--problem', type=str, default='SimpleGaussian', help='The problem to test on')
 parser.add_argument('--max_d', type=int, default=10, help="Maximum dimension to test the integrator in")
@@ -36,6 +36,9 @@ for k, v in vars(args).items():
 print()
 
 Ds = list(range(1, args.max_d + 1))
+
+if args.wandb_project == "by_problem_name":
+    args.wandb_project = args.problem
 
 if args.problem == 'SimpleGaussian':
     problem = tq.exampleProblems.SimpleGaussian

@@ -1,4 +1,4 @@
 from .simpleIntegrator import SimpleIntegrator
-from .reservoirIntegrator import ReservoirIntegrator
+from .queueIntegrator import QueueIntegrator
 from .smcIntegrator import SmcIntegrator
 from .vegasIntegrator import VegasIntegrator

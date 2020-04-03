@@ -18,7 +18,7 @@ class SimpleIntegrator:
         self.split = split
         self.integral = integral
         
-    def __call__(self, problem, return_N=False):
+    def __call__(self, problem, return_N=False, return_all=False):
         D = problem.D
         
         # Draw samples
@@ -49,4 +49,5 @@ class SimpleIntegrator:
         N = sum([cont.N for cont in finished_containers])
         
         ret = (G,N) if return_N else G
+        ret = (G, N, finished_containers, contributions) if return_all else ret
         return ret

@@ -20,7 +20,11 @@ class VegasIntegrator:
         self.N = N
         self.NITN = NITN
 
-    def __call__(self, problem):
+    def __call__(self, problem, return_N=False, return_all=False):
         integ = vegas.Integrator([[-1.0, 1.0]]*problem.D)
         f = ShapeAdapter(problem.pdf)
-        return integ(f, nitn=self.NITN, neval=self.N).mean
+        G = integ(f, nitn=self.NITN, neval=self.N).mean
+
+        ret = (G, self.N * self.NITN) if return_N else G
+        ret = (G, self.N * self.NITN) if return_all else ret
+        return ret

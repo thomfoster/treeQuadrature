@@ -35,6 +35,9 @@ print()
 
 Ds = list(range(1, args.max_d + 1))
 
+if args.wandb_project == "by_problem_name":
+    args.wandb_project = args.problem
+    
 if args.problem == 'SimpleGaussian':
     problem = tq.exampleProblems.SimpleGaussian
 elif args.problem == 'Camel':
@@ -52,12 +55,12 @@ else:
 
 def experiment(problem, integ):
     start_time = datetime.now()
-    I_hat, N = integ(problem, return_N=True)
+    I_hat = integ(problem)
     end_time = datetime.now()
     
     d = {}
     d['D'] = problem.D
-    d['N'] = N
+    d['N'] = args.N
     d['pcntError'] = 100 * (I_hat - problem.answer) / problem.answer
     d['time'] =  (end_time - start_time).total_seconds()
 

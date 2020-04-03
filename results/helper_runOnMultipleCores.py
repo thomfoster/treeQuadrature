@@ -22,19 +22,21 @@ parser.add_argument('--verbose', action="store_true", help="Display the interlea
 parser.add_argument('--num_runs', type=int, default=20, help="the total number of times to run the target script")
 parser.add_argument('--num_cores', type=int, default=6, help="size of worker pool")
 parser.add_argument('--key', type=str, default="", help="A common string to be passed to each process. Used to group runs together.")
-parser.add_argument('--add_nonce', type=bool, default=True, help='append a random unique string to the "key" variable, to ensure that this batch of runs all have unique keys.')
+parser.add_argument('--remove_nonce', action="store_true", help='append a random unique string to the "key" variable, to ensure that this batch of runs all have unique keys.')
 args = parser.parse_args()
 
-print()
-print('Running with args: ')
-for k,v in vars(args).items():
-    print(k, v)
-print()
-
 # Post processing of key parameter
-assert (args.key != "") or (args.add_nonce), "Either provide a key using '--key my_key' or disable --add_nonce False to ensure key uniqueness."
-if args.add_nonce:
+if args.key == "by_target_name":
+    args.key = args.target.split("_")[1].split(".")[0]
+assert (args.key != "") or not (args.remove_nonce), "Either provide a key using '--key my_key' or remove the --remove_nonce flag to ensure key uniqueness."
+if not args.remove_nonce:
     args.key += ' ' + str(uuid.uuid4()).split('-')[0]
+
+print()
+print('Runing on multiple cores with args: ')
+for k,v in vars(args).items():
+    print(k, "=", v)
+print()
 
 # The function that runs on each core -
 # performs system command line call to run the target script

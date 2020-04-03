@@ -9,7 +9,7 @@ from functools import partial
 default_stopping_condition = lambda container: False
 default_queue = ReservoirQueue(accentuation_factor=100)
 
-class ReservoirIntegrator:
+class QueueIntegrator:
 
     def __init__(
         self, base_N, split, integral, weighting_function,
@@ -57,7 +57,7 @@ class ReservoirIntegrator:
         # Construct tree
         current_n_splits = 0
         finished_containers = []
-        q = self.queue
+        q = self.queue()
         q.put(root,1)
 
         while (not q.empty()) and (current_n_splits < self.num_splits):
@@ -91,5 +91,5 @@ class ReservoirIntegrator:
         N = sum([cont.N for cont in finished_containers])
         
         ret = (G,N) if return_N else G
-        ret = (G, finished_containers, contributions, N, current_n_splits) if return_all else ret
+        ret = (G, N, finished_containers, contributions, current_n_splits) if return_all else ret
         return ret

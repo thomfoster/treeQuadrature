@@ -19,10 +19,13 @@ def medianIntegral(container, f):
 
     return median * container.volume
 
-def randomIntegral(container, f, n=1):
+def randomIntegral(container, f, n=10):
     '''Boxlike integral. Take height as mean value over n uniform samples.'''
     samples = container.rvs(n)
     ys = f(samples)
-    container.add(samples, ys)
+    container.add(samples, ys)  # for tracking num function evaluations
     y = np.median(ys)  # I deliberately ignore previous samples which give skewed estimates
     return y * container.volume
+
+def smcIntegral(container, f):
+    pass

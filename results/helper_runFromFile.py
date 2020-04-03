@@ -13,6 +13,8 @@ with open(args.file, 'r') as f:
     d = yaml.safe_load(f)
 
 defaults = d.get("defaults", {})
+verbose_default = defaults.pop('verbose', False)
+remove_nonce_default = defaults.pop('remove_nonce', False)
 
 args_for_runOnMultipleCores = [
     'target',
@@ -21,24 +23,30 @@ args_for_runOnMultipleCores = [
     'num_runs',
     'num_cores',
     'key',
-    'add_nonce'
+    'remove_nonce'
 ]
-
-def format_dict_as_args(d):
-    args = []
-    for k, v in d.items():
-        if k == "verbose":
-            if v == "True":
-                args.append("--" + str(k))
-        else:
-            args.append("--" + str(k))
-            args.append(str(v))
-    return args
 
 for experiment in d['experiments']:
     # prepare system call to helper_runOnMultipleCores.py
-    args1 = format_dict_as_args(defaults)  # for runOnMultipleCores
+    args1 = []  # for runOnMultipleCores
     args2 = []  # for the test_XXX.py that runOnMultipleCores will run
+
+    verbose = experiment.pop('verbose', verbose_default)
+    if verbose:
+        args1.append("--verbose")
+
+    remove_nonce = experiment.pop('remove_nonce', remove_nonce_default)
+    if remove_nonce:
+        args1.append("--remove_nonce")
+
+    for k,v in defaults.items():
+        if k in args_for_runOnMultipleCores:
+            args1.append("--"+str(k))
+            args1.append(str(v))
+        else:
+            args2.append("--"+str(k))
+            args2.append(str(v))
+
     for k,v in experiment.items():
         if k in args_for_runOnMultipleCores:
             args1.append("--" + str(k))
@@ -46,6 +54,6 @@ for experiment in d['experiments']:
         else:
             args2.append("--" + str(k))
             args2.append(str(v))
+
     system_call = ["python", "helper_runOnMultipleCores.py"] + args1 + ["--args_string", " ".join(args2)]
-    print(system_call)
     subprocess.run(system_call)

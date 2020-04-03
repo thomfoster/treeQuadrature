@@ -8,7 +8,11 @@ class SmcIntegrator:
         """
         self.N = N
 
-    def __call__(self, problem):
+    def __call__(self, problem, return_N=False, return_all=False):
         xs = problem.p.rvs(self.N)
         ys = problem.d.pdf(xs).reshape(-1)
-        return np.mean(ys)
+        G = np.mean(ys)
+
+        ret = (G, self.N) if return_N else G
+        ret = (G, self.N) if return_all else ret
+        return ret

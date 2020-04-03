@@ -3,7 +3,7 @@ import numpy as np
 from queue import PriorityQueue as OriginalPQ
 
 class ReservoirQueue:
-    def __init__(self, accentuation_factor=1):
+    def __init__(self, accentuation_factor=30):
         """
         Queue that gets items randomly with probability accordingly to their weight.
         
@@ -65,7 +65,7 @@ class PriorityQueue:
         self.q.put(x)
 
     def get(self):
-        return self.q.get()
+        return self.q.get().item
 
     def empty(self):
         return self.q.empty()

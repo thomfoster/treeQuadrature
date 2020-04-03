@@ -1,0 +1,55 @@
+---
+# The way this works:
+
+# Each experiment is processed in turn, with the keys 
+# under "defaults" being used in the absence of 
+# a similar key being specified for that experiment.
+
+# The following keys can be passed to all targets
+# - target
+# - verbose
+# - num_runs
+# - num_cores
+# - remove_nonce
+# - problem
+# - max_d
+# - key
+# - wandb_project
+
+# Other keys are specific to the target.
+
+defaults:
+  verbose: True
+  num_cores: 6
+  num_runs: 6
+  key: "by_target_name" # special value that is converted to target
+  remove_nonce: True
+  wandb_project: "by_problem_name"  # special value that is converted to problem
+
+# Examples of possible targets and their target specific arguments
+experiments:
+  - target: "test_smcIntegrator.py"
+    N: 1000
+
+  - target: "test_vegasIntegrator.py"
+    N: 1000
+    NITN: 5
+
+  - target: "test_simpleIntegrator.py"
+    N: 1000
+    P: 50
+    split: "kdSplit"
+    integral: "midpointIntegral"
+    num_extra_samples: 10
+
+  - target: "test_queueIntegrator.py"
+    base_N: 1000
+    split: "kdSplit"
+    integral: "randomIntegral"
+    num_extra_samples: 10
+    weighting_function: "yvar"
+    active_N: 10
+    num_splits: 10000
+    stopping_condition: "N<50"
+    queue: "ReservoirQueue"
+

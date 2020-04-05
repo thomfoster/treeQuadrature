@@ -37,7 +37,8 @@ splits = [
 integrals = [
     tq.containerIntegration.medianIntegral,
     tq.containerIntegration.midpointIntegral,
-    tq.containerIntegration.randomIntegral
+    tq.containerIntegration.randomIntegral,
+    tq.containerIntegration.smcIntegral
 ]
 
 queues = [
@@ -50,7 +51,7 @@ queues = [
 @pytest.mark.parametrize("P", [100])
 @pytest.mark.parametrize("split", splits)
 @pytest.mark.parametrize("integral", integrals)
-def test_simpleIntegrator(D, N, P, split, integral):
+def test_SimpleIntegrator(D, N, P, split, integral):
     problem = tq.exampleProblems.SimpleGaussian(D)
     integ = tq.integrators.SimpleIntegrator(N, P, split, integral)
     I = integ(problem)
@@ -64,7 +65,7 @@ def test_simpleIntegrator(D, N, P, split, integral):
 @pytest.mark.parametrize("num_splits", [np.inf, 50])
 @pytest.mark.parametrize("stopping_condition", [lambda container: container.N < 2])
 @pytest.mark.parametrize("queue", queues)
-def test_queueIntegrator(
+def test_QueueIntegrator(
     D, base_N, split, integral, weighting_function,
     active_N, num_splits, stopping_condition, queue):
 
@@ -79,8 +80,28 @@ def test_queueIntegrator(
 
     if "randomIntegral" in str(integral): 
         assert base_N + ns*2*active_N + len(fcs)*10 == N
+    elif "smcIntegral" in str(integral):
+        assert base_N + ns*2*active_N + len(fcs)*10 == N
     else:
         assert base_N + ns*2*active_N == N
 
     if not np.isinf(num_splits):
-        assert ns == num_splits    
+        assert ns == num_splits
+
+@pytest.mark.parametrize("D", [1,2])
+@pytest.mark.parametrize("N", [1000])
+@pytest.mark.parametrize("base_N, active_N", [(0,100), (500,10), (1000, 100)])
+@pytest.mark.parametrize("split", splits)
+@pytest.mark.parametrize("integral", integrals)
+@pytest.mark.parametrize("weighting_function", [lambda container: container.volume])
+@pytest.mark.parametrize("queue", queues)
+def test_LimitedSampleIntegrator(
+    D, N, base_N, active_N, split, integral, weighting_function, queue
+    ):
+
+    problem = tq.exampleProblems.SimpleGaussian(D)
+    integ = tq.integrators.LimitedSampleIntegrator(
+        N, base_N, active_N, split, integral, weighting_function, queue
+    )
+    I, N, fcs, cs, ns = integ(problem, return_all=True)
+

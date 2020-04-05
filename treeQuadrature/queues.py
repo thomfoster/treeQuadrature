@@ -27,17 +27,21 @@ class ReservoirQueue:
         self.weights.append(weight)
         self.n += 1
 
+    def get_probabilities(self, weights):
+        weights = np.array(self.weights)
+        s = sum(weights)
+        ps = weights / s
+        ps = ps + 1   # range is now [1,2], which prevents large accentuation factors driving us into 0 everywhere
+        ps = np.power(ps, self.accentuation_factor)
+        s = sum(ps)
+        ps = ps / s
+        return ps
+
     def get(self):
         if self.n == 0:
             return None
         else:
-            weights = np.array(self.weights)
-            s = sum(weights)
-            ps = weights / s
-            ps = ps + 1   # range is now [1,2], which prevents large accentuation factors driving us into 0 everywhere
-            ps = np.power(ps, self.accentuation_factor)
-            s = sum(ps)
-            ps = ps / s
+            ps = self.get_probabilities(self.weights)
 
             choice_of_index = np.random.choice(list(range(len(self.items))), p=ps)
             choice = self.items.pop(choice_of_index)
@@ -66,6 +70,10 @@ class PriorityQueue:
 
     def get(self):
         return self.q.get().item
+
+    @property
+    def n(self):
+        return self.q.qsize()
 
     def empty(self):
         return self.q.empty()

@@ -66,6 +66,8 @@ elif args.integral == 'medianIntegral':
     integral = tq.containerIntegration.medianIntegral
 elif args.integral == 'randomIntegral':
     integral = partial(tq.containerIntegration.randomIntegral, n=args.num_extra_samples)
+elif args.integral == 'smcIntegral':
+    integral = partial(tq.containerIntegration.smcIntegral, n=args.num_extra_samples)
 else:
     raise Exception(f'Integral method {args.integral} not recognised')
 

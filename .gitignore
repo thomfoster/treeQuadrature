@@ -7,3 +7,4 @@ examples/prototyping - git ignore!.ipynb
 tests/__pycache
 .pytest_cache/
 .vscode/
+wandb/

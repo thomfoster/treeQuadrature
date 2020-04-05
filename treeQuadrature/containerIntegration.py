@@ -27,5 +27,9 @@ def randomIntegral(container, f, n=10):
     y = np.median(ys)  # I deliberately ignore previous samples which give skewed estimates
     return y * container.volume
 
-def smcIntegral(container, f):
-    pass
+def smcIntegral(container, f, n=10):
+    samples = container.rvs(n)
+    ys = f(samples)
+    container.add(samples, ys)  # for tracking num function evaluations
+    v = container.volume
+    return v * np.mean(ys)

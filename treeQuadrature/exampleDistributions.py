@@ -98,10 +98,10 @@ class QuadCamel(MixtureDistribution):
     def __init__(self, dims):
         self.dims = dims
 
-        mean1 = (1/np.sqrt(dims)) * 1
-        mean2 = (1/np.sqrt(dims)) * 3
-        mean3 = (1/np.sqrt(dims)) * 5
-        mean4 = (1/np.sqrt(dims)) * 7
+        mean1 = (1/np.sqrt(dims)) * 2
+        mean2 = (1/np.sqrt(dims)) * 4
+        mean3 = (1/np.sqrt(dims)) * 6
+        mean4 = (1/np.sqrt(dims)) * 8
 
         cov = 1/200
 

@@ -56,7 +56,7 @@ class QuadCamel(Problem):
     """
     A challenging problem with more modes, more spread out, than those in Camel.
 
-    Likelihood: 4 Gaussians 1,3,5,7 units along diagonal. cov = 1/200.
+    Likelihood: 4 Gaussians 2,4,6,8 units along diagonal. cov = 1/200.
     Prior: U([0, 10])
     """
     def __init__(self, D):

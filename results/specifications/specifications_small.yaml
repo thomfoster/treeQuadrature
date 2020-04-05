@@ -1,0 +1,95 @@
+defaults:
+  verbose: True
+  num_cores: 6
+  num_runs: 6
+  key: "by_target_name" # special value that is converted to target
+  remove_nonce: False
+  wandb_project: "BoilerPlate"  # special value that is converted to problem
+
+# Examples of possible targets and their target specific arguments
+experiments:
+  # - target: "test_smcIntegrator.py"
+  #   N: 10000
+
+  - target: "test_vegasIntegrator.py"
+    N: 7000
+    NITN: 15
+
+  # - target: "test_simpleIntegrator.py"
+  #   N: 10000
+  #   P: 2
+  #   split: "kdSplit"
+  #   integral: "midpointIntegral"
+  #   num_extra_samples: 10
+
+  # - target: "test_simpleIntegrator.py"
+  #   N: 7000
+  #   P: 3
+  #   split: "kdSplit"
+  #   integral: "randomIntegral"
+  #   num_extra_samples: 4
+
+  # - target: "test_simpleIntegrator.py"
+  #   N: 10000
+  #   P: 2
+  #   split: "minSseSplit"
+  #   integral: "midpointIntegral"
+  #   num_extra_samples: 10
+
+  # - target: "test_simpleIntegrator.py"
+  #   N: 7000
+  #   P: 3
+  #   split: "minSseSplit"
+  #   integral: "randomIntegral"
+  #   num_extra_samples: 4
+
+  # - target: "test_queueIntegrator.py"
+  #   base_N: 10000
+  #   split: "kdSplit"
+  #   integral: "randomIntegral"
+  #   num_extra_samples: 10
+  #   weighting_function: "yvar"
+  #   active_N: 10
+  #   num_splits: 10000
+  #   stopping_condition: "N<50"
+  #   queue: "ReservoirQueue"
+
+  # - target: "test_limitedSampleIntegrator.py"
+  #   N: 8000
+  #   base_N: 500
+  #   active_N: 30
+  #   split: "minSseSplit"
+  #   integral: "randomIntegral"
+  #   num_extra_samples: 5
+  #   weighting_function: "range"
+  #   queue: "PriorityQueue"
+
+  # - target: "test_limitedSampleIntegrator.py"
+  #   N: 2000
+  #   base_N: 1000
+  #   active_N: 5
+  #   split: "minSseSplit"
+  #   integral: "smcIntegral"
+  #   num_extra_samples: 10
+  #   weighting_function: "range"
+  #   queue: "PriorityQueue"
+
+  # - target: "test_limitedSampleIntegrator.py"
+  #   N: 8000
+  #   base_N: 6000
+  #   active_N: 5
+  #   split: "minSseSplit"
+  #   integral: "smcIntegral"
+  #   num_extra_samples: 10
+  #   weighting_function: "range"
+  #   queue: "PriorityQueue"
+
+  # - target: "test_limitedSampleIntegrator.py"
+  #   N: 5_000
+  #   base_N: 3_000
+  #   active_N: 5
+  #   split: "minSseSplit"
+  #   integral: "smcIntegral"
+  #   num_extra_samples: 20
+  #   weighting_function: "range"
+  #   queue: "PriorityQueue"

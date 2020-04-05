@@ -2,7 +2,7 @@ defaults:
   key: by_target_name
   num_cores: 6
   num_runs: 6
-  problem: Camel
+  problem: QuadCamel
   remove_nonce: false
   verbose: true
   wandb_project: by_problem_name

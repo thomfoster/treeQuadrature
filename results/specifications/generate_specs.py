@@ -19,7 +19,7 @@ experiments = []
 
 experiments.append({
     "target": "test_smcIntegrator.py",
-    "N": 20_000
+    "N": 60_000
 })
 
 
@@ -31,7 +31,7 @@ target = "test_vegasIntegrator.py"
 
 N_NITN_PAIRS = [
     # (1_00, 20),
-    (2_000, 10),
+    (6_000, 10),
     # (5_00, 4),
     # (10_00, 2)
 ]
@@ -51,7 +51,7 @@ for N, NITN in N_NITN_PAIRS:
 target = "test_simpleIntegrator.py"
 
 splits = [
-    "kdSplit",
+    # "kdSplit",
     "minSseSplit"
 ]
 
@@ -70,7 +70,8 @@ splits = [
 #         })
 
 N_extra_N_pairs = [
-    (4_000, 5),
+    (12_000, 5),
+    (6_000, 10)
 ]
 
 integrals = [
@@ -101,7 +102,7 @@ base_Ns = [
     # 1.0,
     0.75,
     # 0.5,
-    # 0.25,
+    0.25,
 ]
 
 splits = [
@@ -110,7 +111,7 @@ splits = [
 ]
 
 extra_Ns = [
-    5
+    5, 10
 ]
 
 weighting_functions = [
@@ -122,7 +123,7 @@ for base_N in base_Ns:
     for split in splits:
         for extra_N in extra_Ns:
             for weighting_function in weighting_functions:
-                N = int(20_000 / extra_N)
+                N = int(60_000 / extra_N)
                 actual_base_N = int(base_N * N)
                 experiments.append({
                     'target': target,

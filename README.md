@@ -4,6 +4,9 @@
 Performs integrations of high dimensional functions.
 
 ## Installation
+Inside the top level of this repo run ```pip install .```
+
+## Installation for developers
 ```cd``` into the top level of this repo.  
 Ideally you would run all these commands inside an activated virtual environment. More on that here: https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/  
 To install dependencies run ```pip install -r requirements.txt```  

@@ -54,7 +54,7 @@ jsonschema==3.0.2
 kiwisolver==1.1.0
 lazy-object-proxy==1.4.3
 llvmlite==0.31.0
-lxml==4.4.1
+lxml==4.6.5
 MarkupSafe==1.1.1
 mccabe==0.6.1
 memory-profiler==0.55.0

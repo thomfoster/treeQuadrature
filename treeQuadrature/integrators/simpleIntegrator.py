@@ -3,6 +3,7 @@ import numpy as np
 from ..container import Container
 from queue import SimpleQueue
 
+
 class SimpleIntegrator:
     '''
     A simple integrator has the following pattern:
@@ -11,22 +12,22 @@ class SimpleIntegrator:
         - ...until each container has less than <P> samples
         - Then perform  <integral> on each container and sum.
     '''
-    
+
     def __init__(self, N, P, split, integral):
         self.N = N
         self.P = P
         self.split = split
         self.integral = integral
-        
+
     def __call__(self, problem, return_N=False, return_all=False):
         D = problem.D
-        
+
         # Draw samples
         X = problem.d.rvs(self.N)
         y = problem.pdf(X)
-        
-        root = Container(X, y, mins=[problem.low]*D, maxs=[problem.high]*D)
-        
+
+        root = Container(X, y, mins=[problem.low] * D, maxs=[problem.high] * D)
+
         # Construct tree
         finished_containers = []
         q = SimpleQueue()
@@ -44,10 +45,11 @@ class SimpleIntegrator:
                     q.put(child)
 
         # Integrate containers
-        contributions = [self.integral(cont, problem.pdf) for cont in finished_containers]
+        contributions = [self.integral(cont, problem.pdf)
+                         for cont in finished_containers]
         G = np.sum(contributions)
         N = sum([cont.N for cont in finished_containers])
-        
-        ret = (G,N) if return_N else G
+
+        ret = (G, N) if return_N else G
         ret = (G, N, finished_containers, contributions) if return_all else ret
         return ret

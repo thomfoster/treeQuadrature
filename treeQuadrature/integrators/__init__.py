@@ -1,5 +1,5 @@
-from .simpleIntegrator import SimpleIntegrator
-from .queueIntegrator import QueueIntegrator
-from .smcIntegrator import SmcIntegrator
-from .vegasIntegrator import VegasIntegrator
-from .limitedSampleIntegrator import LimitedSampleIntegrator
+from .simpleIntegrator import SimpleIntegrator # noqa
+from .queueIntegrator import QueueIntegrator # noqa
+from .smcIntegrator import SmcIntegrator # noqa
+from .vegasIntegrator import VegasIntegrator # noqa
+from .limitedSampleIntegrator import LimitedSampleIntegrator # noqa

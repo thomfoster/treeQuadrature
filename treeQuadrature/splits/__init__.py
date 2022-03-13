@@ -1,3 +1,3 @@
-from .kdSplit import kdSplit
-from .uniformSplit import uniformSplit
-from .minSseSplit import minSseSplit
+from .kdSplit import kdSplit # noqa
+from .uniformSplit import uniformSplit # noqa
+from .minSseSplit import minSseSplit # noqa

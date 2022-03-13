@@ -1,9 +1,10 @@
 import numpy as np
 
+
 class SmcIntegrator:
     def __init__(self, N):
         """
-        Simplest possible integrator. Draw N samples from prior, 
+        Simplest possible integrator. Draw N samples from prior,
         take sample mean of liklihood values at these samples.
         """
         self.N = N

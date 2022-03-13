@@ -13,3 +13,5 @@ wandb/
 venv
 env
 >>>>>>> 5fc76fed417f291c93fd30b37e72a5b2b556a241
+.DS_Store
+buid/*

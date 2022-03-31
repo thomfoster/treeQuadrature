@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def kdSplit(container):
     '''Finds axis with greatest variance and splits perpendicular to it.'''
 

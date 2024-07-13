@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import colormaps
 import numpy as np
 
-from utils import scale
+from treeQuadrature.utils import scale
 
 def plotContainers(containers, contributions, xlim, ylim=None, integrand=None, 
                    title=None, plot_samples = False):

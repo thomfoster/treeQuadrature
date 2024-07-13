@@ -46,25 +46,6 @@ class SimpleIntegrator:
         self.split = split
         self.integral = integral
 
-    def construct_tree(self, root):
-        # Construct tree
-        finished_containers = []
-        q = SimpleQueue()
-        q.put(root)
-
-        while not q.empty():
-
-            c = q.get()
-
-            if c.N <= self.P:
-                finished_containers.append(c)
-            else:
-                children = self.split(c)
-                for child in children:
-                    q.put(child)
-            
-        return finished_containers
-
 
     def __call__(self, problem, return_N=False, return_all=False, return_std=False):
         """
@@ -103,7 +84,6 @@ class SimpleIntegrator:
         containers = self.construct_tree(root)
 
         # uncertainty estimates
-        # TODO - create a separate Integrator for rbfIntegrator
         if return_std:
             signature = inspect.signature(self.integral)
             if 'return_std' in signature.parameters:
@@ -137,3 +117,22 @@ class SimpleIntegrator:
             return_values.append(stds)
 
         return tuple(return_values)
+
+    def construct_tree(self, root):
+        # Construct tree
+        finished_containers = []
+        q = SimpleQueue()
+        q.put(root)
+
+        while not q.empty():
+
+            c = q.get()
+
+            if c.N <= self.P:
+                finished_containers.append(c)
+            else:
+                children = self.split(c)
+                for child in children:
+                    q.put(child)
+            
+        return finished_containers

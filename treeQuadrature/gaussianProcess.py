@@ -7,7 +7,7 @@ from scipy.special import erf
 from scipy.optimize import fmin_l_bfgs_b
 from scipy.integrate import quad
 
-from visualisation import plotGP
+from treeQuadrature.visualisation import plotGP
 
 def fit_GP(xs, ys, kernel, n_tuning, max_iter, factr, ignore_warning=True):
     """

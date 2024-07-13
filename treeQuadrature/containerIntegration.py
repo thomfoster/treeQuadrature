@@ -3,7 +3,7 @@ import warnings
 
 ## packages required for rbfIntegral
 from sklearn.gaussian_process.kernels import RBF
-from gaussianProcess import fit_GP, GP_diagnosis, rbf_Integration
+from treeQuadrature.gaussianProcess import fit_GP, GP_diagnosis, rbf_Integration
 
 
 def midpointIntegral(container, f):

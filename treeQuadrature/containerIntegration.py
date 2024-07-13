@@ -110,8 +110,7 @@ def smcIntegral(container, f, n=10):
     v = container.volume
     return v * np.mean(ys)
 
-## TODO - break this large function
-def rbfIntegral(container, f, length=1.0, const=1.0, n_samples=40,
+def rbfIntegral(container, f, length=1.0, n_samples=40,
                 n_tuning=10, factr=1e7, max_iter=1.5e4, check_GP=False, 
                 return_std=False):
     """

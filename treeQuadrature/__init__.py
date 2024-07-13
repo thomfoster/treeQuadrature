@@ -6,5 +6,6 @@ import treeQuadrature.visualisation # noqa
 import treeQuadrature.integrators # noqa
 import treeQuadrature.queues # noqa
 import treeQuadrature.exampleProblems # noqa
+import treeQuadrature.gaussianProcess
 
 from .container import Container # noqa

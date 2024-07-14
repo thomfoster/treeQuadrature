@@ -55,7 +55,7 @@ class Container:
             [-np.inf] * self.D)
         self.maxs = np.array(maxs) if maxs is not None else np.array(
             [np.inf] * self.D)
-        self.volume = np.product(self.maxs - self.mins)
+        self.volume = np.prod(self.maxs - self.mins)
         self.is_finite = not np.isinf(self.volume)
         self.midpoint = (
             self.mins + self.maxs) / 2 if self.is_finite else np.nan

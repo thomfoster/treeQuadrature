@@ -102,38 +102,16 @@ class Container:
 
         self.D = X.shape[1]
 
-        # handle boundary points
-        if boundary_points is None: # hyper-rectangle
-            # if mins(maxs) are None, create unbounded container
-            self.mins = self._handle_min_max_bounds(mins, -np.inf) 
-            self.maxs = self._handle_min_max_bounds(maxs, np.inf)
+        # Compute container properties
+        self.mins = np.array(mins) if mins is not None else np.array(
+            [-np.inf] * self.D)
+        self.maxs = np.array(maxs) if maxs is not None else np.array(
+            [np.inf] * self.D)
+        self.volume = np.product(self.maxs - self.mins)
+        self.is_finite = not np.isinf(self.volume)
+        self.midpoint = (
+            self.mins + self.maxs) / 2 if self.is_finite else np.nan
 
-            self.volume = np.prod(self.maxs - self.mins)
-            self.is_finite = not np.isinf(self.volume)
-            self.boundary_points = self._construct_hyperrectangle()
-            self.is_rectangle = True
-        elif boundary_points is not None and mins is None and maxs is None: # arbitrary convex hull
-            # convexity check
-            if not Container._is_convex(boundary_points):
-                raise ValueError(
-                    f'the shape created by boundary_points {self.boundary_points}'
-                    'is NOT convex'
-                )
-            
-            if self.D == 1:
-                raise ValueError('Convex Hull cannot be created for 1-dimensional problems')
-            
-            self.is_finite = True
-            self.boundary_points = np.array(boundary_points)
-            self.mins = np.min(self.boundary_points, axis=0)
-            self.maxs = np.max(self.boundary_points, axis=0)
-            self.is_rectangle = False
-        else: 
-            raise Exception(
-                'mins, maxs, and boundary_points cannot be provided simutaneously'
-            )
-
-        # dimensionality checks
         assert self.mins.shape[0] == self.D
         assert self.maxs.shape[0] == self.D
 

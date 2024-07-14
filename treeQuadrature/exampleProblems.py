@@ -43,14 +43,16 @@ class Problem:
     def pdf(self, X):
         # check dimensions of X
         flag = True
-        if X.ndim == 1 and self.D != 1:
+        if X.ndim == 1 and self.D != 1 and X.shape[0] != self.D:
             flag = False
         elif X.ndim == 2 and X.shape[1] != self.D:
             flag = False
 
         assert flag, 'the dimension of X should match the dimension of the problem'
 
-        
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+
         if self.p: # Combined pdf ie d(x) * p(x)
             return self.d.pdf(X) * self.p.pdf(X)
         else: # when p is not defined, simply use d

@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='treeQuadrature',
       version='0.1',
@@ -7,5 +7,6 @@ setup(name='treeQuadrature',
       author='Thomas Foster',
       author_email='thomas.foster@keble.ox.ac.uk',
       license='MIT',
-      packages=['treeQuadrature'],
+      packages=find_packages(),
+      include_package_data=True,
       zip_safe=False)

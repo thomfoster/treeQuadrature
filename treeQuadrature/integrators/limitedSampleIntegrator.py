@@ -27,6 +27,28 @@ def save_weights_image(q):
 
 
 class LimitedSampleIntegrator:
+    """
+    Integrator that builds on from queueIntegrator with more friendly
+    controls - just keeps sampling until all samples used up.
+    User does not need to specify the stopping condition
+
+    Parameters
+    ----------
+    N : int
+        Total number of samples to use.
+    base_N : int
+        Number of base samples.
+    active_N : int
+        Number of active samples per iteration.
+    split : function
+        Function to split a container into sub-containers.
+    integral : function
+        Function to compute the integral over a container.
+    weighting_function : function
+        Function to compute the weight of a container.
+    queue : class
+        Queue class to manage the containers, default is PriorityQueue.
+    """
 
     def __init__(
             self,
@@ -37,10 +59,7 @@ class LimitedSampleIntegrator:
             integral,
             weighting_function,
             queue=default_queue):
-        """
-        Integrator that builds on from queueIntegrator with more friendly
-        controls - just keeps sampling until all samples used up.
-        """
+        
         self.N = N
         self.base_N = base_N
         self.active_N = active_N
@@ -50,6 +69,23 @@ class LimitedSampleIntegrator:
         self.queue = queue
 
     def __call__(self, problem, return_N=False, return_all=False):
+        """
+        Perform the integration process.
+
+        Arguments
+        ----------
+        problem : Problem
+            The integration problem to be solved
+        return_N : bool, optional
+            If True, return the number of samples used.
+        return_all : bool, optional
+            If True, return containers and their contributions to the integral
+
+        Returns
+        -------
+        result : tuple or float
+            The computed integral and optionally the number of samples, finished containers, contributions, and remaining samples.
+        """
         D = problem.D
 
         # Draw samples

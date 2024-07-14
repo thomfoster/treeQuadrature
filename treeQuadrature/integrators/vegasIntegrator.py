@@ -10,23 +10,42 @@ class ShapeAdapter:
 
 
 class VegasIntegrator:
-    def __init__(self, N, NITN):
-        """
-        Runs the vegas algorithm on the problem.
+    """
+    Integrator that uses the VEGAS algorithm for adaptive Monte Carlo integration.
 
-        args:
-        -------
-        N: Int, Number of samples to draw per iteration.
-        NITN: Int, Number of adaptive iterations to perform.
-        """
+    Parameters
+    ----------
+    N : int
+        Number of samples to draw per iteration.
+    NITN : int
+        Number of adaptive iterations to perform.
+    """
+
+    def __init__(self, N, NITN):
         self.N = N
         self.NITN = NITN
 
     def __call__(self, problem, return_N=False, return_all=False):
+        """
+        Perform the integration process using the VEGAS algorithm.
+
+        Parameters
+        ----------
+        problem : object
+            The problem instance with attributes D and pdf.
+        return_N : bool, optional
+            If True, return the number of samples used.
+        return_all : bool, optional
+            If True, return containers and their contributions to the integral
+
+        Returns
+        -------
+        result : float or tuple
+            The computed integral and optionally the number of samples.
+        """
         integ = vegas.Integrator([[-1.0, 1.0]] * problem.D)
         f = ShapeAdapter(problem.pdf)
         G = integ(f, nitn=self.NITN, neval=self.N).mean
 
-        ret = (G, self.N * self.NITN) if return_N else G
-        ret = (G, self.N * self.NITN) if return_all else ret
+        ret = (G, self.N * self.NITN) if return_N or return_all else G
         return ret

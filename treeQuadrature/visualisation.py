@@ -6,7 +6,7 @@ import numpy as np
 from treeQuadrature.utils import scale
 
 def plotContainers(containers, contributions, xlim, ylim=None, integrand=None, 
-                   title=None, plot_samples = False):
+                   title=None, plot_samples=False):
     """
     Plot containers and their contributions
     for 1D problems, the integrand can be plotted

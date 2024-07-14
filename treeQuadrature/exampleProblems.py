@@ -6,8 +6,34 @@ Defines the specific problems we want results for.
 
 
 class Problem:
+    '''
+    base class for integration problems
+
+    Attributes
+    ----------
+    D : int
+        dimension of the problem
+    d : Distribution or MixtureDistribution
+        the likelihood function in integral
+    low, high : float
+        the lower and upper bound of integration domain
+        assumed to be the same for each dimension
+    p : Distribution or MixtureDistribution
+        the density function in integral
+    answer : float
+        the True solution to int p.pdf(x) * d.pdf(x) dx
+        integrated over [low, high]
+
+    Methods
+    -------
+    pdf(X)
+        X : numpy array of shape (N, D)
+            each row is a sample
+        return : numpy array of shape (N, 1)
+            the value of p.pdf(x) * d.pdf(x) at samples in X
+    '''
     def __init__(self, D):
-        self.D = None
+        self.D = D
         self.d = None
         self.low = None
         self.high = None
@@ -15,8 +41,21 @@ class Problem:
         self.answer = None
 
     def pdf(self, X):
-        # Combined pdf ie d(x) * p(x)
-        return self.d.pdf(X) * self.p.pdf(X)
+        # check dimensions of X
+        flag = True
+        if X.ndim == 1 and self.D != 1:
+            flag = False
+        elif X.ndim == 2 and X.shape[1] != self.D:
+            flag = False
+
+        assert flag, 'the dimension of X should match the dimension of the problem'
+
+        
+        if self.p: # Combined pdf ie d(x) * p(x)
+            return self.d.pdf(X) * self.p.pdf(X)
+        else: # when p is not defined, simply use d
+            return self.d.pdf(X)
+
 
 
 class SimpleGaussian(Problem):

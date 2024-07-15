@@ -1,11 +1,5 @@
 import numpy as np
-from scipy.spatial import ConvexHull
 import warnings
-
-# for plotting
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-import matplotlib.pyplot as plt
-from itertools import product
 
 
 class ArrayList:
@@ -45,7 +39,7 @@ class ArrayList:
 
 class Container:
     '''
-    Represents a convex hull in n-dim space
+    Represents a hyper-rectangle in n-dim space
     with finite volume
     and the samples it holds.
 
@@ -127,7 +121,7 @@ class Container:
         
     def filter_points(self, X, y=None, return_bool=False):
         """
-        Check whether all the points X are in the convex hull defined by self.boundary_points,
+        Check whether all the points X are in the container
         and return a numpy array with those in the container. Throw a warning if any point is not
         in the container.
 
@@ -143,7 +137,7 @@ class Container:
         Returns
         -------
         np.ndarray, np.ndarray or bool
-            Two arrays: one of the points that are within the convex hull or bounds, 
+            Two arrays: one of the points that are within the container, 
             and another of the corresponding y values.
             bool: indicates whether all points are inside the container
         

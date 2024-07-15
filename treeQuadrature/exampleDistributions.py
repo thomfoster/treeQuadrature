@@ -53,8 +53,14 @@ class Uniform(Distribution):
     """
     def __init__(self, D, low, high):
         super().__init__(D=D)
-        self.low = low
-        self.high = high
+        self.low = self._handle_low_high(low)
+        self.high = self._handle_low_high(high)
+
+    def _handle_low_high(self, value):
+        if isinstance(value, (int, float)):
+            return np.array([value] * self.D)
+        elif isinstance(value, (list, np.ndarray)):
+            return np.array(value)
 
     def rvs(self, n):
         return np.random.uniform(

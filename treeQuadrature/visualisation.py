@@ -182,9 +182,9 @@ def plotIntegrand(integrand, D, xlim, ylim=None, n_points=500, levels=10):
         Defaults to 10
     """
 
-    if D == 2:
+    if D == 1:
         _plot1D(integrand, xlim, n_points)
-    elif D == 1:
+    elif D == 2:
         _plot2D(integrand, xlim, ylim, levels, n_points)
     else:
         raise Exception('only supports 1D and 2D problems')

@@ -19,14 +19,14 @@ def plotContainers(containers, contributions, xlim, ylim=None, integrand=None,
         numerical values of contributions of each container
     xlim : list of 2 floats
         the range of x-axis
-    ylim : list of 2 floats
+    ylim : list of 2 floats, optional
         the range of y-axis
         ignored by 1D problems
-    integrand : function
+    integrand : function, optional
         ignored by 2D problems
-    title : String
+    title : String, optional
         title of the plot
-    plot_samples : bool
+    plot_samples : bool, optional
         if True, samples will be placed on the plot as well. 
         Defaults to False
     """
@@ -169,14 +169,14 @@ def plotIntegrand(integrand, D, xlim, ylim=None, n_points=500, levels=10):
         dimension of the input space
     xlim : list of 2 floats
         the range of x-axis
-    ylim : list of 2 floats
+    ylim : list of 2 floats, optional
         the range of y-axis
         ignored by 1D problems
-    n_points: int
+    n_points: int, optioanl
         number of points in each dimension for 
         plotting the Contours
         Defaults to 500
-    levels : int
+    levels : int, optional
         levels of the Contour plot
         ignored when D = 1
         Defaults to 10

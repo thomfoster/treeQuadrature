@@ -77,7 +77,7 @@ class Container:
             each row is a sample
         y : numpy array of shape (N, 1)
             the function value at each sample
-        mins, maxs : numpy array of shape (D,)
+        mins, maxs : numpy array of shape (D,), optional
             the low and high boundaries of the hyper-rectangle
             could be +- np.inf
         """

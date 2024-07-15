@@ -67,7 +67,7 @@ def randomIntegral(container, f, n=10):
     f : function 
         represents the integrand function
         takes a numpy array and return a float
-    n : int
+    n : int, optional
         number of samples to be redrawn for evaluating the integral
         default : 10
     
@@ -95,7 +95,7 @@ def smcIntegral(container, f, n=10):
     f : function 
         represents the integrand function
         takes a numpy array and return a float
-    n : int
+    n : int, optional
         number of samples to be redrawn for evaluating the integral
         default : 10
     
@@ -123,31 +123,31 @@ def rbfIntegral(container, f, length=1.0, n_samples=40,
     container : Container 
     f : function
         the integrand
-    length : float
+    length : float, optional
         the initial value of the length scale of RBF kernel
         default 1.0
-    const : float
+    const : float, optional
         the initial value of the constant kerenl
         default 1.0
-    n_samples : int
+    n_samples : int, optional
         number of random samples
         uniformly redrawn from the container
         to fit Gaussian Process.
         Defaults to 40
-    n_tuning : int
+    n_tuning : int, optional
         number of different initialisations used 
         for tuning length scale of RBF
         default : 10
-    factr : float
+    factr : float, optional
         convergence criteria for fmin_l_bfgs_b optimiser
         used to fit Gaussian Process
         default 1e7
-    max_iter : int
+    max_iter : int, optional
         maximum number of iterations for fmin_l_bfgs_b optimiser
-    check_GP : bool
+    check_GP : bool, optional
         if true, print diagnostics of GP
         prediction variance, mean squared error and r^2 score
-    return_std : bool
+    return_std : bool, optional
         if True, returns the 
         Defaults to False
 

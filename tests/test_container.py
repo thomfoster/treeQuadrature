@@ -122,3 +122,26 @@ def test_volume_method(container):
         assert container.volume == 0
     else:
         assert container.volume == 10 ** container.D
+
+
+@pytest.mark.parametrize("D, mins, maxs", [
+    (1, [-np.inf], [np.inf]),
+    (1, [-1.0], [np.inf]),
+    (1, [-np.inf], [1.0]),
+    (2, [-np.inf, -np.inf], [np.inf, np.inf]),
+    (2, [-1.0, -np.inf], [1.0, np.inf]),
+    (2, [-np.inf, -1.0], [np.inf, 1.0]),
+    (2, [-1.0, -1.0], [1.0, 1.0]),
+    (3, [-np.inf, -np.inf, -np.inf], [np.inf, np.inf, np.inf]),
+    (3, [-1.0, -np.inf, -np.inf], [1.0, np.inf, np.inf]),
+    (3, [-np.inf, -1.0, -np.inf], [np.inf, 1.0, np.inf]),
+    (3, [-np.inf, -np.inf, -1.0], [np.inf, np.inf, 1.0])
+])
+def test_infinite_container(D, mins, maxs):
+    # create empty container
+    X = np.empty(shape=(0,D))
+    y = np.empty(shape=(0,1))
+
+    cont = tq.container.Container(X, y, mins=mins, maxs=maxs)
+    samples = cont.rvs(10)
+    assert cont.filter_points(samples, return_bool=True), 'some samples not in the container'

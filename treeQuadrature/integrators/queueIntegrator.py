@@ -69,7 +69,7 @@ class QueueIntegrator:
         X = problem.d.rvs(self.base_N)
         y = problem.pdf(X)
 
-        root = Container(X, y, mins=[problem.low] * D, maxs=[problem.high] * D)
+        root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
         # Construct tree
         current_n_splits = 0

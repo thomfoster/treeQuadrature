@@ -79,7 +79,7 @@ class SimpleIntegrator:
         y = problem.pdf(X)
 
         # initialise a container with all samples
-        root = Container(X, y, mins=[problem.low] * D, maxs=[problem.high] * D)
+        root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
         containers = self.construct_tree(root)
 

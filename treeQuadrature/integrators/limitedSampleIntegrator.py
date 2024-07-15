@@ -92,7 +92,7 @@ class LimitedSampleIntegrator:
         X = problem.d.rvs(self.base_N)
         y = problem.pdf(X)
 
-        root = Container(X, y, mins=[problem.low] * D, maxs=[problem.high] * D)
+        root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
         # Refine with further active samples
         q = self.queue()

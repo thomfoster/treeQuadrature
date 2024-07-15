@@ -1,5 +1,9 @@
 from treeQuadrature import exampleDistributions
 
+# for Gaussian
+import numpy as np
+from scipy.stats import multivariate_normal
+
 """
 Defines the specific problems we want results for.
 """
@@ -15,14 +19,14 @@ class Problem:
         dimension of the problem
     d : Distribution or MixtureDistribution
         the likelihood function in integral
-    low, high : float
+    lows, highs : float
         the lower and upper bound of integration domain
         assumed to be the same for each dimension
     p : Distribution or MixtureDistribution
         the density function in integral
     answer : float
         the True solution to int p.pdf(x) * d.pdf(x) dx
-        integrated over [low, high]
+        integrated over [lows, highs]
 
     Methods
     -------
@@ -35,8 +39,8 @@ class Problem:
     def __init__(self, D):
         self.D = D
         self.d = None
-        self.low = None
-        self.high = None
+        self.lows = None
+        self.highs = None
         self.p = None
         self.answer = None
 
@@ -70,14 +74,107 @@ class SimpleGaussian(Problem):
         self.D = D
         self.d = exampleDistributions.MultivariateNormal(
             D=D, mean=[0.0] * D, cov=1 / 200)
-        self.low = -1.0
-        self.high = 1.0
+        self.lows = [-1.0] * D
+        self.highs = [1.0] * D
         self.p = exampleDistributions.Uniform(
-            D=D, low=self.low, high=self.high)
+            D=D, low=self.lows, high=self.highs)
 
         # Truth
         self.answer = 1 / (2.0**D)
 
+class Gaussian(Problem):
+    """
+    Integration of general Gaussian pdf on rectangular bounds
+
+    Arguments
+    ---------
+    D : int
+        Dimension of the problem
+    mu : numpy.ndarray
+        Mean vector
+    Sigma : numpy.ndarray
+        Covariance matrix
+    lows, highs : numpy.ndarray
+        Bounds of the integration domain
+    answer : float
+        The true solution
+    """
+
+    def __init__(self, D, mu=None, Sigma=None, lows=None, highs=None):
+        """
+        Arguments
+        ---------
+        mu, lows, highs : number or list or numpy.ndarray, optional
+            if a number given, used for each dimension
+            if list or array given, must have length D
+            mu defaults to 0
+            lows and highs defaults to +- np.inf 
+        Sigma : number of numpy.ndarray
+            if a number given, covariance set to Sigma * I
+            if array given, must have shape (D, D)
+            Sigma defaults to I
+        """
+        # Value checks
+        mu = self._handle_bound(mu, D, 0)
+        Sigma = self._handle_Sigma(Sigma, D)
+
+        self.lows = self._handle_bound(lows, D, -np.inf)
+        self.highs = self._handle_bound(highs, D, np.inf)
+        self.D = D
+        self.d = exampleDistributions.MultivariateNormal(
+            D=D, mean=mu, cov=Sigma)
+        self.p = None
+
+        self.answer = self._integrate()
+
+    @staticmethod
+    def _handle_bound(value, D, default_value):
+        if value is None:
+            return [default_value] * D
+        elif isinstance(value, (int, float)):
+            return [value] * D
+        elif isinstance(value, (list, np.ndarray)) and len(value) == D:
+            return np.array(value)
+        else:
+            raise ValueError(
+                "value must be a number, list, or numpy.ndarray"
+                f"with length {D} when given as a list or numpy.ndarray"
+            )
+        
+    @staticmethod
+    def _handle_Sigma(value, D):
+        if value is None:
+            return np.eye(D)
+        elif isinstance(value, (int, float)):
+            return value * np.eye(D)
+        elif isinstance(value, np.ndarray) and value.shape == (D, D):
+            return value
+        else:
+            raise ValueError(
+                "value must be a number, or numpy.ndarray"
+                f"with shape ({D}, {D}) when given as a list or numpy.ndarray"
+            )
+
+    def _integrate(self):
+        """
+        Calculate the integral of the Gaussian pdf over the hyper-rectangular bounds defined by lows and highs.
+        
+        Returns
+        -------
+        float
+            The integral of the Gaussian pdf over the specified bounds.
+        """
+        # fetch to multivariate Gaussian object
+        rv = self.d.d
+        
+        # Calculate the CDF values at the bounds
+        lower_cdf = rv.cdf(self.lows)
+        upper_cdf = rv.cdf(self.highs)
+        
+        # The integral over the hyper-rectangle is the difference of the CDFs
+        integral_value = upper_cdf - lower_cdf
+        
+        return integral_value
 
 class Camel(Problem):
     """
@@ -88,10 +185,10 @@ class Camel(Problem):
     def __init__(self, D):
         self.D = D
         self.d = exampleDistributions.Camel(D)
-        self.low = -0.5
-        self.high = 1.5
+        self.lows = [-0.5] * D
+        self.highs = [1.5] * D
         self.p = exampleDistributions.Uniform(
-            D=D, low=self.low, high=self.high)
+            D=D, low=self.lows, high=self.highs)
 
         # Truth
         self.answer = 1 / (2.0**D)
@@ -109,10 +206,10 @@ class QuadCamel(Problem):
     def __init__(self, D):
         self.D = D
         self.d = exampleDistributions.QuadCamel(D)
-        self.low = 0.0
-        self.high = 10.0
+        self.lows = [0.0] * D
+        self.highs = [10.0] * D
         self.p = exampleDistributions.Uniform(
-            D=D, low=self.low, high=self.high)
+            D=D, low=self.lows, high=self.highs)
 
         # Truth
         self.answer = 1 / (10.0**D)

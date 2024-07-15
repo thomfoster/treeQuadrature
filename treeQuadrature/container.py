@@ -1,4 +1,11 @@
 import numpy as np
+from scipy.spatial import ConvexHull
+import warnings
+
+# for plotting
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import matplotlib.pyplot as plt
+from itertools import product
 
 
 class ArrayList:
@@ -38,11 +45,48 @@ class ArrayList:
 
 class Container:
     '''
-    Represents a finite region of n-dim space
+    Represents a convex hull in n-dim space
+    with finite volume
     and the samples it holds.
+
+    Attributes
+    ----------
+    _X, _y : ArrayList
+        stores the samples and evaluations efficiently 
+    mins, maxs : float or list or numpy array of shape (D,)
+        the low and high boundaries of the 
+        only for hyper-rectangle containers
+    volume : float
+        volume of the container
+    is_finite : bool
+        indicator of whether the container has finite volume
+    midpoint : numpy array of shape (D,)
+        the midpoint of container
+
+    Methods 
+    -------
+    add(new_x, new_y)
+        add new sample points
+    rvs(n)
+        uniformly randomly draw n samples in this container
+        Return : numpy array of shape (n, D)
+    split(split_dimension, split_value)
+        split the container into two along split_dimension at split_value
+        Return : list of two sub-containers
     '''
 
     def __init__(self, X, y, mins=None, maxs=None):
+        """
+        Attributes
+        ----------
+        X : numpy array of shape (N, D)
+            each row is a sample
+        y : numpy array of shape (N, 1)
+            the function value at each sample
+        mins, maxs : numpy array of shape (D,)
+            the low and high boundaries of the hyper-rectangle
+            could be +- np.inf
+        """
         assert X.ndim == 2
         assert y.ndim == 2
         assert X.shape[0] == y.shape[0]
@@ -50,23 +94,75 @@ class Container:
 
         self.D = X.shape[1]
 
-        # Compute container properties
-        self.mins = np.array(mins) if mins is not None else np.array(
-            [-np.inf] * self.D)
-        self.maxs = np.array(maxs) if maxs is not None else np.array(
-            [np.inf] * self.D)
+        # if mins(maxs) are None, create unbounded container
+        self.mins = self._handle_min_max_bounds(mins, -np.inf) 
+        self.maxs = self._handle_min_max_bounds(maxs, np.inf)
+
         self.volume = np.prod(self.maxs - self.mins)
         self.is_finite = not np.isinf(self.volume)
         self.midpoint = (
             self.mins + self.maxs) / 2 if self.is_finite else np.nan
 
+        # dimensionality checks
         assert self.mins.shape[0] == self.D
         assert self.maxs.shape[0] == self.D
 
+        ### add sample points into the hidden ArrayList
+        # create empty ArrayList
         self._X = ArrayList(D=self.D)
         self._y = ArrayList(D=1)
 
-        self.add(X, y)
+        # filter points
+        X_filtered, y_filtered = self.filter_points(X, y)
+        self.add(X_filtered, y_filtered)
+
+    def _handle_min_max_bounds(self, bounds, default_value):
+        """Handle different types of min/max bounds."""
+        if isinstance(bounds, (int, float)):
+            return np.array([bounds] * self.D)
+        elif isinstance(bounds, (list, np.ndarray)):
+            return np.array(bounds)
+        else:
+            return np.array([default_value] * self.D)
+        
+    def filter_points(self, X, y=None, return_bool=False):
+        """
+        Check whether all the points X are in the convex hull defined by self.boundary_points,
+        and return a numpy array with those in the container. Throw a warning if any point is not
+        in the container.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (N, D)
+            An array of points to check.
+        y : np.ndarray of shape (N, ), optional
+            corresponding values
+        return_bool : bool
+            if true, return a bool inside of filtered samples
+        
+        Returns
+        -------
+        np.ndarray, np.ndarray or bool
+            Two arrays: one of the points that are within the convex hull or bounds, 
+            and another of the corresponding y values.
+            bool: indicates whether all points are inside the container
+        
+        """
+
+        in_bounds = np.all((X >= self.mins) & (X <= self.maxs), axis=1)
+        if not np.all(in_bounds):
+            inside = False
+            warnings.warn(
+                "Some points are out of the container bounds: "
+                f"indices {np.where(~in_bounds)[0]}"
+            )
+        else: 
+            inside = True
+
+        if return_bool:
+            return inside
+        else:
+            return X[in_bounds] if y is None else X[in_bounds], y[in_bounds]
 
     def add(self, new_X, new_y):
         assert new_X.ndim == 2
@@ -93,13 +189,42 @@ class Container:
         return self._y.contents
 
     def rvs(self, n):
-        rs = np.random.uniform(size=(n, self.D))
-        ranges = self.maxs - self.mins
-        rs = self.mins + ranges * rs
+        """
+        Draw uniformly random samples from the container
+        
+        Attribute
+        ---------
+        n : int
+            number of samples
+
+        Return
+        ------
+        rs : numpy array of shape (n, D)
+            each row is a sample
+        """
+
+        rs = np.empty((n, self.D))
+
+        for d in range(self.D):
+            if np.isinf(self.mins[d]) and np.isinf(self.maxs[d]):
+                # Both bounds are infinite: sample from a standard normal distribution
+                rs[:, d] = np.random.normal(size=n)
+            elif np.isinf(self.mins[d]):
+                # Lower bound is infinite: sample from a exponential distribution
+                rs[:, d] = self.maxs[d] - np.random.exponential(scale=1.0, size=n)
+            elif np.isinf(self.maxs[d]):
+                # Upper bound is infinite: sample from a exponential distribution 
+                rs[:, d] = self.mins[d] + np.random.exponential(scale=1.0, size=n)
+            else:
+                # Both bounds are finite: sample uniformly between the bounds
+                rs[:, d] = np.random.uniform(low=self.mins[d], high=self.maxs[d], size=n)
+
         return rs
 
     def split(self, split_dimension, split_value):
-        '''Divide perpendicular to an axis'''
+        '''
+        Divide perpendicular to an axis (only for hyper-rectangles!)
+        '''
 
         # Partition samples
         idxs = self.X[:, split_dimension] <= split_value

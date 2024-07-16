@@ -1,21 +1,21 @@
 import numpy as np
 
+from .integrator import Integrator
 from ..queues import ReservoirQueue
 from ..container import Container
 from ..splits import Split
 from ..containerIntegration import ContainerIntegral
 from typing import Callable
 
+
 # Default finished condition will never prevent container being split
-
-
 def default_stopping_condition(container: Container) -> bool: return False
 
 
 default_queue = ReservoirQueue(accentuation_factor=100)
 
 
-class QueueIntegrator:
+class QueueIntegrator(Integrator):
     """
     Integrator that builds on from SimpleIntegrator with more customised
     queueing.

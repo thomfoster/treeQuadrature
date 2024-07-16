@@ -1,5 +1,6 @@
 import vegas
 
+from .integrator import Integrator
 
 class ShapeAdapter:
     def __init__(self, f):
@@ -9,7 +10,7 @@ class ShapeAdapter:
         return self.f(X)[0, 0]
 
 
-class VegasIntegrator:
+class VegasIntegrator(Integrator):
     """
     Integrator that uses the VEGAS algorithm for adaptive Monte Carlo integration.
 

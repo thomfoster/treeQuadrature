@@ -39,7 +39,7 @@ integrals = [
     tq.containerIntegration.MidpointIntegral(),
     tq.containerIntegration.RandomIntegral(),
     tq.containerIntegration.SmcIntegral(),
-    tq.containerIntegration.RbfIntegral()
+    tq.containerIntegration.RbfIntegral(n_samples=10)
 ]
 
 queues = [

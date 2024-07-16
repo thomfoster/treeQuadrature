@@ -1,5 +1,6 @@
 import numpy as np
 
+from .integrator import Integrator
 from ..container import Container
 from ..containerIntegration import ContainerIntegral
 from ..splits import Split
@@ -9,7 +10,7 @@ import inspect
 import warnings
 
 
-class SimpleIntegrator:
+class SimpleIntegrator(Integrator):
     '''
     A simple integrator with the following steps:
         - Draw <N> samples

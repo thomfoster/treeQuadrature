@@ -1,7 +1,8 @@
 import numpy as np
 
+from .integrator import Integrator
 
-class SmcIntegrator:
+class SmcIntegrator(Integrator):
     """
     Simple integrator: Draw N samples from prior,
     take sample mean of likelihood values at these samples.

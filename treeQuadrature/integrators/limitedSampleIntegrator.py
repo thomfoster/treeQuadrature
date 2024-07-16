@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from .integrator import Integrator
 from ..queues import ReservoirQueue
 from ..container import Container
 from ..splits import Split
@@ -11,6 +12,7 @@ from typing import Callable
 default_queue = ReservoirQueue(accentuation_factor=100)
 
 
+# a function for debugging
 def save_weights_image(q):
     weights = q.weights
     ps = q.get_probabilities(weights)
@@ -24,7 +26,7 @@ def save_weights_image(q):
     plt.close()
 
 
-class LimitedSampleIntegrator:
+class LimitedSampleIntegrator(Integrator):
     """
     Integrator that builds on from queueIntegrator with more friendly
     controls - just keeps sampling until all samples used up.

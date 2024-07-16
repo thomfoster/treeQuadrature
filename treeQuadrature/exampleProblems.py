@@ -131,13 +131,13 @@ class Gaussian(Problem):
     def _handle_bound(value, D, default_value):
         if value is None:
             return [default_value] * D
-        elif isinstance(value, (int, float)):
+        elif isinstance(value, float):
             return [value] * D
         elif isinstance(value, (list, np.ndarray)) and len(value) == D:
             return np.array(value)
         else:
             raise ValueError(
-                "value must be a number, list, or numpy.ndarray"
+                "value must be a float, list, or numpy.ndarray"
                 f"with length {D} when given as a list or numpy.ndarray"
             )
         

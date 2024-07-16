@@ -51,7 +51,7 @@ def test_add_method(container, x, expected):
         else:
             try:
                 container.add(new_X, new_y)
-            except AssertionError:
+            except ValueError:
                 pass
     
     # The other containers should go as labelled
@@ -59,7 +59,7 @@ def test_add_method(container, x, expected):
         if expected == "Fail":
             try:
                 container.add(new_X, new_y)
-            except AssertionError:
+            except ValueError:
                 pass
         else:
             container.add(new_X, new_y)

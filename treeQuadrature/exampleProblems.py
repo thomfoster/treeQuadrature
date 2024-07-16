@@ -31,7 +31,7 @@ class Problem:
     Methods
     -------
     pdf(X)
-        X : numpy array of shape (N, D)
+        input : numpy array of shape (N, D)
             each row is a sample
         return : numpy array of shape (N, 1)
             the value of p.pdf(x) * d.pdf(x) at samples in X

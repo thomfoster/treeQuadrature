@@ -15,7 +15,7 @@ class Distribution(ABC):
         self.D = D  # dimensions of the distribution
 
     @abstractmethod
-    def rvs(self, *args, **kwargs):
+    def rvs(self, *args, **kwargs) -> np.ndarray:
         """
         Generate random variates of the distribution.
 
@@ -28,7 +28,7 @@ class Distribution(ABC):
         pass
 
     @abstractmethod
-    def pdf(self, X, *args, **kwargs):
+    def pdf(self, X, *args, **kwargs) -> np.ndarray:
         """
         Calculate the probability density function (pdf) at given point x.
 

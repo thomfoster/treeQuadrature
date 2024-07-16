@@ -20,8 +20,8 @@ class SmcIntegrator:
 
         Parameters
         ----------
-        problem : object
-            The problem instance with attributes `p` (prior) and `d` (likelihood).
+        problem : Problem
+            The integration problem
         return_N : bool, optional
             If True, return the number of samples used.
         return_all : bool, optional

@@ -21,7 +21,7 @@ class VegasIntegrator:
         Number of adaptive iterations to perform.
     """
 
-    def __init__(self, N, NITN):
+    def __init__(self, N: int, NITN: int):
         self.N = N
         self.NITN = NITN
 
@@ -31,8 +31,8 @@ class VegasIntegrator:
 
         Parameters
         ----------
-        problem : object
-            The problem instance with attributes D and pdf.
+        problem : Problem
+            The integration problem
         return_N : bool, optional
             If True, return the number of samples used.
         return_all : bool, optional

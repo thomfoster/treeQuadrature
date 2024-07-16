@@ -1,6 +1,8 @@
 import numpy as np
 
 from ..container import Container
+from ..containerIntegration import ContainerIntegral
+from ..splits import Split
 from queue import SimpleQueue
 
 import inspect
@@ -21,22 +23,33 @@ class SimpleIntegrator:
         total number of samples
     P : int
         maximum number of samples in each container
-    split : function
-        Attribute : Container
-        Return : a list of two child containers [lcont, rcont]
-    integral : function 
-        Attributes : Container and the integrand function
-        Return: float
-            the estimated value of integral in the container 
-        some basic integrals defined in containerIntegration 
+    split : Split
+        a method to split a container (for tree construction)
+    integral : ContainerIntegral 
+        a method to evaluate the integral of f on a container
     
     Methods
     -------
     __call__(problem, return_N, return_all)
         solves the problem given
+
+    Example
+    -------
+    >>> from treeQuadrature.integrators import SimpleIntegrator
+    >>> from treeQuadrature.splits import MinSseSplit
+    >>> from treeQuadrature.containerIntegration import RandomIntegral
+    >>> from treeQuadrature.exampleProblems import SimpleGaussian
+    >>> problem = SimpleGaussian(D=2)
+    >>> 
+    >>> minSseSplit = MinSseSplit()
+    >>> randomIntegral = RandomIntegral()
+    >>> integ = SimpleIntegrator(N=2_000, P=40, minSseSplit, randomIntegral)
+    >>> estimate = integ(problem)
+    >>> print("error of random integral =", 
+    >>>      str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
     '''
 
-    def __init__(self, N, P, split, integral):
+    def __init__(self, N, P, split: Split, integral: ContainerIntegral):
         # variable checks
         assert isinstance(N, int), "N must be an integer"
         assert isinstance(P, int), "P must be an integer"
@@ -72,7 +85,6 @@ class SimpleIntegrator:
         contribtions : list
             list of floats indicating contributions of each container in G
         """
-        D = problem.D
 
         # Draw samples
         X = problem.d.rvs(self.N)
@@ -85,9 +97,9 @@ class SimpleIntegrator:
 
         # uncertainty estimates
         if return_std:
-            signature = inspect.signature(self.integral)
+            signature = inspect.signature(self.integral.containerIntegral)
             if 'return_std' in signature.parameters:
-                results = [self.integral(cont, problem.pdf, return_std=True)
+                results = [self.integral.containerIntegral(cont, problem.pdf, return_std=True)
                          for cont in containers]
                 contributions = [result[0] for result in results]
                 stds = [result[0] for result in results]
@@ -96,12 +108,12 @@ class SimpleIntegrator:
                               UserWarning)
                 return_std = False
 
-                contributions = [self.integral(cont, problem.pdf)
+                contributions = [self.integral.containerIntegral(cont, problem.pdf)
                             for cont in containers]
 
         else: 
             # Integrate containers
-            contributions = [self.integral(cont, problem.pdf)
+            contributions = [self.integral.containerIntegral(cont, problem.pdf)
                             for cont in containers]
             
         G = np.sum(contributions)
@@ -131,7 +143,7 @@ class SimpleIntegrator:
             if c.N <= self.P:
                 finished_containers.append(c)
             else:
-                children = self.split(c)
+                children = self.split.split(c)
                 for child in children:
                     q.put(child)
             

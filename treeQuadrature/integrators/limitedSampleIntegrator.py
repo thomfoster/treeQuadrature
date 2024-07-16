@@ -3,11 +3,9 @@ import numpy as np
 
 from ..queues import ReservoirQueue
 from ..container import Container
-
-# Default finished condition will never prevent container being split
-
-
-def default_stopping_condition(container): return False
+from ..splits import Split
+from ..containerIntegration import ContainerIntegral
+from typing import Callable
 
 
 default_queue = ReservoirQueue(accentuation_factor=100)
@@ -48,17 +46,36 @@ class LimitedSampleIntegrator:
         Function to compute the weight of a container.
     queue : class
         Queue class to manage the containers, default is PriorityQueue.
+
+    Example
+    -------
+    >>> from treeQuadrature.integrators import LimitedSampleIntegrator
+    >>> from treeQuadrature.splits import MinSseSplit
+    >>> from treeQuadrature.containerIntegration import RandomIntegral
+    >>> from treeQuadrature.exampleProblems import SimpleGaussian
+    >>> problem = SimpleGaussian(D=2)
+    >>> 
+    >>> minSseSplit = MinSseSplit()
+    >>> randomIntegral = RandomIntegral()
+    >>> volume_weighting = lambda container: container.volume
+    >>> integ_limited = LimitedSampleIntegrator(
+    >>>    N=1000, base_N=500, active_N=10, split=minSseSplit, integral=randomIntegral, 
+    >>>    weighting_function=volume_weighting
+    >>> )
+    >>> estimate = integ_limited(problem)
+    >>> print("error of random integral =", 
+    >>>      str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
     """
 
     def __init__(
             self,
-            N,
-            base_N,
-            active_N,
-            split,
-            integral,
-            weighting_function,
-            queue=default_queue):
+            N: int,
+            base_N: int,
+            active_N: int,
+            split: Split,
+            integral: ContainerIntegral,
+            weighting_function: Callable,
+            queue: ReservoirQueue=default_queue):
         
         self.N = N
         self.base_N = base_N
@@ -86,7 +103,6 @@ class LimitedSampleIntegrator:
         result : tuple or float
             The computed integral and optionally the number of samples, finished containers, contributions, and remaining samples.
         """
-        D = problem.D
 
         # Draw samples
         X = problem.d.rvs(self.base_N)
@@ -95,7 +111,7 @@ class LimitedSampleIntegrator:
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
         # Refine with further active samples
-        q = self.queue()
+        q = self.queue
         q.put(root, 1)
         finished_containers = []
         num_samples_left = self.N - self.base_N
@@ -116,13 +132,13 @@ class LimitedSampleIntegrator:
                 finished_containers.append(c)
                 continue
 
-            children = self.split(c)
+            children = self.split.split(c)
             for child in children:
                 weight = self.weighting_function(child)
                 q.put(child, weight)
 
         # Integrate containers
-        contributions = [self.integral(cont, problem.pdf)
+        contributions = [self.integral.containerIntegral(cont, problem.pdf)
                          for cont in finished_containers]
         G = np.sum(contributions)
         N = sum([cont.N for cont in finished_containers])

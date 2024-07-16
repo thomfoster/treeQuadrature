@@ -10,7 +10,7 @@ from functools import partial
 @pytest.mark.parametrize("integrator_instance", [
     tq.integrators.SmcIntegrator(100),
     tq.integrators.VegasIntegrator(100, 10),
-    tq.integrators.SimpleIntegrator(100, 50, tq.splits.kdSplit, tq.containerIntegration.midpointIntegral),
+    tq.integrators.SimpleIntegrator(100, 50, tq.splits.KdSplit(), tq.containerIntegration.MidpointIntegral()),
 ])
 def test_io(integrator_instance):
     """Checks each integrator has the desired IO for an integrator"""
@@ -30,20 +30,21 @@ def test_io(integrator_instance):
 ########################################################################
 
 splits = [
-    tq.splits.kdSplit,
-    tq.splits.minSseSplit
+    tq.splits.KdSplit(),
+    tq.splits.MinSseSplit()
 ]
 
 integrals = [
-    tq.containerIntegration.medianIntegral,
-    tq.containerIntegration.midpointIntegral,
-    tq.containerIntegration.randomIntegral,
-    tq.containerIntegration.smcIntegral
+    tq.containerIntegration.MedianIntegral(),
+    tq.containerIntegration.MidpointIntegral(),
+    tq.containerIntegration.RandomIntegral(),
+    tq.containerIntegration.SmcIntegral(),
+    tq.containerIntegration.RbfIntegral()
 ]
 
 queues = [
-    tq.queues.ReservoirQueue,
-    tq.queues.PriorityQueue
+    tq.queues.ReservoirQueue(),
+    tq.queues.PriorityQueue()
 ]
 
 @pytest.mark.parametrize("D", [1,2, 10])
@@ -78,10 +79,12 @@ def test_QueueIntegrator(
         active_N, num_splits, stopping_condition, queue)
     I, N, fcs, cs, ns = integ(problem, return_all=True)
 
-    if "randomIntegral" in str(integral): 
-        assert base_N + ns*2*active_N + len(fcs)*10 == N
-    elif "smcIntegral" in str(integral):
-        assert base_N + ns*2*active_N + len(fcs)*10 == N
+    if "RandomIntegral" in str(integral) or "SmcIntegral" in str(integral): 
+        # accounts for random samples used in container integration
+        assert base_N + ns*2*active_N + len(fcs)*integral.n == N
+    elif "RbfIntegral" in str(integral):
+        # accounts for random samples used in container integration
+        assert base_N + ns*2*active_N + len(fcs)*integral.n_samples == N    
     else:
         assert base_N + ns*2*active_N == N
 

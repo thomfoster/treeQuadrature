@@ -57,6 +57,13 @@ class Container:
     midpoint : numpy array of shape (D,)
         the midpoint of container
 
+    Properties
+    ----------
+    N : int 
+        number of samples (also number of evaluations)
+    X, y : numpy.ndarray
+        samples and evaluations 
+
     Methods 
     -------
     add(new_x, new_y)
@@ -81,25 +88,35 @@ class Container:
             the low and high boundaries of the hyper-rectangle
             could be +- np.inf
         """
-        assert X.ndim == 2
-        assert y.ndim == 2
-        assert X.shape[0] == y.shape[0]
-        assert y.shape[1] == 1
+        # basic checks
+        if X.ndim != 2:
+            raise ValueError(f"X must be a 2-dimensional array, got {X.ndim} dimensions")
+        if y.ndim != 2:
+            raise ValueError(f"y must be a 2-dimensional array, got {y.ndim} dimensions")
+        if X.shape[0] != y.shape[0]:
+            raise ValueError(f"The number of samples in X and y must be the same, got {X.shape[0]} and {y.shape[0]}")
+        if y.shape[1] != 1:
+            raise ValueError(f"y must have shape (N, 1), got shape {y.shape}")
+        if np.any(mins == np.inf):
+            raise ValueError(f'mins cannot have np.inf, got {mins}')
+        if np.any(maxs == -np.inf):
+            raise ValueError(f'maxs cannot have -np.inf, got {maxs}')
 
         self.D = X.shape[1]
 
-        # if mins(maxs) are None, create unbounded container
+        # if mins (maxs) are None, create unbounded container
         self.mins = self._handle_min_max_bounds(mins, -np.inf) 
         self.maxs = self._handle_min_max_bounds(maxs, np.inf)
+        # dimensionality checks
+        if self.mins.shape[0] != self.D:
+            raise ValueError('mins should have length D')
+        if self.maxs.shape[0] != self.D:
+            raise ValueError('maxs should have length D')
 
         self.volume = np.prod(self.maxs - self.mins)
         self.is_finite = not np.isinf(self.volume)
         self.midpoint = (
             self.mins + self.maxs) / 2 if self.is_finite else np.nan
-
-        # dimensionality checks
-        assert self.mins.shape[0] == self.D
-        assert self.maxs.shape[0] == self.D
 
         ### add sample points into the hidden ArrayList
         # create empty ArrayList
@@ -119,7 +136,7 @@ class Container:
         else:
             return np.array([default_value] * self.D)
         
-    def filter_points(self, X, y=None, return_bool=False):
+    def filter_points(self, X, y=None, return_bool=False, warning=False):
         """
         Check whether all the points X are in the container
         and return a numpy array with those in the container. Throw a warning if any point is not
@@ -131,8 +148,12 @@ class Container:
             An array of points to check.
         y : np.ndarray of shape (N, ), optional
             corresponding values
-        return_bool : bool
+        return_bool : bool, optional
             if true, return a bool inside of filtered samples
+            Defaults to False
+        warning : bool, optional
+            if true, throw a warning if some points are outside
+            Defaults to False
         
         Returns
         -------
@@ -146,10 +167,11 @@ class Container:
         in_bounds = np.all((X >= self.mins) & (X <= self.maxs), axis=1)
         if not np.all(in_bounds):
             inside = False
-            warnings.warn(
-                "Some points are out of the container bounds: "
-                f"indices {np.where(~in_bounds)[0]}"
-            )
+            if warning:
+                warnings.warn(
+                    "Some points are out of the container bounds: "
+                    f"indices {np.where(~in_bounds)[0]}"
+                )
         else: 
             inside = True
 
@@ -159,13 +181,20 @@ class Container:
             return X[in_bounds] if y is None else X[in_bounds], y[in_bounds]
 
     def add(self, new_X, new_y):
-        assert new_X.ndim == 2
-        assert new_y.ndim == 2
-        assert new_X.shape[0] == new_y.shape[0]
-        assert new_X.shape[1] == self.D
-        assert new_y.shape[1] == 1
-        assert np.all(new_X >= self.mins), new_X[new_X < self.mins]
-        assert np.all(new_X <= self.maxs), new_X[new_X > self.maxs]
+        if new_X.ndim != 2:
+            raise ValueError(f"new_X must be a 2-dimensional array, got {new_X.ndim} dimensions")
+        if new_y.ndim != 2:
+            raise ValueError(f"new_y must be a 2-dimensional array, got {new_y.ndim} dimensions")
+        if new_X.shape[0] != new_y.shape[0]:
+            raise ValueError(f"The number of samples in new_X and new_y must be the same, got {new_X.shape[0]} and {new_y.shape[0]}")
+        if new_X.shape[1] != self.D:
+            raise ValueError(f"new_X must have {self.D} features, got {new_X.shape[1]}")
+        if new_y.shape[1] != 1:
+            raise ValueError(f"new_y must have shape (N, 1), got shape {new_y.shape}")
+        if not np.all(new_X >= self.mins):
+            raise ValueError(f"Some values in new_X are below the minimum bounds: {new_X[new_X < self.mins]}")
+        if not np.all(new_X <= self.maxs):
+            raise ValueError(f"Some values in new_X are above the maximum bounds: {new_X[new_X > self.maxs]}")
 
         self._X.add(new_X)
         self._y.add(new_y)

@@ -28,7 +28,7 @@ class ReservoirQueue:
 
     def put(self, item, weight):
         assert np.isscalar(weight), 'weights must be scalar'
-        assert weight >= 0, 'weights must be >= 0'
+        assert weight >= 0, f'weights must be >= 0, got {weight}'
         self.items.append(item)
         self.weights.append(weight)
         self.n += 1

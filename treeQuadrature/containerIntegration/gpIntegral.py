@@ -1,111 +1,8 @@
-import numpy as np
-import warnings
-
-# abstract managing
-from abc import ABC, abstractmethod
-from .container import Container
-from typing import Any, Dict, Callable
-
-## packages required for rbfIntegral
+from typing import Dict, Any
 from sklearn.gaussian_process.kernels import RBF
-from treeQuadrature.gaussianProcess import fit_GP, GP_diagnosis, rbf_Integration
 
-
-# abstract class for any integrator
-class ContainerIntegral(ABC):
-    @abstractmethod
-    def containerIntegral(self, container: Container, f: Callable[..., np.ndarray], 
-                          **kwargs: Any) -> float:
-        """
-        Arguments
-        ---------
-        container: Container
-            the container on which the integral of f should be evaluated
-        f : function
-            takes X : np.ndarray and return np.ndarray, 
-            see pdf method of Distribution class in exampleDistributions.py
-        kwargs : Any
-            other arguments allowed, must set default values
-        
-        Return
-        ------
-        float
-            value of the integral of f on the container
-        """
-        pass
-
-class MidpointIntegral(ContainerIntegral):
-    '''estimate integral by the function value at mid-point of container'''
-    def containerIntegral(self, container, f):
-        mid_x = container.midpoint
-        mid_y = f(mid_x)[0, 0]
-        return mid_y * container.volume
-
-
-class MedianIntegral(ContainerIntegral):
-    '''estimate integral by the median of samples in the container. '''
-    def containerIntegral(self, container, f):
-        
-        if container.N == 0:
-            warnings.warn(
-                'Attempted to use medianIntegral on Container object with 0' +
-                'samples.')
-            return 0
-
-        fs = np.array([f(x) for x in container.X])
-        median = np.median(fs)
-
-        return median * container.volume
-
-
-class RandomIntegral(ContainerIntegral):
-    '''
-    Monte Carlo integrator:
-    redraw samples, and estimate integral by the median
-
-    Parameters
-    ----------
-    n : int
-        number of samples to be redrawn for evaluating the integral
-        default : 10
-    '''
-    def __init__(self, n: int = 10) -> None:
-        self.n = n
-
-    def containerIntegral(self, container, f, **kwargs):
-        n = kwargs.get('n', self.n)
-
-        samples = container.rvs(n)
-        ys = f(samples)
-        container.add(samples, ys)  # for tracking num function evaluations
-        # I deliberately ignore previous samples which give skewed estimates
-        y = np.median(ys)
-
-        return y * container.volume
-
-
-class SmcIntegral(ContainerIntegral):
-    """
-    Monte Carlo integrator:
-    redraw samples, and estimate integral by the mean
-
-    Attributes
-    ----------
-    n : int, optional
-        number of samples to be redrawn for evaluating the integral
-        default : 10
-    """
-    def __init__(self, n: int = 10) -> None:
-        self.n = n
-
-    def containerIntegral(self, container, f, **kwargs):
-        n = kwargs.get('n', self.n)
-
-        samples = container.rvs(n)
-        ys = f(samples)
-        container.add(samples, ys)  # for tracking num function evaluations
-        v = container.volume
-        return v * np.mean(ys)
+from ..gaussianProcess import fit_GP, GP_diagnosis, rbf_Integration
+from .containerIntegral import ContainerIntegral
 
 class RbfIntegral(ContainerIntegral):
     """
@@ -191,6 +88,15 @@ class RbfIntegral(ContainerIntegral):
             setattr(self, key, value)
 
         # redraw uniform samples from the container
+        # TODO -keep adjusting the number of samples
+        # if container.volume > 0.05:
+        #     xs = container.rvs(self.n_samples * 8)
+        # elif container.volume > 0.01:
+        #     xs = container.rvs(self.n_samples * 2)
+        # elif container.volume > 0.025:
+        #     xs = container.rvs(self.n_samples * 4)
+        # else:
+        #     xs = container.rvs(self.n_samples)
         xs = container.rvs(self.n_samples)
         ys = f(xs)
         container.add(xs, ys)  # for tracking num function evaluations
@@ -203,6 +109,6 @@ class RbfIntegral(ContainerIntegral):
         if self.check_GP:
             # TODO - decide where to plot
             GP_diagnosis(gp, xs, ys, container, 
-                    criterion = lambda container : container.volume > 0.1)
+                    criterion = lambda container : container.volume > 0.05)
         
         return rbf_Integration(gp, container, xs, self.return_std)

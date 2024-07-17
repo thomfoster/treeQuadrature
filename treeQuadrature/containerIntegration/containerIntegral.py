@@ -26,3 +26,9 @@ class ContainerIntegral(ABC):
             value of the integral of f on the container
         """
         pass
+
+    def __str__(self):
+        if hasattr(self, 'name'):
+            return f"ContainerIntegral--{self.name}"
+        else:
+            return 'ContainerIntegral'

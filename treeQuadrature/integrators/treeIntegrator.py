@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import List
 
-import warnings, inspect
+import warnings
 import numpy as np
 
 from .integrator import Integrator
@@ -59,7 +59,8 @@ class TreeIntegrator(Integrator):
         pass
 
     def __call__(self, problem: Problem, 
-                 return_N: bool=False, return_containers: bool=False, return_std: bool=False,
+                 return_N: bool=False, return_containers: bool=False, 
+                 return_std: bool=False,
                    *args, **kwargs) -> dict:
         """
         Perform the integration process.
@@ -74,7 +75,7 @@ class TreeIntegrator(Integrator):
             if true, return containers and their contributions as well
         return_std : bool
             if true, return the standard deviation estimate. 
-            Ignored if integral does not give std estimate
+            Ignored if self.integral does not have return_std attribute
         *args, **kwargs : Any
             for construct_tree, 
             override __call__ in subclass to add additional arguments
@@ -84,12 +85,14 @@ class TreeIntegrator(Integrator):
         dict
             with the following keys:
             - 'estimate' (float) : estimated integral value
-            - 'n_evals' (int) :  number of function estiamtions
-            - 'containers' (list[Container]) : list of Containers
+            - 'n_evals' (int) :  number of function estiamtions, 
+              if return_N is True
+            - 'containers' (list[Container]) : list of Containers, 
+              if return_containers is True
             - 'contribtions' (list[float]) : contributions of each 
-              container in estimate
+              container in estimate, if return_containers is True
             - 'stds' (list[float]) : standard deviation of the 
-              integral estimate in each container
+              integral estimate in each container, if return_std is True
         """
 
         # Draw samples
@@ -103,15 +106,18 @@ class TreeIntegrator(Integrator):
 
         # uncertainty estimates
         if return_std:
-            signature = inspect.signature(self.integral.containerIntegral)
-            if 'return_std' in signature.parameters:
-                results = [self.integral.containerIntegral(cont, problem.pdf, return_std=True)
+            if hasattr(self.integral, 'return_std'):
+                results = [self.integral.containerIntegral(cont, 
+                                                           problem.pdf, 
+                                                           return_std=True)
                          for cont in finished_containers]
                 contributions = [result[0] for result in results]
                 stds = [result[1] for result in results]
             else:
-                warnings.warn('integral does not have parameter return_std, will be ignored', 
-                              UserWarning)
+                warnings.warn(
+                    f'{str(self.integral)} does not '
+                     'have parameter return_std, will be ignored', 
+                     UserWarning)
                 return_std = False
 
                 contributions = [self.integral.containerIntegral(cont, problem.pdf)

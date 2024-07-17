@@ -45,7 +45,7 @@ class VegasIntegrator(Integrator):
         dict
             with the following keys:
             - 'estimate' (float) : estimated integral value
-            - 'n_evals' (int) :  number of function estiamtions
+            - 'n_evals' (int) :  number of function estiamtions, if return_N is True
         """
         integ = vegas.Integrator([[-1.0, 1.0]] * problem.D)
         f = ShapeAdapter(problem.pdf)

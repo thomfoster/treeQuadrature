@@ -16,6 +16,7 @@ class RandomIntegral(ContainerIntegral):
     '''
     def __init__(self, n: int = 10) -> None:
         self.n = n
+        self.name = 'RandomIntegral'
 
     def containerIntegral(self, container, f, **kwargs):
         n = kwargs.get('n', self.n)
@@ -42,6 +43,7 @@ class SmcIntegral(ContainerIntegral):
     """
     def __init__(self, n: int = 10) -> None:
         self.n = n
+        self.name = 'SmcIntegral'
 
     def containerIntegral(self, container, f, **kwargs):
         n = kwargs.get('n', self.n)

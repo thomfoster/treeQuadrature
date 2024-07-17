@@ -59,6 +59,8 @@ class RbfIntegral(ContainerIntegral):
         # set options correspondingly
         for key, value in self.options.items():
             setattr(self, key, value)
+        
+        self.name = 'RbfIntegral'
 
     @staticmethod
     def _validate_options(options):

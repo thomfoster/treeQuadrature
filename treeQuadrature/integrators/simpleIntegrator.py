@@ -4,6 +4,7 @@ from .integrator import Integrator
 from ..container import Container
 from ..containerIntegration import ContainerIntegral
 from ..splits import Split
+from ..exampleProblems import Problem
 from queue import SimpleQueue
 
 import inspect
@@ -61,30 +62,34 @@ class SimpleIntegrator(Integrator):
         self.integral = integral
 
 
-    def __call__(self, problem, return_N=False, return_all=False, return_std=False):
+    def __call__(self, problem: Problem, 
+                 return_N: bool=False, return_containers: bool=False, return_std: bool=False):
         """
         Parameters 
         ----------
         problem : Problem
             the integration problem being solved
         return_N : bool
-            if true, return the number of containers
-        return_all : bool
+            if true, return the number of function evaluations
+        return_containers : bool
             if true, return containers and their contributions as well
         return_std : bool
             if true, return the standard deviation estimate. 
             Ignored if integral does not give std estimate
         
-        Returns
-        ------
-        G : float
-            estimated integral value
-        N : int
-            number of containers used
-        containers : list
-            list of Containers
-        contribtions : list
-            list of floats indicating contributions of each container in G
+        Return
+        -------
+        dict
+            estimate : float
+                estimated integral value
+            n_evals : int
+                number of function estiamtions
+            containers : list[Container]
+                list of Containers
+            contribtions : list[float]
+                contributions of each container in estimate
+            stds : list[float]
+                standard deviation of the integral estimate in each container
         """
 
         # Draw samples
@@ -103,7 +108,7 @@ class SimpleIntegrator(Integrator):
                 results = [self.integral.containerIntegral(cont, problem.pdf, return_std=True)
                          for cont in containers]
                 contributions = [result[0] for result in results]
-                stds = [result[0] for result in results]
+                stds = [result[1] for result in results]
             else:
                 warnings.warn('integral does not have parameter return_std, will be ignored', 
                               UserWarning)
@@ -120,16 +125,17 @@ class SimpleIntegrator(Integrator):
         G = np.sum(contributions)
         N = sum([cont.N for cont in containers])
 
-        return_values = [G]
+        return_values = {'estimate' : G}
 
         if return_N:
-            return_values.append(N)
-        if return_all:
-            return_values.extend([N, containers, contributions])
+            return_values['n_evals'] = N
+        if return_containers:
+            return_values['containers'] = containers
+            return_values['contributions'] = contributions
         if return_std:
-            return_values.append(stds)
+            return_values['stds'] = stds
 
-        return tuple(return_values)
+        return return_values
 
     def construct_tree(self, root):
         # Construct tree

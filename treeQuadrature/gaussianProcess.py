@@ -107,8 +107,10 @@ def rbf_Integration(gp, container, xs, return_std):
 
     Returns
     -------
-    integral : float
-        The estimated integral value.
+    float or tuple
+        float is the estimated integral value, 
+        tuple has length 2, the second value is 
+          integral evaluation std.
     """
     # Extract length scaled
     l = gp.kernel_.length_scale

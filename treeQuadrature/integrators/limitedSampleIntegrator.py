@@ -6,7 +6,10 @@ from ..queues import ReservoirQueue
 from ..container import Container
 from ..splits import Split
 from ..containerIntegration import ContainerIntegral
+from ..exampleProblems import Problem
+
 from typing import Callable
+import warnings, inspect
 
 
 default_queue = ReservoirQueue(accentuation_factor=100)
@@ -87,7 +90,7 @@ class LimitedSampleIntegrator(Integrator):
         self.weighting_function = weighting_function
         self.queue = queue
 
-    def __call__(self, problem, return_N=False, return_all=False):
+    def __call__(self, problem: Problem, return_N: bool=False, return_containers: bool=False, return_std: bool=False):
         """
         Perform the integration process.
 
@@ -95,15 +98,17 @@ class LimitedSampleIntegrator(Integrator):
         ----------
         problem : Problem
             The integration problem to be solved
-        return_N : bool, optional
-            If True, return the number of samples used.
-        return_all : bool, optional
-            If True, return containers and their contributions to the integral
+        return_N : bool
+            if true, return the number of function evaluations
+        return_containers : bool
+            if true, return containers and their contributions as well
+        return_std : bool
+            if true, return the standard deviation estimate. 
+            Ignored if integral does not give std estimate
 
         Returns
         -------
-        result : tuple or float
-            The computed integral and optionally the number of samples, finished containers, contributions, and remaining samples.
+        dict
         """
 
         # Draw samples
@@ -112,7 +117,48 @@ class LimitedSampleIntegrator(Integrator):
 
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
-        # Refine with further active samples
+        # construct tree
+        finished_containers = self.construct_tree(root, integrand=problem.pdf)
+
+        # uncertainty estimates
+        if return_std:
+            signature = inspect.signature(self.integral.containerIntegral)
+            if 'return_std' in signature.parameters:
+                results = [self.integral.containerIntegral(cont, problem.pdf, return_std=True)
+                         for cont in finished_containers]
+                contributions = [result[0] for result in results]
+                stds = [result[1] for result in results]
+            else:
+                warnings.warn('integral does not have parameter return_std, will be ignored', 
+                              UserWarning)
+                return_std = False
+
+                contributions = [self.integral.containerIntegral(cont, problem.pdf)
+                            for cont in finished_containers]
+            
+        else: 
+            # Integrate containers
+            contributions = [self.integral.containerIntegral(cont, problem.pdf)
+                            for cont in finished_containers]
+        
+        G = np.sum(contributions)
+        N = sum([cont.N for cont in finished_containers])
+
+
+        return_values = {'estimate' : G}
+        if return_N:
+            return_values['n_evals'] = N
+        if return_containers:
+            return_values['containers'] = finished_containers
+            return_values['contributions'] = contributions
+        if return_std:
+            return_values['stds'] = stds
+
+        return return_values
+    
+
+    def construct_tree(self, root: Container, integrand: Callable):
+        """Actively refine the containers with samples"""
         q = self.queue
         q.put(root, 1)
         finished_containers = []
@@ -126,7 +172,7 @@ class LimitedSampleIntegrator(Integrator):
 
             if num_samples_left >= self.active_N:
                 X = c.rvs(self.active_N)
-                y = problem.pdf(X)
+                y = integrand(X)
                 c.add(X, y)
                 num_samples_left -= self.active_N
 
@@ -139,13 +185,4 @@ class LimitedSampleIntegrator(Integrator):
                 weight = self.weighting_function(child)
                 q.put(child, weight)
 
-        # Integrate containers
-        contributions = [self.integral.containerIntegral(cont, problem.pdf)
-                         for cont in finished_containers]
-        G = np.sum(contributions)
-        N = sum([cont.N for cont in finished_containers])
-
-        ret = (G, N) if return_N else G
-        ret = (G, N, finished_containers, contributions,
-               num_samples_left) if return_all else ret
-        return ret
+        return finished_containers

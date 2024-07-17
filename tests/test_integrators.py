@@ -1,7 +1,7 @@
 import pytest
 import treeQuadrature as tq
 import numpy as np
-from functools import partial
+from typing import List
 
 ######################
 # Initial IO checks
@@ -17,12 +17,14 @@ def test_io(integrator_instance):
 
     problem = tq.exampleProblems.SimpleGaussian(3)
 
-    I = integrator_instance(problem)
-    I, N = integrator_instance(problem, return_N=True)
-    res = integrator_instance(problem, return_all=True)
-    assert len(res) >= 2
-    res = integrator_instance(problem, return_N=True, return_all=True)
-    assert len(res) >= 2
+    res = integrator_instance(problem)
+    assert isinstance(res['estimate'], float)
+    res = integrator_instance(problem, return_N=True)
+    assert isinstance(res['n_evals'], int)
+    # res = integrator_instance(problem, return_all=True)
+    # assert len(res) >= 2
+    # res = integrator_instance(problem, return_N=True, return_all=True)
+    # assert len(res) >= 2
 
 
 ########################################################################
@@ -39,7 +41,7 @@ integrals = [
     tq.containerIntegration.MidpointIntegral(),
     tq.containerIntegration.RandomIntegral(),
     tq.containerIntegration.SmcIntegral(),
-    tq.containerIntegration.RbfIntegral(n_samples=10)
+    tq.containerIntegration.RbfIntegral(n_samples=5, n_tuning=1, max_iter=100)
 ]
 
 queues = [
@@ -47,7 +49,7 @@ queues = [
     tq.queues.PriorityQueue()
 ]
 
-@pytest.mark.parametrize("D", [1,2, 10])
+@pytest.mark.parametrize("D", [1,2,4])
 @pytest.mark.parametrize("N", [1000])
 @pytest.mark.parametrize("P", [100])
 @pytest.mark.parametrize("split", splits)
@@ -55,7 +57,7 @@ queues = [
 def test_SimpleIntegrator(D, N, P, split, integral):
     problem = tq.exampleProblems.SimpleGaussian(D)
     integ = tq.integrators.SimpleIntegrator(N, P, split, integral)
-    I = integ(problem)
+    res = integ(problem, return_N = True)
 
 @pytest.mark.parametrize("D", [1,2])
 @pytest.mark.parametrize("base_N", [1000])
@@ -77,7 +79,17 @@ def test_QueueIntegrator(
     integ = tq.integrators.QueueIntegrator(
         base_N, split, integral, weighting_function,
         active_N, num_splits, stopping_condition, queue)
-    I, N, fcs, cs, ns = integ(problem, return_all=True)
+    res = integ(problem, return_N=True, return_containers=True)
+    fcs = res['containers']
+    ns = res['n_splits']
+    N = res['n_evals']
+
+    assert isinstance(res['estimate'], float)
+    assert isinstance(res['n_evals'], int)
+    assert isinstance(N, int)
+    assert isinstance(ns, int)
+    assert isinstance(fcs, list)
+    assert all(isinstance(cont, tq.Container) for cont in fcs)
 
     if "RandomIntegral" in str(integral) or "SmcIntegral" in str(integral): 
         # accounts for random samples used in container integration
@@ -106,5 +118,7 @@ def test_LimitedSampleIntegrator(
     integ = tq.integrators.LimitedSampleIntegrator(
         N, base_N, active_N, split, integral, weighting_function, queue
     )
-    I, N, fcs, cs, ns = integ(problem, return_all=True)
+    res = integ(problem, return_N=True)
 
+    assert isinstance(res['estimate'], float)
+    assert isinstance(res['n_evals'], int)

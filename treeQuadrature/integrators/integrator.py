@@ -8,7 +8,7 @@ class Integrator(ABC):
     """
 
     @abstractmethod
-    def __call__(self, problem: Problem) -> Union[float, Tuple[float, Any]]:
+    def __call__(self, problem: Problem, return_N: bool, **kwargs: Any) -> dict:
         """
         Perform integration on the given problem.
 
@@ -16,11 +16,33 @@ class Integrator(ABC):
         ----------
         problem : Problem
             The problem to be integrated.
+        return_N : bool
+            whether return number of evaluations or not
 
         Returns
         -------
-        float or Tuple
-            the first return value must be float 
-              representing the estimated integral value
+        dict
+            estimate : float
+                estimated integral value
+            n_evals : int
+                number of function estiamtions
+            and other necessary details
         """
         pass
+
+    # def test_call_method(self):
+    #     """
+    #     Test the __call__ method to ensure it returns a tuple 
+    #     """
+    #     result = self.__call__()
+    #     if not isinstance(result, tuple):
+    #         raise AssertionError("The result should be a tuple.")
+        
+    #     if not isinstance(result[0], dict):
+    #         raise AssertionError("The first element of the tuple should be a dictionary.")
+        
+    #     if 'estimate' not in result[0]:
+    #         raise AssertionError("The dictionary should contain the key 'estimate'.")
+        
+    #     if not isinstance(result[0]['estimate'], float):
+    #         raise AssertionError("The value of 'estimate' should be a float.")

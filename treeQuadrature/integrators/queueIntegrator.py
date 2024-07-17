@@ -5,7 +5,11 @@ from ..queues import ReservoirQueue
 from ..container import Container
 from ..splits import Split
 from ..containerIntegration import ContainerIntegral
+from ..exampleProblems import Problem
 from typing import Callable
+
+import inspect
+import warnings
 
 
 # Default finished condition will never prevent container being split
@@ -95,7 +99,8 @@ class QueueIntegrator(Integrator):
         self.stopping_condition = stopping_condition
         self.queue = queue
 
-    def __call__(self, problem, return_N=False, return_all=False):
+    def __call__(self, problem: Problem, 
+                 return_N: bool=False, return_containers: bool=False, return_std: bool=False):
         # Draw samples
         X = problem.d.rvs(self.base_N)
         y = problem.pdf(X)
@@ -103,6 +108,46 @@ class QueueIntegrator(Integrator):
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
         # Construct tree
+        finished_containers, n_splits = self.construct_tree(root, integrand=problem.pdf)
+
+        # uncertainty estimates
+        if return_std:
+            signature = inspect.signature(self.integral.containerIntegral)
+            if 'return_std' in signature.parameters:
+                results = [self.integral.containerIntegral(cont, problem.pdf, return_std=True)
+                         for cont in finished_containers]
+                contributions = [result[0] for result in results]
+                stds = [result[1] for result in results]
+            else:
+                warnings.warn('integral does not have parameter return_std, will be ignored', 
+                              UserWarning)
+                return_std = False
+
+                contributions = [self.integral.containerIntegral(cont, problem.pdf)
+                            for cont in finished_containers]
+
+        else: 
+            # Integrate containers
+            contributions = [self.integral.containerIntegral(cont, problem.pdf)
+                            for cont in finished_containers]
+            
+        G = np.sum(contributions)
+        N = sum([cont.N for cont in finished_containers])
+
+        return_values = {'estimate' : G}
+
+        if return_N:
+            return_values['n_evals'] = N
+            return_values['n_splits'] = n_splits
+        if return_containers:
+            return_values['containers'] = finished_containers
+            return_values['contributions'] = contributions
+        if return_std:
+            return_values['stds'] = stds
+
+        return return_values
+    
+    def construct_tree(self, root: Container, integrand: Callable):
         current_n_splits = 0
         finished_containers = []
         q = self.queue
@@ -121,7 +166,7 @@ class QueueIntegrator(Integrator):
 
                     if self.active_N > 0:
                         X = child.rvs(self.active_N)
-                        y = problem.pdf(X)
+                        y = integrand(X)
                         child.add(X, y)
 
                     weight = self.weighting_function(child)
@@ -133,13 +178,4 @@ class QueueIntegrator(Integrator):
         while not q.empty():
             finished_containers.append(q.get())
 
-        # Integrate containers
-        contributions = [self.integral.containerIntegral(cont, problem.pdf)
-                         for cont in finished_containers]
-        G = np.sum(contributions)
-        N = sum([cont.N for cont in finished_containers])
-
-        ret = (G, N) if return_N else G
-        ret = (G, N, finished_containers, contributions,
-               current_n_splits) if return_all else ret
-        return ret
+        return finished_containers, current_n_splits

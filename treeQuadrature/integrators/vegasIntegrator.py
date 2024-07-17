@@ -1,6 +1,7 @@
 import vegas
 
 from .integrator import Integrator
+from ..exampleProblems import Problem
 
 class ShapeAdapter:
     def __init__(self, f):
@@ -26,7 +27,7 @@ class VegasIntegrator(Integrator):
         self.N = N
         self.NITN = NITN
 
-    def __call__(self, problem, return_N=False, return_all=False):
+    def __call__(self, problem: Problem, return_N: bool=False, return_all: bool=False):
         """
         Perform the integration process using the VEGAS algorithm.
 
@@ -48,5 +49,7 @@ class VegasIntegrator(Integrator):
         f = ShapeAdapter(problem.pdf)
         G = integ(f, nitn=self.NITN, neval=self.N).mean
 
-        ret = (G, self.N * self.NITN) if return_N or return_all else G
+        ret = {'estimate': G}
+        if return_N:
+            ret['n_evals'] = self.N * self.NITN
         return ret

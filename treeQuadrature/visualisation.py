@@ -31,7 +31,10 @@ def plotContainers(containers, contributions, xlim, ylim=None, integrand=None,
         Defaults to False
     """
 
-    assert len(containers) == len(contributions), 'The length of containers and contributions must be the same'
+    assert len(containers) == len(contributions), (
+        'The length of containers and contributions must be the same'
+        f'got {len(containers)} and {len(contributions)}'
+    )
 
     # find the dimension
     D = containers[0].X.shape[1]

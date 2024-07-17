@@ -1,6 +1,7 @@
 import numpy as np
 
 from .integrator import Integrator
+from ..exampleProblems import Problem
 
 class SmcIntegrator(Integrator):
     """
@@ -12,10 +13,10 @@ class SmcIntegrator(Integrator):
     N : int
         Number of samples to draw.
     """
-    def __init__(self, N):
+    def __init__(self, N: int):
         self.N = N
 
-    def __call__(self, problem, return_N=False, return_all=False):
+    def __call__(self, problem: Problem, return_N: bool=False):
         """
         Perform the integration process.
 
@@ -40,5 +41,7 @@ class SmcIntegrator(Integrator):
         ys = problem.d.pdf(xs).reshape(-1)
         G = np.mean(ys)
 
-        ret = (G, self.N) if return_N or return_all else G
+        ret = {'estimate': G}
+        if return_N:
+            ret['n_evals'] = self.N
         return ret

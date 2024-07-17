@@ -30,6 +30,20 @@ def test_init(D):
     assert cont._X.N == 2
     assert np.all(cont._X.contents == X)
 
+@pytest.mark.parametrize("mins, maxs", [
+    ([-1, -2], [2, 3]), 
+    (np.array([-1, -2, -3, -4]), np.array([1, 2, 3, 4]))
+])
+def test_init_rectangle(mins, maxs):
+    D = len(mins)
+    X = np.random.uniform(mins, maxs, size=(2, D))
+    y = np.array([[0.0]]*2)
+    cont = tq.Container(X, y, mins, maxs)
+
+    assert cont.is_finite
+    assert np.all(cont.midpoint == (np.array(mins) + np.array(maxs)) / 2)
+    assert cont.volume == np.prod(np.array(maxs) - np.array(mins))
+
 @pytest.mark.parametrize("x, expected", [
     (-50.0, "Fail"),
     (-5.0, "Success"),

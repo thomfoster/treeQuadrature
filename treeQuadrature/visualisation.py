@@ -68,10 +68,11 @@ def _plotContainers2D(containers, contributions, xlim, ylim, title, plot_samples
     plt.show()
 
 def _plotContainers1D(containers, contributions, xlim, integrand, title, plot_samples):
-    ### plot the integrand
-    x_values = np.linspace(xlim[0], xlim[1], 2000).reshape(-1, 1)
-    y_values = integrand(x_values)
-    plt.plot(x_values, y_values, label='Integrand', color='blue')
+    if integrand is not None:
+        ### plot the integrand
+        x_values = np.linspace(xlim[0], xlim[1], 2000).reshape(-1, 1)
+        y_values = integrand(x_values)
+        plt.plot(x_values, y_values, label='Integrand', color='blue')
     
     ### Plot the contributions as a bar chart
     container_centers = []

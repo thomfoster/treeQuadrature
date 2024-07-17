@@ -26,8 +26,6 @@ class SmcIntegrator(Integrator):
             The integration problem
         return_N : bool, optional
             If True, return the number of samples used.
-        return_all : bool, optional
-            If True, return containers and their contributions to the integral
 
         Returns
         -------

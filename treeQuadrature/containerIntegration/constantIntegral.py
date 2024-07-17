@@ -19,7 +19,7 @@ class MedianIntegral(ContainerIntegral):
         if container.N == 0:
             warnings.warn(
                 'Attempted to use medianIntegral on Container object with 0' +
-                'samples.')
+                'samples.', RuntimeWarning)
             return 0
 
         fs = np.array([f(x) for x in container.X])

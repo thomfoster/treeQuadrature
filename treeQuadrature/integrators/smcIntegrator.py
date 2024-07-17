@@ -27,11 +27,12 @@ class SmcIntegrator(Integrator):
         return_N : bool, optional
             If True, return the number of samples used.
 
-        Returns
+        Return
         -------
-        result : float or tuple
-            The computed integral and optionally the number of samples
-            and other details
+        dict
+            with the following keys:
+            - 'estimate' (float) : estimated integral value
+            - 'n_evals' (int) :  number of function estiamtions
         """
         # Draw N samples from the prior distribution
         xs = problem.p.rvs(self.N)

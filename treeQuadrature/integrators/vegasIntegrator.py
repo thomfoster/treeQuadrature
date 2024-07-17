@@ -40,10 +40,12 @@ class VegasIntegrator(Integrator):
         return_all : bool, optional
             If True, return containers and their contributions to the integral
 
-        Returns
+        Return
         -------
-        result : float or tuple
-            The computed integral and optionally the number of samples.
+        dict
+            with the following keys:
+            - 'estimate' (float) : estimated integral value
+            - 'n_evals' (int) :  number of function estiamtions
         """
         integ = vegas.Integrator([[-1.0, 1.0]] * problem.D)
         f = ShapeAdapter(problem.pdf)

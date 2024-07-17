@@ -82,16 +82,14 @@ class TreeIntegrator(Integrator):
         Return
         -------
         dict
-            estimate : float
-                estimated integral value
-            n_evals : int
-                number of function estiamtions
-            containers : list[Container]
-                list of Containers
-            contribtions : list[float]
-                contributions of each container in estimate
-            stds : list[float]
-                standard deviation of the integral estimate in each container
+            with the following keys:
+            - 'estimate' (float) : estimated integral value
+            - 'n_evals' (int) :  number of function estiamtions
+            - 'containers' (list[Container]) : list of Containers
+            - 'contribtions' (list[float]) : contributions of each 
+              container in estimate
+            - 'stds' (list[float]) : standard deviation of the 
+              integral estimate in each container
         """
 
         # Draw samples

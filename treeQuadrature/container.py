@@ -76,31 +76,25 @@ class Container:
         Return : list of two sub-containers
     '''
 
-    def __init__(self, X, y, mins=None, maxs=None):
+    def __init__(self, X: np.ndarray, y: np.ndarray, mins=None, maxs=None):
         """
         Attributes
         ----------
         X : numpy.ndarray of shape (N, D)
             each row is a sample
-        y : numpy.ndarray of shape (N, 1)
+        y : numpy.ndarray of shape (N, 1) or (N,)
             the function value at each sample
         mins, maxs : numpy.ndarray of shape (D,), optional
             the low and high boundaries of the hyper-rectangle
             could be +- np.inf
         """
-        # basic checks
-        if X.ndim != 2:
-            raise ValueError(f"X must be a 2-dimensional array, got {X.ndim} dimensions")
-        if y.ndim != 2:
-            raise ValueError(f"y must be a 2-dimensional array, got {y.ndim} dimensions")
-        if X.shape[0] != y.shape[0]:
-            raise ValueError(f"The number of samples in X and y must be the same, got {X.shape[0]} and {y.shape[0]}")
-        if y.shape[1] != 1:
-            raise ValueError(f"y must have shape (N, 1), got shape {y.shape}")
+
         if np.any(mins == np.inf):
             raise ValueError(f'mins cannot have np.inf, got {mins}')
         if np.any(maxs == -np.inf):
             raise ValueError(f'maxs cannot have -np.inf, got {maxs}')
+
+        X, y = self._handle_X_y(X, y)
 
         self.D = X.shape[1]
 
@@ -135,6 +129,25 @@ class Container:
             return np.array(bounds)
         else:
             return np.array([default_value] * self.D)
+
+    def _handle_X_y(self, X: np.ndarray, y: np.ndarray):
+        # basic checks
+        if X.ndim != 2:
+            raise ValueError(f"X must be a 2-dimensional array, got {X.ndim} dimensions")
+        if (y.ndim != 2 or y.shape[1] != 1) and y.ndim != 1:
+            raise ValueError(
+                "y must be a 1-dimensional array, or 2-dimensional array"
+                f" with shape (N, 1), got {y.ndim}"
+            )
+        if X.shape[0] != y.shape[0]:
+            raise ValueError(f"The number of samples in X and y must be the same, got {X.shape[0]} and {y.shape[0]}")
+        
+        if y.ndim == 1:
+            ret_y = y.reshape(-1, 1)
+        else:
+            ret_y = y.copy()
+
+        return X, ret_y
         
     def filter_points(self, X, y=None, return_bool=False, warning=False):
         """
@@ -181,16 +194,8 @@ class Container:
             return X[in_bounds] if y is None else X[in_bounds], y[in_bounds]
 
     def add(self, new_X, new_y):
-        if new_X.ndim != 2:
-            raise ValueError(f"new_X must be a 2-dimensional array, got {new_X.ndim} dimensions")
-        if new_y.ndim != 2:
-            raise ValueError(f"new_y must be a 2-dimensional array, got {new_y.ndim} dimensions")
-        if new_X.shape[0] != new_y.shape[0]:
-            raise ValueError(f"The number of samples in new_X and new_y must be the same, got {new_X.shape[0]} and {new_y.shape[0]}")
-        if new_X.shape[1] != self.D:
-            raise ValueError(f"new_X must have {self.D} features, got {new_X.shape[1]}")
-        if new_y.shape[1] != 1:
-            raise ValueError(f"new_y must have shape (N, 1), got shape {new_y.shape}")
+        new_X, new_y = self._handle_X_y(new_X, new_y)
+        
         if not np.all(new_X >= self.mins):
             raise ValueError(f"Some values in new_X are below the minimum bounds: {new_X[new_X < self.mins]}")
         if not np.all(new_X <= self.maxs):

@@ -102,8 +102,11 @@ def test_QueueIntegrator(
 
     problem = tq.exampleProblems.SimpleGaussian(D)
     integ = tq.integrators.QueueIntegrator(
-        base_N, split, integral, weighting_function,
-        active_N, max_splits, stopping_condition, queue)
+        base_N=base_N, split=split, integral=integral, 
+        weighting_function=weighting_function,
+        active_N=active_N, max_splits=max_splits, 
+        stopping_condition=stopping_condition, 
+        queue=queue)
     res = integ(problem, return_N=True, return_containers=True)
     fcs = res['containers']
     ns = res['n_splits']
@@ -142,6 +145,9 @@ def test_LimitedSampleIntegrator(
 
     problem = tq.exampleProblems.SimpleGaussian(D)
     integ = tq.integrators.LimitedSampleIntegrator(
-        N, base_N, active_N, split, integral, weighting_function, queue
+        N=N, base_N=base_N, 
+        active_N=active_N, split=split, 
+        integral=integral, weighting_function=weighting_function, 
+        queue=queue
     )
     _ = integ(problem)

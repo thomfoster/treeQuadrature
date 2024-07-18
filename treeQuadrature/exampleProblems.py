@@ -1,4 +1,5 @@
 from . import exampleDistributions as dists
+from .utils import handle_bound
 
 import numpy as np
 from abc import ABC, abstractmethod
@@ -41,28 +42,27 @@ class Problem(ABC):
     '''
     def __init__(self, D, lows, highs):
         self.D = D
-        self.lows = Problem._handle_bound(lows, D, -np.inf)
-        self.highs = Problem._handle_bound(highs, D, np.inf)
+        self.lows = handle_bound(lows, D, -np.inf)
+        self.highs = handle_bound(highs, D, np.inf)
         self.answer = None
         
     @abstractmethod
     def integrand(self, X, *args, **kwargs) -> np.ndarray:
-        """must be defined, the function being integrated"""
-        pass
+        """
+        must be defined, the function being integrated
+        
+        Argument
+        --------
+        X : numpy.ndarray
+            each row is an input vector
 
-    @staticmethod
-    def _handle_bound(value, D, default_value):
-        if value is None:
-            return [default_value] * D
-        elif isinstance(value, float):
-            return [value] * D
-        elif isinstance(value, (list, np.ndarray)) and len(value) == D:
-            return np.array(value)
-        else:
-            raise ValueError(
-                "value must be a float, list, or numpy.ndarray"
-                f"with length {D} when given as a list or numpy.ndarray"
-            )
+        Return
+        ------
+        numpy.ndarray
+            1-dimensional array of the same length as X
+            each entry is f(x_i) where x_i is the ith row of X
+        """
+        pass
 
 
 class BayesProblem(Problem):
@@ -216,7 +216,7 @@ class Gaussian(BayesProblem):
             Sigma defaults to I
         """
         # Value checks
-        self.mu = Problem._handle_bound(mu, D, 0)
+        self.mu = handle_bound(mu, D, 0)
         self.Sigma = Gaussian._handle_Sigma(Sigma, D)
 
         super().__init__(D, d = dists.MultivariateNormal(

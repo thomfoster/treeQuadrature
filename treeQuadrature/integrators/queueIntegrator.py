@@ -23,6 +23,7 @@ class QueueIntegrator(TreeIntegrator):
             split: Split,
             integral: ContainerIntegral,
             weighting_function: Callable,
+            sampler=None,
             active_N: int=0,
             max_splits=np.inf,
             stopping_condition: Callable=default_stopping_condition,
@@ -43,6 +44,10 @@ class QueueIntegrator(TreeIntegrator):
         weighting_function : function
             maps Container -> R to give priority of container
             in queue
+        sampler : Sampler
+            a method for generating initial samples
+            when problem does not have rvs method. 
+            Default: UniformSampler
         active_N : int, optional
             the number of active samples to draw before a container is
                 split
@@ -81,14 +86,16 @@ class QueueIntegrator(TreeIntegrator):
         >>>       str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
         """
         
-        if np.isinf(
-                max_splits) and (
+        if np.isinf(max_splits) and (
                 stopping_condition == default_stopping_condition):
             raise Exception(
                 "Integrator with never terminate - either provide a stopping" +
                 "condition or a maximum number of splits (max_splits)")
 
-        super().__init__(split, integral, base_N)
+        if sampler is None:
+            super().__init__(split, integral, base_N)
+        else:
+            super().__init__(split, integral, base_N, sampler=sampler)
         self.weighting_function = weighting_function
         self.active_N = active_N
         self.max_splits = max_splits

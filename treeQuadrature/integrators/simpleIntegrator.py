@@ -7,7 +7,8 @@ from queue import SimpleQueue
 
 
 class SimpleIntegrator(TreeIntegrator):
-    def __init__(self, base_N: int, P: int, split: Split, integral: ContainerIntegral):
+    def __init__(self, base_N: int, P: int, split: Split, integral: ContainerIntegral, 
+                 sampler=None):
         '''
         A simple integrator with the following steps:
             - Draw <N> samples
@@ -25,6 +26,10 @@ class SimpleIntegrator(TreeIntegrator):
             a method to split a container (for tree construction)
         integral : ContainerIntegral 
             a method to evaluate the integral of f on a container
+        sampler : Sampler
+            a method for generating initial samples
+            when problem does not have rvs method. 
+            Default: UniformSampler
         
         Methods
         -------
@@ -46,7 +51,10 @@ class SimpleIntegrator(TreeIntegrator):
         >>> print("error of random integral =", 
         >>>      str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
         '''
-        super().__init__(split, integral, base_N)
+        if sampler is None:
+            super().__init__(split, integral, base_N)
+        else:
+            super().__init__(split, integral, base_N, sampler=sampler)
         self.P = P
 
     def construct_tree(self, root):

@@ -9,8 +9,10 @@ from ..container import Container
 from ..exampleProblems import Problem
 from ..splits import Split
 from ..containerIntegration import ContainerIntegral
+from ..samplers import Sampler, UniformSampler
 
 
+default_sampler = UniformSampler()
 
 class TreeIntegrator(Integrator):
     """
@@ -20,6 +22,7 @@ class TreeIntegrator(Integrator):
     @abstractmethod
     def __init__(self, split: Split,
             integral: ContainerIntegral, base_N: int, 
+            sampler: Sampler=default_sampler,
             *args, **kwargs):
         """
         Initialise the tree structure. 
@@ -30,8 +33,11 @@ class TreeIntegrator(Integrator):
             the method to split the containers
         integral : ContainerIntegral
             the method to integrate the containers
-        N : int
+        base_N : int
             number of initial samples
+        sampler : Sampler
+            a method for generating initial samples
+            when problem does not have rvs method
         *args, **kwargs : Any
             other arguments necessary to build the Integrator,
             override __init__ in subclass to add other arguments
@@ -39,6 +45,7 @@ class TreeIntegrator(Integrator):
         self.split = split
         self.integral = integral
         self.base_N = base_N
+        self.sampler = sampler
 
     @abstractmethod
     def construct_tree(self, root: Container, *args, **kwargs) -> List[Container]:
@@ -96,8 +103,15 @@ class TreeIntegrator(Integrator):
         """
 
         # Draw samples
-        X = problem.rvs(self.base_N)
+        if hasattr(problem, 'rvs'):
+            X = problem.rvs(self.base_N)
+        else:
+            X = self.sampler.rvs(self.base_N, problem)
         y = problem.integrand(X)
+        assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1), (
+            'the output of problem.integrand must be one-dimensional array'
+            f', got shape {y.shape}'
+        )
 
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 

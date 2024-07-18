@@ -38,6 +38,7 @@ class LimitedSampleIntegrator(TreeIntegrator):
             split: Split,
             integral: ContainerIntegral,
             weighting_function: Callable,
+            sampler=None,
             queue: ReservoirQueue=default_queue):
         """
         Integrator that builds on from queueIntegrator with more friendly
@@ -58,6 +59,10 @@ class LimitedSampleIntegrator(TreeIntegrator):
             Function to compute the integral over a container.
         weighting_function : function
             Function to compute the weight of a container.
+        sampler : Sampler
+            a method for generating initial samples
+            when problem does not have rvs method. 
+            Default: UniformSampler
         queue : class
             Queue class to manage the containers, default is PriorityQueue.
 
@@ -81,7 +86,10 @@ class LimitedSampleIntegrator(TreeIntegrator):
         >>>      str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
         """
         
-        super().__init__(split, integral, base_N)
+        if sampler is None:
+            super().__init__(split, integral, base_N)
+        else:
+            super().__init__(split, integral, base_N, sampler=sampler)
         self.N = N
         self.active_N = active_N
         self.weighting_function = weighting_function

@@ -15,15 +15,22 @@ class Distribution(ABC):
         self.D = D  # dimensions of the distribution
 
     @abstractmethod
-    def rvs(self, *args, **kwargs) -> np.ndarray:
+    def rvs(self, n:int, *args, **kwargs) -> np.ndarray:
         """
         Generate random variates of the distribution.
 
         Args:
-            *args, **kwargs: Additional arguments and keyword arguments for generating the random variates.
+        -----
+        n : int 
+            number of samples
+        *args, **kwargs : Any
+            Additional arguments and keyword arguments for generating the random variates.
 
-        Returns: numpy array
-            contains samples from the distribution.
+        Return
+        -------
+        np.ndarray
+            contains samples from the distribution,
+            must have shape (n, self.D)
         """
         pass
 
@@ -36,7 +43,7 @@ class Distribution(ABC):
             X: array of points on which the pdf value should be evaluated
             *args, **kwargs: Additional arguments and keyword arguments for the pdf computation.
 
-        Returns: numpy array
+        Returns: numpy.ndarray
             The probability densities at x_i (rows of X)
         """
         pass
@@ -47,7 +54,7 @@ class Uniform(Distribution):
 
     Attributes
     ----------
-    low, high : float or numpy array of shape (D, )
+    low, high : float or numpy.ndarray of shape (D, )
         the lower and uppper bounds
         if float given, the same bound used for all dimensions
     """
@@ -82,9 +89,9 @@ class MultivariateNormal(Distribution):
 
     Attributes
     ----------
-    mean : numpy array of shape (D, )
+    mean : numpy.ndarray of shape (D, )
         the mean vector of Gaussian distribution
-    cov : float, or numpy array of shape (D, D)
+    cov : float, or numpy.ndarray of shape (D, D)
         the covariance matrix
         if float given, covariance matrix is cov * np.eye(D)
     '''

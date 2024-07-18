@@ -47,14 +47,14 @@ class Container:
     ----------
     _X, _y : ArrayList
         stores the samples and evaluations efficiently 
-    mins, maxs : float or list or numpy array of shape (D,)
+    mins, maxs : float or list or numpy.ndarray of shape (D,)
         the low and high boundaries of the 
         only for hyper-rectangle containers
     volume : float
         volume of the container
     is_finite : bool
         indicator of whether the container has finite volume
-    midpoint : numpy array of shape (D,)
+    midpoint : numpy.ndarray of shape (D,)
         the midpoint of container
 
     Properties
@@ -70,7 +70,7 @@ class Container:
         add new sample points
     rvs(n)
         uniformly randomly draw n samples in this container
-        Return : numpy array of shape (n, D)
+        Return : numpy.ndarray of shape (n, D)
     split(split_dimension, split_value)
         split the container into two along split_dimension at split_value
         Return : list of two sub-containers
@@ -80,11 +80,11 @@ class Container:
         """
         Attributes
         ----------
-        X : numpy array of shape (N, D)
+        X : numpy.ndarray of shape (N, D)
             each row is a sample
-        y : numpy array of shape (N, 1)
+        y : numpy.ndarray of shape (N, 1)
             the function value at each sample
-        mins, maxs : numpy array of shape (D,), optional
+        mins, maxs : numpy.ndarray of shape (D,), optional
             the low and high boundaries of the hyper-rectangle
             could be +- np.inf
         """
@@ -139,7 +139,7 @@ class Container:
     def filter_points(self, X, y=None, return_bool=False, warning=False):
         """
         Check whether all the points X are in the container
-        and return a numpy array with those in the container. Throw a warning if any point is not
+        and return a numpy.ndarray with those in the container. Throw a warning if any point is not
         in the container.
 
         Parameters
@@ -222,7 +222,7 @@ class Container:
 
         Return
         ------
-        rs : numpy array of shape (n, D)
+        rs : numpy.ndarray of shape (n, D)
             each row is a sample
         """
 

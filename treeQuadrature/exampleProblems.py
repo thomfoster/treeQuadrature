@@ -1,15 +1,14 @@
-from treeQuadrature import exampleDistributions
+from . import exampleDistributions as dists
 
-# for Gaussian
 import numpy as np
-from scipy.stats import multivariate_normal
+from abc import ABC, abstractmethod
 
 """
 Defines the specific problems we want results for.
 """
 
 
-class Problem:
+class Problem(ABC):
     '''
     base class for integration problems
 
@@ -17,34 +16,102 @@ class Problem:
     ----------
     D : int
         dimension of the problem
-    d : Distribution or MixtureDistribution
-        the likelihood function in integral
     lows, highs : float
         the lower and upper bound of integration domain
         assumed to be the same for each dimension
-    p : Distribution or MixtureDistribution
+    answer : float
+        the True solution to int integrand(x) dx
+
+    Methods
+    -------
+    integrand(X) 
+        the function being integrated
+        MUST be implemented by subclasses
+        input : numpy.ndarray of shape (N, D)
+            each row is a sample
+        return : numpy.ndarray of shape (N, 1)
+            the value of p.pdf(x) * d.pdf(x) at samples in X
+    
+    rvs(n)
+        generate random samples in the integraiton domain 
+        input : numpy.ndarray of shape (N, D)
+            each row is a sample
+        return : numpy.ndarray of shape (N, n)
+            the value of p.pdf(x) * d.pdf(x) at samples in X
+    '''
+    def __init__(self, D, lows, highs):
+        self.D = D
+        self.lows = Problem._handle_bound(lows, D, -np.inf)
+        self.highs = Problem._handle_bound(highs, D, np.inf)
+        self.answer = None
+        
+    @abstractmethod
+    def integrand(self, X, *args, **kwargs) -> np.ndarray:
+        """must be defined, the function being integrated"""
+        pass
+
+    @staticmethod
+    def _handle_bound(value, D, default_value):
+        if value is None:
+            return [default_value] * D
+        elif isinstance(value, float):
+            return [value] * D
+        elif isinstance(value, (list, np.ndarray)) and len(value) == D:
+            return np.array(value)
+        else:
+            raise ValueError(
+                "value must be a float, list, or numpy.ndarray"
+                f"with length {D} when given as a list or numpy.ndarray"
+            )
+
+
+class BayesProblem(Problem):
+    '''
+    base class for integration problems, 
+    with a prior density p and a likelihood d
+
+    Attributes
+    ----------
+    D : int
+        dimension of the problem
+    d : Distribution
+        the likelihood function in integral
+    lows, highs : float or list or np.array
+        the lower and upper bound of integration domain
+        must have length D
+    p : Distribution, optional
         the density function in integral
     answer : float
-        the True solution to int p.pdf(x) * d.pdf(x) dx
-        integrated over [lows, highs]
+            the True solution to int p.pdf(x) * d.pdf(x) dx
+            integrated over [lows, highs]
 
     Methods
     -------
     pdf(X)
-        input : numpy array of shape (N, D)
+        input : numpy.ndarray of shape (N, D)
             each row is a sample
-        return : numpy array of shape (N, 1)
+        return : numpy.ndarray of shape (N, 1)
             the value of p.pdf(x) * d.pdf(x) at samples in X
     '''
-    def __init__(self, D):
-        self.D = D
-        self.d = None
-        self.lows = None
-        self.highs = None
+    def __init__(self, D: int,
+                 d: dists.Distribution, 
+                 lows, highs):
+        """
+        Parameters
+        ----------
+        D : int
+            dimension of the problem
+        d : Distribution
+            the likelihood function in integral
+        lows, highs : float or list or np.array
+            the lower and upper bound of integration domain
+            must have length D
+        """
+        super().__init__(D, lows, highs)
+        self.d = d
         self.p = None
-        self.answer = None
 
-    def pdf(self, X):
+    def integrand(self, X):
         # check dimensions of X
         flag = True
         if X.ndim == 1 and self.D != 1 and X.shape[0] != self.D:
@@ -62,27 +129,56 @@ class Problem:
         else: # when p is not defined, simply use d
             return self.d.pdf(X)
 
+    def rvs(self, n):
+        """
+        Generate random samples from the likelihood distribution
 
+        Argument
+        --------
+        n : int 
+            number of samples
 
-class SimpleGaussian(Problem):
+        Return
+        ------
+        np.ndarray of shape (n, self.D)
+            samples from the distribution
+        """
+        return self.d.rvs(n)
+
+class SimpleGaussian(BayesProblem):
     """
-    Likelihood: N(0, 1/(10*sqrt(2)))
-    Prior: U([-1, 1])
+    Attributes
+    ----------
+    d : Distribution
+        Likelihood, N(0, 1/(10*sqrt(2)))
+    p : Distribution
+        prior, U([-1, 1]^D)
+    D : int
+        dimension of the problem
+    lows, highs : numpy.ndarray
+        the lower and upper bound of integration domain,
+        from -1.0 to 1.0 in each dimension
+    answer : float
+        1 / (2.0**self.D)
     """
 
     def __init__(self, D):
-        self.D = D
-        self.d = exampleDistributions.MultivariateNormal(
-            D=D, mean=[0.0] * D, cov=1 / 200)
-        self.lows = [-1.0] * D
-        self.highs = [1.0] * D
-        self.p = exampleDistributions.Uniform(
+        """
+        Parameter
+        ----------
+        D : int
+            dimension of the problem
+        """
+        super().__init__(D, d=dists.MultivariateNormal(
+            D=D, mean=[0.0] * D, cov=1 / 200), 
+            lows = -1.0, highs= 1.0)
+        
+        self.p = dists.Uniform(
             D=D, low=self.lows, high=self.highs)
-
         # Truth
         self.answer = 1 / (2.0**D)
 
-class Gaussian(Problem):
+class Gaussian(BayesProblem):
     """
     Integration of general Gaussian pdf on rectangular bounds
 
@@ -90,6 +186,9 @@ class Gaussian(Problem):
     ---------
     D : int
         Dimension of the problem
+    d : Distribution
+        Multivariate Gaussian with 
+          mean mu and covariance Sigma
     mu : numpy.ndarray
         Mean vector
     Sigma : numpy.ndarray
@@ -102,8 +201,10 @@ class Gaussian(Problem):
 
     def __init__(self, D, mu=None, Sigma=None, lows=None, highs=None):
         """
-        Arguments
-        ---------
+        Parameters
+        ----------
+        D : int
+            Dimension of the problem
         mu, lows, highs : number or list or numpy.ndarray, optional
             if a number given, used for each dimension
             if list or array given, must have length D
@@ -115,31 +216,14 @@ class Gaussian(Problem):
             Sigma defaults to I
         """
         # Value checks
-        mu = self._handle_bound(mu, D, 0)
-        Sigma = self._handle_Sigma(Sigma, D)
+        self.mu = Problem._handle_bound(mu, D, 0)
+        self.Sigma = Gaussian._handle_Sigma(Sigma, D)
 
-        self.lows = self._handle_bound(lows, D, -np.inf)
-        self.highs = self._handle_bound(highs, D, np.inf)
-        self.D = D
-        self.d = exampleDistributions.MultivariateNormal(
-            D=D, mean=mu, cov=Sigma)
-        self.p = None
+        super().__init__(D, d = dists.MultivariateNormal(
+            D=D, mean=self.mu, cov=self.Sigma), 
+            lows=lows, highs=highs)
 
         self.answer = self._integrate()
-
-    @staticmethod
-    def _handle_bound(value, D, default_value):
-        if value is None:
-            return [default_value] * D
-        elif isinstance(value, float):
-            return [value] * D
-        elif isinstance(value, (list, np.ndarray)) and len(value) == D:
-            return np.array(value)
-        else:
-            raise ValueError(
-                "value must be a float, list, or numpy.ndarray"
-                f"with length {D} when given as a list or numpy.ndarray"
-            )
         
     @staticmethod
     def _handle_Sigma(value, D):
@@ -176,40 +260,64 @@ class Gaussian(Problem):
         
         return integral_value
 
-class Camel(Problem):
+class Camel(BayesProblem):
     """
-    Likelihood: Two Gaussians 1/3 and 2/3 along unit diagonal. cov = 1/200.
-    Prior: U([0, 1])
+    Attributes
+    ----------
+    d : Distribution
+        Likelihood: mixture of Two Gaussians 
+          centred at 1/3 and 2/3 along unit diagonal. cov = 1/200.
+    p : Distribution
+        Prior: U([-0.5, 1.5]^D)
+    D : int
+        dimension of the problem
+    lows, highs : numpy.ndarray
+        the lower and upper bound of integration domain,
+        from -0.5 to 1.5 in each dimension
+    answer : float
+        1 / (2.0**self.D)
     """
 
     def __init__(self, D):
-        self.D = D
-        self.d = exampleDistributions.Camel(D)
-        self.lows = [-0.5] * D
-        self.highs = [1.5] * D
-        self.p = exampleDistributions.Uniform(
+        """
+        Parameter
+        ---------
+        D : int
+            dimension of the problem
+        """
+        super().__init__(D, dists.Camel(D), 
+                         lows=-0.5, highs=1.5)
+        
+        self.p = dists.Uniform(
             D=D, low=self.lows, high=self.highs)
-
-        # Truth
         self.answer = 1 / (2.0**D)
 
 
-class QuadCamel(Problem):
+class QuadCamel(BayesProblem):
     """
     A challenging problem with more modes, more spread out, than those in
     Camel.
 
-    Likelihood: 4 Gaussians 2,4,6,8 units along diagonal. cov = 1/200.
-    Prior: U([0, 10])
+    Attributes
+    ----------
+    d : Distribution
+        Likelihood: mixture of 4 Gaussians 
+          2,4,6,8 units along diagonal. cov = 1/200.
+    p : Distribution
+        Prior: U([0, 10]^D)
+    D : int
+        dimension of the problem
+    lows, highs : numpy.ndarray
+        the lower and upper bound of integration domain,
+        from 0 to 10 in each dimension
+    answer : float
+        1 / (10.0**D)
     """
 
     def __init__(self, D):
-        self.D = D
-        self.d = exampleDistributions.QuadCamel(D)
-        self.lows = [0.0] * D
-        self.highs = [10.0] * D
-        self.p = exampleDistributions.Uniform(
+        super().__init__(D, d = dists.QuadCamel(D),
+                         lows = 0.0, highs=10.0)
+        
+        self.p = dists.Uniform(
             D=D, low=self.lows, high=self.highs)
-
-        # Truth
         self.answer = 1 / (10.0**D)

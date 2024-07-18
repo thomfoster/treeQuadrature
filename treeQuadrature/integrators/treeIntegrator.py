@@ -96,8 +96,8 @@ class TreeIntegrator(Integrator):
         """
 
         # Draw samples
-        X = problem.d.rvs(self.base_N)
-        y = problem.pdf(X)
+        X = problem.rvs(self.base_N)
+        y = problem.integrand(X)
 
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
@@ -108,7 +108,7 @@ class TreeIntegrator(Integrator):
         if return_std:
             if hasattr(self.integral, 'return_std'):
                 results = [self.integral.containerIntegral(cont, 
-                                                           problem.pdf, 
+                                                           problem.integrand, 
                                                            return_std=True)
                          for cont in finished_containers]
                 contributions = [result[0] for result in results]
@@ -120,12 +120,12 @@ class TreeIntegrator(Integrator):
                      UserWarning)
                 return_std = False
 
-                contributions = [self.integral.containerIntegral(cont, problem.pdf)
+                contributions = [self.integral.containerIntegral(cont, problem.integrand)
                             for cont in finished_containers]
             
         else: 
             # Integrate containers
-            contributions = [self.integral.containerIntegral(cont, problem.pdf)
+            contributions = [self.integral.containerIntegral(cont, problem.integrand)
                             for cont in finished_containers]
         
         G = np.sum(contributions)

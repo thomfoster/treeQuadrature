@@ -89,7 +89,7 @@ class LimitedSampleIntegrator(TreeIntegrator):
 
     def __call__(self, problem: Problem, return_N: bool=False, return_containers: bool=False, return_std: bool=False):
         return super().__call__(problem, return_N, return_containers, return_std, 
-                                integrand=problem.pdf)
+                                integrand=problem.integrand)
 
     def construct_tree(self, root: Container, integrand: Callable):
         """Actively refine the containers with samples"""

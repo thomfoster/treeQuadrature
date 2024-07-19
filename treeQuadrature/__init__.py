@@ -1,4 +1,5 @@
 import treeQuadrature.splits # noqa
+import treeQuadrature.samplers # noqa
 import treeQuadrature.containerIntegration # noqa
 import treeQuadrature.exampleDistributions # noqa
 import treeQuadrature.utils # noqa

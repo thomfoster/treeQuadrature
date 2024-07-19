@@ -12,6 +12,7 @@ class ImportanceSampler(Sampler):
     def rvs(self, n: int, problem: Problem) -> np.ndarray:
         """
         Generate importance sampling random samples.
+        with importance propotional to |problem.integrand|
 
         Parameters
         ----------

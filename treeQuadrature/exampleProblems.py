@@ -17,7 +17,7 @@ class Problem(ABC):
     ----------
     D : int
         dimension of the problem
-    lows, highs : float
+    lows, highs : np.ndarray
         the lower and upper bound of integration domain
         assumed to be the same for each dimension
     answer : float
@@ -41,6 +41,15 @@ class Problem(ABC):
             the value of p.pdf(x) * d.pdf(x) at samples in X
     '''
     def __init__(self, D, lows, highs):
+        """
+        Arguments
+        ---------
+        D : int
+            dimension of the problem
+        lows, highs : int or float or list or np.ndarray
+            the lower and upper bound of integration domain
+            assumed to be the same for each dimension
+        """
         self.D = D
         self.lows = handle_bound(lows, D, -np.inf)
         self.highs = handle_bound(highs, D, np.inf)
@@ -64,6 +73,28 @@ class Problem(ABC):
             or 2-dimensional array of shape (N, 1)
         """
         pass
+
+
+class PyramidProblem(Problem):
+    def __init__(self, D):
+        super().__init__(D, lows=-1.0, highs=1.0)
+        self.answer = (2 ** self.D) / (self.D + 1)
+
+    def integrand(self, X, *args, **kwargs) -> np.ndarray:
+        """
+        Pyramid integrand function.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Each row is an input vector.
+
+        Returns
+        -------
+        numpy.ndarray
+            1-dimensional array of the same length as X.
+        """
+        return 1 - np.max(np.abs(X), axis=1)
 
 
 class BayesProblem(Problem):

@@ -6,12 +6,13 @@ import warnings, time
 
 from inspect import signature
 import numpy as np
-from typing import List
+from typing import List, Optional
 from traceback import print_exc
 
 def compare_integrators(integrators: List[Integrator], plot: bool, 
                         xlim: List[float], ylim: List[float],
-                        problem: Problem, verbose: bool=False) -> None:
+                        problem: Problem, verbose: bool=False, 
+                        dimensions: Optional[List[float]]=None) -> None:
     """
     Compare different integrators on a given problem.
 
@@ -25,9 +26,11 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
         The limits for the plot containers.
     problem : Problem
         The problem instance containing the integrand and true answer.
-    verbose : bool
+    verbose : bool, optional
         if true, print the stages of the test
         Default: False
+    dimensions : List[Float], optional
+        which dimensions to plot for higher dimensional problems
     """
     print(f'true value: {problem.answer}')
 
@@ -80,7 +83,8 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
                 plotContainers(containers, contributions, 
                             xlim=xlim, ylim=ylim,
                             integrand=problem.integrand, 
-                            title=title, plot_samples=True)
+                            title=title, plot_samples=True, 
+                            dimensions=dimensions)
             else: 
                 warnings.warn('result of integrator has no containers to plot', 
                           UserWarning)

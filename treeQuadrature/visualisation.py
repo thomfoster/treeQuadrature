@@ -14,7 +14,8 @@ def plotContainers(containers: List[Container], contributions: List[float],
                    xlim: List[float], ylim: Optional[List[float]]=None, 
                    integrand: Optional[Callable]=None, 
                    title: Optional[str]=None, 
-                   plot_samples: Optional[bool]=False):
+                   plot_samples: Optional[bool]=False, 
+                   dimensions: Optional[List[float]]=None):
     """
     Plot containers and their contributions
     for 1D problems, the integrand can be plotted
@@ -37,6 +38,9 @@ def plotContainers(containers: List[Container], contributions: List[float],
     plot_samples : bool, optional
         if True, samples will be placed on the plot as well. 
         Defaults to False
+    dimensions : list of int, optional
+        The two dimensions to plot. 
+        If None, plot all dimensions.        
     """
 
     assert len(containers) == len(contributions), (
@@ -44,20 +48,33 @@ def plotContainers(containers: List[Container], contributions: List[float],
         f'got {len(containers)} and {len(contributions)}'
     )
 
-    # find the dimension
-    D = containers[0].X.shape[1]
+    # check dimensions
+    all_dimensions = list(range(containers[0].D))
+    if dimensions is None:
+        dimensions = all_dimensions
+    elif len(dimensions) != 2:
+        raise ValueError('dimensions must have length 2')
+    
+    assert (dimensions[0] in all_dimensions) and (
+        dimensions[1] in all_dimensions), (
+            f'dimensions must be in 0, 1, ..., {len(all_dimensions)-1}'
+        )
 
-    if D == 2:
+    if containers[0].D ==1:
+        _plotContainers1D(containers, contributions, xlim, 
+                          integrand, title, plot_samples)
+    elif len(dimensions) == 2:
         _plotContainers2D(containers, contributions, xlim, ylim, title, 
-                          plot_samples=plot_samples)
-    elif D == 1:
-        _plotContainers1D(containers, contributions, xlim, integrand, title, 
-                          plot_samples=plot_samples)
+                          plot_samples, dimensions[0], dimensions[1])
     else:
-        raise Exception('only supports 1D and 2D problems')
+        raise ValueError(
+            "Only 1D and 2D plots are supported. "
+             "Please provide 2 dimensions to plot for higher dimensions"
+             )
 
 
-def _plotContainers2D(containers, contributions, xlim, ylim, title, plot_samples):
+def _plotContainers2D(containers, contributions, xlim, ylim, title, 
+                      plot_samples, dim1, dim2):
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot()
     ax.set_xlim(xlim)
@@ -68,7 +85,8 @@ def _plotContainers2D(containers, contributions, xlim, ylim, title, plot_samples
         contributions = scale(contributions)
 
     for container, contribution in zip(containers, contributions):
-        plotContainer(ax, container, plot_samples=plot_samples, facecolor=cmap(contribution), alpha=0.4)
+        plotContainer(ax, container, dim1, dim2, 
+                      plot_samples=plot_samples, facecolor=cmap(contribution), alpha=0.4)
 
     if title:
         plt.title(title)
@@ -116,7 +134,8 @@ def _plotContainers1D(containers, contributions, xlim, integrand, title, plot_sa
 
     plt.show()
 
-def plotContainer(ax: Axes, container: Container, **kwargs):
+def plotContainer(ax: Axes, container: Container, dim1: int, dim2: int, 
+                  **kwargs):
     '''
     Plot a container on the provided axes.
 
@@ -125,6 +144,10 @@ def plotContainer(ax: Axes, container: Container, **kwargs):
     ax: Axes
         the canvas
     container : Container
+    dim1 : int
+        the first dimension to plot
+    dim2 : int
+        the second dimension to plot
     **kwargs
         keyword arguments, can be passed to matplotlib.patches.Rectangle
         plot_samples : bool
@@ -142,9 +165,6 @@ def plotContainer(ax: Axes, container: Container, **kwargs):
             Defaults to black
     '''
 
-    # check dimension
-    assert container.X.shape[1] == 2, 'plotContainer only supports two dimensional problem'
-
     # kwargs
     plot_samples = kwargs.pop('plot_samples', True)
     s = kwargs.pop('s', 5.0)
@@ -153,12 +173,12 @@ def plotContainer(ax: Axes, container: Container, **kwargs):
 
     # Plotting container samples
     if plot_samples:
-        ax.scatter(container.X[:, 0], container.X[:, 1],
+        ax.scatter(container.X[:, dim1], container.X[:, dim2],
                    color='navy', s=s, alpha=0.3)
 
     # Plot container boundary
-    x1, y1 = container.mins[:2]
-    x2, y2 = container.maxs[:2]
+    x1, y1 = container.mins[dim1], container.mins[dim2]
+    x2, y2 = container.maxs[dim1], container.maxs[dim2]
     rect = Rectangle(
         (x1, y1),
         x2 - x1,

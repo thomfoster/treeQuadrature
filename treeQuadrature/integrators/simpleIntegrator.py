@@ -1,10 +1,12 @@
 from queue import SimpleQueue
 from typing import Optional
+import time, warnings
 
 from .treeIntegrator import TreeIntegrator
 from ..containerIntegration import ContainerIntegral
 from ..splits import Split
 from ..samplers import Sampler
+from ..container import Container
 
 
 
@@ -59,14 +61,36 @@ class SimpleIntegrator(TreeIntegrator):
             super().__init__(split, integral, base_N, sampler=sampler)
         self.P = P
 
-    def construct_tree(self, root):
+    def construct_tree(self, root: Container, 
+                       verbose: bool=False, max_iter: int=1e4):
+        """
+        Construct a tree of containers.
+
+        Parameters
+        ----------
+        root : Container
+            The root container.
+        verbose : bool, optional
+            Whether to print verbose output, by default False.
+        max_iter : int, optional
+            Maximum number of iterations, 
+            by default 1e4.
+
+        Returns
+        -------
+        List[Container]
+            A list of finished containers.
+        """
         # Construct tree
         finished_containers = []
         q = SimpleQueue()
         q.put(root)
 
-        while not q.empty():
+        start_time = time.time()
+        iteration_count = 0
 
+        while not q.empty() and iteration_count < max_iter:
+            iteration_count += 1
             c = q.get()
 
             if c.N <= self.P:
@@ -76,4 +100,22 @@ class SimpleIntegrator(TreeIntegrator):
                 for child in children:
                     q.put(child)
             
+            if iteration_count % 100 == 0 and verbose:  # Log every 100 iterations
+                elapsed_time = time.time() - start_time
+                print(f"Iteration {iteration_count}: Queue size = {q.qsize()}, "
+                    f"number of containers = {len(finished_containers)}, "
+                    f"Elapsed time = {elapsed_time:.2f}s")
+                
+        total_time = time.time() - start_time
+        if verbose:
+            print(f"Total finished containers: {len(finished_containers)}")
+            print(f"Total iterations: {iteration_count}")
+            print(f"Total time taken: {total_time:.2f}s")
+        
+        if iteration_count == max_iter:
+            warnings.warn(
+                'maximum iterations reached, either '
+                'incresae max_iter or check split and samples', 
+                RuntimeWarning)
+                
         return finished_containers

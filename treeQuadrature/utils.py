@@ -22,11 +22,11 @@ def scale(ys):
 
     return (ys - low) / (high - low)
 
-def handle_bound(value, D, default_value):
+def handle_bound(value, D, default_value) -> np.ndarray:
     if value is None:
-        return [default_value] * D
+        return np.array([default_value] * D)
     elif isinstance(value, (int, float)):
-        return [value] * D
+        return np.array([value] * D)
     elif isinstance(value, (list, np.ndarray)) and len(value) == D:
         return np.array(value)
     else:

@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from typing import List
+from inspect import signature
 
 import warnings
 import numpy as np
@@ -67,7 +68,7 @@ class TreeIntegrator(Integrator):
 
     def __call__(self, problem: Problem, 
                  return_N: bool=False, return_containers: bool=False, 
-                 return_std: bool=False,
+                 return_std: bool=False, verbose: bool=False,
                    *args, **kwargs) -> dict:
         """
         Perform the integration process.
@@ -83,6 +84,9 @@ class TreeIntegrator(Integrator):
         return_std : bool
             if true, return the standard deviation estimate. 
             Ignored if self.integral does not have return_std attribute
+        verbose: bool, Optional
+            if true, print the stages (for debugging)
+            Defaults to False
         *args, **kwargs : Any
             for construct_tree, 
             override __call__ in subclass to add additional arguments
@@ -102,6 +106,8 @@ class TreeIntegrator(Integrator):
               integral estimate in each container, if return_std is True
         """
 
+        if verbose: 
+            print('drawing initial samples')
         # Draw samples
         if hasattr(problem, 'rvs'):
             X = problem.rvs(self.base_N)
@@ -113,14 +119,27 @@ class TreeIntegrator(Integrator):
             f', got shape {y.shape}'
         )
 
+        if verbose: 
+            print('constructing root container')
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
         # construct tree
-        finished_containers = self.construct_tree(root, *args, **kwargs)
+        if verbose:
+            print('constructing tree')
+            if 'verbose' in signature(self.construct_tree).parameters:
+                finished_containers = self.construct_tree(root, verbose=True, 
+                                                          *args, **kwargs)
+            else:
+                finished_containers = self.construct_tree(root, 
+                                                          *args, **kwargs)
+        else:
+            finished_containers = self.construct_tree(root, *args, **kwargs)
 
         # uncertainty estimates
         if return_std:
             if hasattr(self.integral, 'return_std'):
+                if verbose: 
+                    print('integrating individual containers')
                 results = [self.integral.containerIntegral(cont, 
                                                            problem.integrand, 
                                                            return_std=True)
@@ -134,11 +153,15 @@ class TreeIntegrator(Integrator):
                      UserWarning)
                 return_std = False
 
+                if verbose: 
+                    print('integrating individual containers')
                 contributions = [self.integral.containerIntegral(cont, problem.integrand)
                             for cont in finished_containers]
             
         else: 
             # Integrate containers
+            if verbose: 
+                    print('integrating individual containers')
             contributions = [self.integral.containerIntegral(cont, problem.integrand)
                             for cont in finished_containers]
         

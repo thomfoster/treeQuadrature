@@ -2,15 +2,16 @@ from .exampleProblems import Problem
 from .integrators import Integrator
 from .visualisation import plotContainers
 
+import warnings, time
+
+from inspect import signature
 import numpy as np
-import time
 from typing import List
-import warnings
 from traceback import print_exc
 
 def compare_integrators(integrators: List[Integrator], plot: bool, 
                         xlim: List[float], ylim: List[float],
-                        problem: Problem, verbose: bool=True) -> None:
+                        problem: Problem, verbose: bool=False) -> None:
     """
     Compare different integrators on a given problem.
 
@@ -26,6 +27,7 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
         The problem instance containing the integrand and true answer.
     verbose : bool
         if true, print the stages of the test
+        Default: False
     """
     print(f'true value: {problem.answer}')
 
@@ -39,8 +41,13 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
         # perform integration
         try:
             # Perform integration
-            result = integrator(problem, return_N=True, 
-                                return_containers=True)
+            if 'verbose' in signature(integrator).parameters:
+                result = integrator(problem, return_N=True, 
+                                return_containers=True, 
+                                verbose=verbose) 
+            else: 
+                result = integrator(problem, return_N=True, 
+                                return_containers=True) 
         except Exception as e:
             print(f'Error during integration with {integrator.name}: {e}')
             print_exc()
@@ -61,18 +68,19 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
         print(f'{error_name}: {error:.2f} %')
         print(f'Number of evaluations: {n_evals}')
         print(f'Time taken: {end_time - start_time:.2f} s')
+        print(f'--------------------------')
 
 
         # plot contributions
-        if plot and 'containers' in result and 'contributions' in result:
-            title = 'Integral estimate using ' + integrator.name
-            containers = result['containers']
-            contributions = result['contributions']
-            plotContainers(containers, contributions, 
-                           xlim=xlim, ylim=ylim,
-                           integrand=problem.integrand, 
-                           title=title, plot_samples=True)
-        
-        else: 
-            warnings.warn('result of integrator has no containers to plot', 
+        if plot:
+            if 'containers' in result and 'contributions' in result:
+                title = 'Integral estimate using ' + integrator.name
+                containers = result['containers']
+                contributions = result['contributions']
+                plotContainers(containers, contributions, 
+                            xlim=xlim, ylim=ylim,
+                            integrand=problem.integrand, 
+                            title=title, plot_samples=True)
+            else: 
+                warnings.warn('result of integrator has no containers to plot', 
                           UserWarning)

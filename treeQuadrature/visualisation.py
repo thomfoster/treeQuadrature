@@ -1,12 +1,20 @@
-from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 from matplotlib import colormaps
+from matplotlib.axes import Axes
+from sklearn.gaussian_process import GaussianProcessRegressor
+
 import numpy as np
+from typing import Optional, List, Callable
 
-from treeQuadrature.utils import scale
+from .utils import scale
+from .container import Container
 
-def plotContainers(containers, contributions, xlim, ylim=None, integrand=None, 
-                   title=None, plot_samples=False):
+def plotContainers(containers: List[Container], contributions: List[float], 
+                   xlim: List[float], ylim: Optional[List[float]]=None, 
+                   integrand: Optional[Callable]=None, 
+                   title: Optional[str]=None, 
+                   plot_samples: Optional[bool]=False):
     """
     Plot containers and their contributions
     for 1D problems, the integrand can be plotted
@@ -56,7 +64,8 @@ def _plotContainers2D(containers, contributions, xlim, ylim, title, plot_samples
     ax.set_ylim(ylim)
     cmap = colormaps['YlOrRd'].resampled(256)
 
-    contributions = scale(contributions)
+    if len(contributions) > 1:
+        contributions = scale(contributions)
 
     for container, contribution in zip(containers, contributions):
         plotContainer(ax, container, plot_samples=plot_samples, facecolor=cmap(contribution), alpha=0.4)
@@ -107,7 +116,7 @@ def _plotContainers1D(containers, contributions, xlim, integrand, title, plot_sa
 
     plt.show()
 
-def plotContainer(ax, container, **kwargs):
+def plotContainer(ax: Axes, container: Container, **kwargs):
     '''
     Plot a container on the provided axes.
 
@@ -234,18 +243,19 @@ def _plot2D(f, xlim, ylim, levels, n_points):
     plt.colorbar(contour)
     plt.show()
 
-def plotGP(gp, xs, ys, x_min, x_max, plot_ci=True):
+def plotGP(gp: GaussianProcessRegressor, xs: np.ndarray, ys: np.ndarray, 
+           x_min: float, x_max: float, plot_ci: Optional[bool]=True):
     """
     Plot the Gaussian Process posterior mean
     and the data points
 
     Parameters
     ----------
-    gp : GaussianProcessRegressor
+    gp : sklearn.gaussian_process.GaussianProcessRegressor
         the trained GP regressor
-    xs, ys : numpy arrays
+    xs, ys : numpy.ndarray
         the data points
-    x_min, x_max : floats
+    x_min, x_max : float
         the lower and upper bounds for plotting
     plot_ci : bool
         if True, the confidence interval will be plotted.

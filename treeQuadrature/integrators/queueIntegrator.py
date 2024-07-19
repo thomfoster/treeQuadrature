@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional, Callable
 
 from .treeIntegrator import TreeIntegrator
 from ..queues import ReservoirQueue
@@ -6,7 +7,7 @@ from ..container import Container
 from ..splits import Split
 from ..containerIntegration import ContainerIntegral
 from ..exampleProblems import Problem
-from typing import Callable
+from ..samplers import Sampler
 
 
 # Default finished condition will never prevent container being split
@@ -23,7 +24,7 @@ class QueueIntegrator(TreeIntegrator):
             split: Split,
             integral: ContainerIntegral,
             weighting_function: Callable,
-            sampler=None,
+            sampler: Optional[Sampler]=None,
             active_N: int=0,
             max_splits=np.inf,
             stopping_condition: Callable=default_stopping_condition,

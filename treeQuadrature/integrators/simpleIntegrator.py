@@ -1,14 +1,16 @@
-import numpy as np
+from queue import SimpleQueue
+from typing import Optional
 
 from .treeIntegrator import TreeIntegrator
 from ..containerIntegration import ContainerIntegral
 from ..splits import Split
-from queue import SimpleQueue
+from ..samplers import Sampler
+
 
 
 class SimpleIntegrator(TreeIntegrator):
     def __init__(self, base_N: int, P: int, split: Split, integral: ContainerIntegral, 
-                 sampler=None):
+                 sampler: Optional[Sampler]=None):
         '''
         A simple integrator with the following steps:
             - Draw <N> samples

@@ -1,4 +1,6 @@
 import numpy as np
+import warnings
+
 from .split import Split
 
 
@@ -16,7 +18,9 @@ class KdSplit(Split):
         # Calculate the median value for splitting
         unique_values = np.unique(samples[:, split_dimension])
         if len(unique_values) < 2:
-            raise ValueError("Not enough unique values to perform a split.")
+            warnings.warn('no enough unique values to split', 
+                          RuntimeWarning)
+            return [container]
         median = np.median(unique_values)
 
         lcont, rcont = container.split(split_dimension, median)

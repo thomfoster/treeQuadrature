@@ -1,15 +1,14 @@
 import matplotlib.pyplot as plt
-import numpy as np
 
 from .treeIntegrator import TreeIntegrator
 from ..queues import ReservoirQueue
 from ..container import Container
 from ..splits import Split
+from ..samplers import Sampler
 from ..containerIntegration import ContainerIntegral
 from ..exampleProblems import Problem
 
-from typing import Callable
-import warnings, inspect
+from typing import Callable, Optional
 
 
 default_queue = ReservoirQueue(accentuation_factor=100)
@@ -38,7 +37,7 @@ class LimitedSampleIntegrator(TreeIntegrator):
             split: Split,
             integral: ContainerIntegral,
             weighting_function: Callable,
-            sampler=None,
+            sampler: Optional[Sampler]=None,
             queue: ReservoirQueue=default_queue):
         """
         Integrator that builds on from queueIntegrator with more friendly

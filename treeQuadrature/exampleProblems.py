@@ -60,7 +60,8 @@ class Problem(ABC):
         ------
         numpy.ndarray
             1-dimensional array of the same length as X
-            each entry is f(x_i) where x_i is the ith row of X
+            each entry is f(x_i) where x_i is the ith row of X;
+            or 2-dimensional array of shape (N, 1)
         """
         pass
 

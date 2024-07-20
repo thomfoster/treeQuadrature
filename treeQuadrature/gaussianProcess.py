@@ -1,15 +1,20 @@
 import numpy as np
 import warnings
+from typing import Callable
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import ConvergenceWarning
+from sklearn.gaussian_process.kernels import Kernel
 from sklearn.metrics import r2_score, mean_squared_error
 from scipy.special import erf
 from scipy.optimize import fmin_l_bfgs_b
 from scipy.integrate import quad
 
-from treeQuadrature.visualisation import plotGP
+from .visualisation import plotGP
+from .container import Container
 
-def fit_GP(xs, ys, kernel, n_tuning, max_iter, factr, ignore_warning=True):
+
+def fit_GP(xs, ys, kernel: Kernel, n_tuning: int, max_iter: int, factr: float, 
+           ignore_warning=True) -> GaussianProcessRegressor:
     """
     Fit a Gaussian Process (GP) model with custom optimization parameters.
     
@@ -40,6 +45,7 @@ def fit_GP(xs, ys, kernel, n_tuning, max_iter, factr, ignore_warning=True):
     def custom_optimizer(obj_func, initial_theta, bounds):
         result = fmin_l_bfgs_b(obj_func, initial_theta, bounds=bounds, maxiter=max_iter, factr=factr)
         return result[0], result[1]
+    
     gp = GaussianProcessRegressor(kernel=kernel, 
                                   n_restarts_optimizer=n_tuning, optimizer=custom_optimizer)
 
@@ -54,7 +60,12 @@ def fit_GP(xs, ys, kernel, n_tuning, max_iter, factr, ignore_warning=True):
 
     return gp
 
-def GP_diagnosis(gp, xs, ys, container, criterion):
+
+def default_criterion(container: Container) -> bool:
+    return True
+
+def GP_diagnosis(gp: GaussianProcessRegressor, xs, ys, 
+                 container: Container, criterion: Callable[[Container], bool]=default_criterion) -> None:
     """
     Check the performance of a Gaussian Process (GP) model.
     
@@ -68,9 +79,10 @@ def GP_diagnosis(gp, xs, ys, container, criterion):
         True values for the test data.
     container : Container
         Container object that holds the samples and boundaries.
-    criterion : function
+    criterion : function, Optional
         A function that takes a container and returns a boolean indicating 
         whether to plot the posterior mean.
+        Default criterion: always True
     
     Returns
     -------
@@ -90,7 +102,7 @@ def GP_diagnosis(gp, xs, ys, container, criterion):
     if xs.shape[1] == 1 and criterion(container):
         plotGP(gp, xs, ys, container.maxs[0], container.mins[0])
 
-def rbf_Integration(gp, container, xs, return_std):
+def rbf_Integration(gp: GaussianProcessRegressor, container: Container, xs, return_std: bool):
     """
     Estimate the integral of the RBF kernel over a given container and set of points.
 

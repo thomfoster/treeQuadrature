@@ -71,7 +71,6 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
         print(f'{error_name}: {error:.2f} %')
         print(f'Number of evaluations: {n_evals}')
         print(f'Time taken: {end_time - start_time:.2f} s')
-        print(f'--------------------------')
 
 
         # plot contributions
@@ -79,6 +78,7 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
             if 'containers' in result and 'contributions' in result:
                 title = 'Integral estimate using ' + integrator.name
                 containers = result['containers']
+                print(f'Number of containers: {len(containers)}')
                 contributions = result['contributions']
                 plotContainers(containers, contributions, 
                             xlim=xlim, ylim=ylim,
@@ -88,3 +88,5 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
             else: 
                 warnings.warn('result of integrator has no containers to plot', 
                           UserWarning)
+        
+        print(f'----------------------------------')

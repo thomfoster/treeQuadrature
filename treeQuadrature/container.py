@@ -47,9 +47,9 @@ class Container:
     ----------
     _X, _y : ArrayList
         stores the samples and evaluations efficiently 
-    mins, maxs : float or list or numpy.ndarray of shape (D,)
+    mins, maxs : numpy.ndarray of shape (D,)
         the low and high boundaries of the 
-        only for hyper-rectangle containers
+        hyper-rectangle containers
     volume : float
         volume of the container
     is_finite : bool
@@ -84,7 +84,7 @@ class Container:
             each row is a sample
         y : numpy.ndarray of shape (N, 1) or (N,)
             the function value at each sample
-        mins, maxs : numpy.ndarray of shape (D,), optional
+        mins, maxs : int or float or list or numpy.ndarray of shape (D,), optional
             the low and high boundaries of the hyper-rectangle
             could be +- np.inf
         """

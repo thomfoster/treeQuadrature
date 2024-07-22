@@ -9,9 +9,10 @@ import numpy as np
 from typing import List, Optional
 from traceback import print_exc
 
-def compare_integrators(integrators: List[Integrator], plot: bool, 
-                        xlim: List[float], ylim: List[float],
-                        problem: Problem, verbose: bool=False, 
+def compare_integrators(integrators: List[Integrator], problem: Problem, 
+                        plot: bool=False, verbose: bool=False, 
+                        xlim: Optional[List[float]]=None, 
+                        ylim: Optional[List[float]]=None,
                         dimensions: Optional[List[float]]=None) -> None:
     """
     Compare different integrators on a given problem.
@@ -20,15 +21,17 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
     ----------
     integrators : List[Integrator]
         A list of integrator instances to be compared.
-    plot : bool
-        Whether to plot the contributions of the integrators.
-    xlim, ylim : List[float]
-        The limits for the plot containers.
     problem : Problem
         The problem instance containing the integrand and true answer.
     verbose : bool, optional
         if true, print the stages of the test
         Default: False
+    plot : bool, optional
+        Whether to plot the contributions of the integrators.
+        Default is False
+    xlim, ylim : List[float], optional
+        The limits for the plot containers.
+        will not be used when plot=False
     dimensions : List[Float], optional
         which dimensions to plot for higher dimensional problems
     """
@@ -42,15 +45,22 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
 
         start_time = time.time()
         # perform integration
+        parameters = signature(integrator).parameters
         try:
             # Perform integration
-            if 'verbose' in signature(integrator).parameters:
+            if 'verbose' in parameters and 'return_containers' in parameters:
                 result = integrator(problem, return_N=True, 
                                 return_containers=True, 
                                 verbose=verbose) 
-            else: 
+            elif 'return_containers' in parameters:
                 result = integrator(problem, return_N=True, 
-                                return_containers=True) 
+                                return_containers=True)
+            elif 'verbose' in parameters:
+                result = integrator(problem, return_N=True, 
+                                verbose=verbose)
+            else:
+                result = integrator(problem, return_N=True)
+
         except Exception as e:
             print(f'Error during integration with {integrator.name}: {e}')
             print_exc()
@@ -75,6 +85,11 @@ def compare_integrators(integrators: List[Integrator], plot: bool,
 
         # plot contributions
         if plot:
+            if xlim is None or ylim is None:
+                raise ValueError(
+                    'xlim and ylim must be provided for plotting'
+                    )
+
             if 'containers' in result and 'contributions' in result:
                 title = 'Integral estimate using ' + integrator.name
                 containers = result['containers']

@@ -3,7 +3,7 @@ import warnings
 from typing import Callable
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import ConvergenceWarning
-from sklearn.gaussian_process.kernels import Kernel
+from sklearn.gaussian_process.kernels import Kernel, RBF
 from sklearn.metrics import r2_score, mean_squared_error
 from scipy.special import erf
 from scipy.optimize import fmin_l_bfgs_b
@@ -64,8 +64,8 @@ def fit_GP(xs, ys, kernel: Kernel, n_tuning: int, max_iter: int, factr: float,
 def default_criterion(container: Container) -> bool:
     return True
 
-def GP_diagnosis(gp: GaussianProcessRegressor, xs, ys, 
-                 container: Container, criterion: Callable[[Container], bool]=default_criterion) -> None:
+def GP_diagnosis(gp: GaussianProcessRegressor, xs, ys, container: Container, 
+                 criterion: Callable[[Container], bool]=default_criterion) -> None:
     """
     Check the performance of a Gaussian Process (GP) model.
     
@@ -99,10 +99,12 @@ def GP_diagnosis(gp: GaussianProcessRegressor, xs, ys,
     print(f"Mean Squared Error: {mse:.3f}") 
 
     # posterior mean plot
-    if xs.shape[1] == 1 and criterion(container):
-        plotGP(gp, xs, ys, container.maxs[0], container.mins[0])
+    if (xs.shape[1] == 1 or xs.shape[1] == 2
+        ) and criterion(container):
+        plotGP(gp, xs, ys, 
+               mins=container.mins, maxs=container.maxs)
 
-def rbf_Integration(gp: GaussianProcessRegressor, container: Container, xs, return_std: bool):
+def rbf_Integration(gp: GaussianProcessRegressor, container: Container, return_std: bool):
     """
     Estimate the integral of the RBF kernel over a given container and set of points.
 
@@ -112,8 +114,6 @@ def rbf_Integration(gp: GaussianProcessRegressor, container: Container, xs, retu
         The fitted Gaussian Process model.
     container : Container
         The container object that holds the boundaries.
-    xs : array-like, shape (n_samples, n_features)
-        The points at which to evaluate the integral.
     return_std : bool
         When True, return the standard deviation of GP estimation
 
@@ -124,8 +124,13 @@ def rbf_Integration(gp: GaussianProcessRegressor, container: Container, xs, retu
         tuple has length 2, the second value is 
           integral evaluation std.
     """
-    # Extract length scaled
+    if not isinstance(gp.kernel_, RBF):
+        raise TypeError('this method only works for RBF kernels')
+
+    ### Extract necessary information
     l = gp.kernel_.length_scale
+    xs = gp.X_train_
+    ys = gp.y_train_
 
     # Container boundaries
     b = container.maxs   # right boarder
@@ -136,14 +141,18 @@ def rbf_Integration(gp: GaussianProcessRegressor, container: Container, xs, retu
 
     erf_b = erf((b - xs) / (np.sqrt(2) * l))
     erf_a = erf((a - xs) / (np.sqrt(2) * l))
-    k_tilde = (erf_b - erf_a).prod(axis=1) * ((l * np.sqrt(np.pi / 2)) ** container.D)
+    k_tilde = (erf_b - erf_a).prod(axis=1) * (
+        (l * np.sqrt(np.pi / 2)) ** container.D)
 
     integral = np.dot(K_inv_y, k_tilde)
 
     if return_std:
         # mean of kernel on the container
         def integrand(x_j_prime, a_j, b_j):
-            return erf((b_j - x_j_prime) / (np.sqrt(2) * l)) - erf((a_j - x_j_prime) / (np.sqrt(2) * l))
+            return erf((b_j - x_j_prime) / (np.sqrt(2) * l)
+                       ) - erf(
+                           (a_j - x_j_prime) / (np.sqrt(2) * l)
+                           )
         result = 1
         for j in range(container.D):
             integ_j, _ = quad(integrand, a[j], b[j], args=(a[j], b[j]))
@@ -151,11 +160,20 @@ def rbf_Integration(gp: GaussianProcessRegressor, container: Container, xs, retu
         k_mean = l * np.sqrt(np.pi / 2) * result
 
         K = gp.kernel_(xs)
+        K_inv = np.linalg.inv(K)
         # posterior variance
-        var_post = k_mean - np.dot(k_tilde.T, np.dot(K, k_tilde))
+        var_post = k_mean - np.dot(k_tilde.T, np.dot(K_inv, k_tilde))
 
         if var_post < 0:
-            warnings.warn(f'Warning: variance estimate is negative with value : {var_post}', UserWarning)
+            if var_post < -1e-2:
+                warnings.warn(
+                    'Warning: variance estimate in a container is negative'
+                    f' with value : {var_post}'
+                    '. Will be set to zero.', 
+                    UserWarning)
+                print('------ GP diagnosis --------')
+                GP_diagnosis(gp, xs, ys, container)
+                print('----------------------------')
             var_post = 0
 
     if return_std:

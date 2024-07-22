@@ -113,7 +113,7 @@ class RbfIntegral(ContainerIntegral):
         RbfIntegral._validate_options(options)
 
         # Set instance variables based on self.options
-        for key, value in self.options.items():
+        for key, value in options.items():
             setattr(self, key, value)
 
         # redraw uniform samples from the container
@@ -128,10 +128,9 @@ class RbfIntegral(ContainerIntegral):
         ### GP diagnosis
         if self.check_GP:
             # TODO - decide where to plot
-            GP_diagnosis(gp, xs, ys, container, 
-                    criterion = lambda container : container.volume > 0.05)
+            GP_diagnosis(gp, xs, ys, container)
         
-        integral_result = rbf_Integration(gp, container, xs, self.return_std)
+        integral_result = rbf_Integration(gp, container, self.return_std)
         
         if return_hyper_params:
             hyper_params = {'length' : gp.kernel_.length_scale}

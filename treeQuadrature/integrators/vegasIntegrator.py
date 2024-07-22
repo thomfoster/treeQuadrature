@@ -27,7 +27,7 @@ class VegasIntegrator(Integrator):
         self.N = N
         self.NITN = NITN
 
-    def __call__(self, problem: Problem, return_N: bool=False, return_all: bool=False):
+    def __call__(self, problem: Problem, return_N: bool=False):
         """
         Perform the integration process using the VEGAS algorithm.
 
@@ -37,8 +37,6 @@ class VegasIntegrator(Integrator):
             The integration problem
         return_N : bool, optional
             If True, return the number of samples used.
-        return_all : bool, optional
-            If True, return containers and their contributions to the integral
 
         Return
         -------

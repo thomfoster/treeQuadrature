@@ -8,7 +8,8 @@ import numpy as np
 
 @pytest.mark.parametrize("integrator_instance", [
     tq.integrators.SmcIntegrator(100),
-    tq.integrators.VegasIntegrator(100, 10)
+    tq.integrators.VegasIntegrator(100, 10),
+    tq.integrators.BayesMcIntegrator(100)
 ])
 def test_io(integrator_instance):
     """Checks each integrator has the desired IO for an integrator"""
@@ -19,6 +20,10 @@ def test_io(integrator_instance):
     assert isinstance(res['estimate'], float)
     res = integrator_instance(problem, return_N=True)
     assert isinstance(res['n_evals'], int)
+    if hasattr(integrator_instance, 'return_std'):
+        res = integrator_instance(problem, return_N=True)
+        assert isinstance(res['std'], float)
+        assert res['std'] >= 0
 
 @pytest.mark.parametrize("integrator_instance", [
     tq.integrators.LimitedSampleIntegrator(
@@ -43,6 +48,7 @@ def test_treeIntegrator_io(integrator_instance):
     assert len(res) == 3
     assert all(isinstance(val, float) for val in res['contributions'])
     assert all(isinstance(cont, tq.Container) for cont in res['containers'])
+    assert len(res['contributions']) == len(res['containers'])
 
 ########################################################################
 # Checking all combos of inputs for simple and queue based integrators

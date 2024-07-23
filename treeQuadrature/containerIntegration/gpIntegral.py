@@ -82,46 +82,44 @@ class RbfIntegral(ContainerIntegral):
 
     @staticmethod
     def _validate_options(options):
-        if not isinstance(options['length'], (int, float)):
+        length = options['length']
+        if not isinstance(length, (int, float)):
             raise TypeError(
-                'length must be an int or float, '
-                f'got {options['length']}'
+                f'length must be an int or float, got {length}'
                 )
-        if not isinstance(options['n_samples'], int):
+        n_samples = options['n_samples']
+        if not isinstance(n_samples, int):
             raise TypeError(
-                'n_samples must be an int, '
-                f'got {options['n_samples']}'
+                f'n_samples must be an int, got {n_samples}'
                 )
-        if not isinstance(options['n_tuning'], int):
+        n_tuning = options['n_tuning']
+        if not isinstance(n_tuning, int):
             raise TypeError(
-                'n_tuning must be an int, '
-                f'got {options['n_tuning']}'
+                f'n_tuning must be an int, got {n_tuning}'
                 )
-        if not isinstance(options['factr'], (int, float)):
+        factr = options['factr']
+        if not isinstance(factr, (int, float)):
             raise TypeError(
-                'factr must be an int or float, '
-                f'got {options['factr']}'
+                f'factr must be an int or float, got {factr}'
                 )
-        if not isinstance(options['max_iter'], (int, float)):
+        max_iter = options['max_iter']
+        if not isinstance(max_iter, (int, float)):
             raise TypeError(
-                'max_iter must be an int or float, '
-                f'got {options['max_iter']}'
+                f'max_iter must be an int or float, got {max_iter}'
                 )
-        if not isinstance(options['max_redraw'], int):
+        max_redraw = options['max_redraw']
+        if not isinstance(max_redraw, int):
             raise TypeError(
-                'max_redraw must be an int, '
-                f'got {options['max_redraw']}'
+                f'max_redraw must be an int, got {max_redraw}'
                 )
         threshold = options['threshold']
         if not isinstance(threshold, float):
             raise TypeError(
-                'threshold must be a float, '
-                f'got {threshold}'
+                f'threshold must be a float, got {threshold}'
                 )
         if threshold > 1 or threshold < 0:
             raise ValueError(
-                'threshold must be in [0, 1], '
-                f'got {threshold}'
+                f'threshold must be in [0, 1], got {threshold}'
                 )
         if not isinstance(options['check_GP'], bool):
             raise TypeError('check_GP must be a bool')

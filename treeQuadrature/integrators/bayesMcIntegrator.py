@@ -2,7 +2,7 @@ from ..exampleProblems import Problem
 from .integrator import Integrator
 from ..samplers import Sampler, UniformSampler
 from ..container import Container
-from ..gaussianProcess import fit_GP, rbf_Integration
+from ..gaussianProcess import rbf_Integration, IterativeGPFitting
 
 from sklearn.gaussian_process.kernels import RBF, Kernel
 import numpy as np
@@ -13,7 +13,8 @@ default_kernel = kernel = RBF(1.0, (1e-2, 1e2))
 class BayesMcIntegrator(Integrator):
     def __init__(self, N: int, kernel: Kernel=default_kernel, 
                  sampler: Sampler=default_sampler, 
-                 n_tuning: int = 10, max_iter: int = 1000, factr: float = 1e7) -> None:
+                 n_tuning: int = 10, max_iter: int = 1000, factr: float = 1e7, 
+                 length: float=1.0, range: float=1e2) -> None:
         """
         Initialise the BayesMcIntegrator.
 
@@ -24,22 +25,22 @@ class BayesMcIntegrator(Integrator):
         kernel : Kernel, optional
             The kernel to use for the Gaussian Process. 
             Default is RBF.
-        sampler : Sampler, optional
+        sampler : Sampler, optional 
             The sampler to use for generating samples. 
             Default is UniformSampler.
-        base_N : int, optional
+        base_N : int, optional (Default=100)
             The base number of samples to draw for the problem. 
-            Default is 100.
-        n_tuning : int, optional
+        n_tuning : int, optional (Default=10)
             The number of tuning steps for the Gaussian Process. 
-            Default is 10.
-        max_iter : int, optional
+        max_iter : int, optional (Default=1000)
             The maximum number of iterations for 
             fitting the Gaussian Process. 
-            Default is 1000.
-        factr : float, optional
+        factr : float, optional (Default=1e7)
             The factor for convergence criterion.
-            Default is 1e7.
+        length: float, optional (Default=1.0)
+            initial length scale of RBF kernel
+        range : float, optional (Default=1e2)
+
         """
         self.N = N
         self.kernel = kernel
@@ -47,21 +48,24 @@ class BayesMcIntegrator(Integrator):
         self.n_tuning = n_tuning
         self.max_iter = max_iter
         self.factr = factr
+        self.length = length
+        self.range = range
 
     def __call__(self, problem: Problem, return_N: bool=False, return_std: bool=False) -> dict:
+        # create a container with samples
         if hasattr(problem, 'rvs'):
             X = problem.rvs(self.N)
         else:
             X = self.sampler.rvs(self.N, problem)
 
         y = problem.integrand(X)
-
-        gp = fit_GP(X, y, kernel, self.n_tuning, self.max_iter, self.factr)
         
-        # create empty container for convenience
-        X_empty = np.empty(shape=(0, problem.D))
-        y_empty = np.empty(shape=(0, 1))
-        cont = Container(X_empty, y_empty, mins=problem.lows, maxs=problem.highs)
+        cont = Container(X, y, mins=problem.lows, maxs=problem.highs)
+
+        gp = IterativeGPFitting(problem.integrand, cont, kernel,
+                 self.N, self.n_tuning, 
+                 self.max_iter, self.factr, 
+                 max_iter=1).fit()
 
         result = {}
         if isinstance(self.kernel, RBF):

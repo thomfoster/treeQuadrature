@@ -84,44 +84,44 @@ class RbfIntegral(ContainerIntegral):
     def _validate_options(options):
         if not isinstance(options['length'], (int, float)):
             raise TypeError(
-                'length must be an int or float'
-                f', got {options['length']}'
+                'length must be an int or float, '
+                f'got {options['length']}'
                 )
         if not isinstance(options['n_samples'], int):
             raise TypeError(
-                'n_samples must be an int,'
-                f' got {options['n_samples']}'
+                'n_samples must be an int, '
+                f'got {options['n_samples']}'
                 )
         if not isinstance(options['n_tuning'], int):
             raise TypeError(
-                'n_tuning must be an int,'
-                f' got {options['n_tuning']}'
+                'n_tuning must be an int, '
+                f'got {options['n_tuning']}'
                 )
         if not isinstance(options['factr'], (int, float)):
             raise TypeError(
-                'factr must be an int or float'
-                f', got {options['factr']}'
+                'factr must be an int or float, '
+                f'got {options['factr']}'
                 )
         if not isinstance(options['max_iter'], (int, float)):
             raise TypeError(
-                'max_iter must be an int or float'
-                f', got {options['max_iter']}'
+                'max_iter must be an int or float, '
+                f'got {options['max_iter']}'
                 )
         if not isinstance(options['max_redraw'], int):
             raise TypeError(
-                'max_redraw must be an int'
-                f', got {options['max_redraw']}'
+                'max_redraw must be an int, '
+                f'got {options['max_redraw']}'
                 )
         threshold = options['threshold']
         if not isinstance(threshold, float):
             raise TypeError(
-                'threshold must be a float'
-                f', got {threshold}'
+                'threshold must be a float, '
+                f'got {threshold}'
                 )
         if threshold > 1 or threshold < 0:
             raise ValueError(
-                'threshold must be in [0, 1]'
-                f', got {threshold}'
+                'threshold must be in [0, 1], '
+                f'got {threshold}'
                 )
         if not isinstance(options['check_GP'], bool):
             raise TypeError('check_GP must be a bool')
@@ -172,8 +172,8 @@ class RbfIntegral(ContainerIntegral):
         kernel = RBF(self.length, (self.length*(1/self.range), 
                                    self.length*self.range))
         gp = IterativeGPFitting(f, container, kernel,
-                 self.n_samples, self.length, self.range, 
-                 self.n_tuning, self.max_iter, self.factr, 
+                 self.n_samples, self.n_tuning, 
+                 self.max_iter, self.factr, 
                  self.threshold, self.max_redraw).fit()
         
         # Track number of function evaluations

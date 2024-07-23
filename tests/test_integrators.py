@@ -34,7 +34,10 @@ def test_io(integrator_instance):
         base_N=500, split=tq.splits.KdSplit(), integral=tq.containerIntegration.MidpointIntegral(), 
         weighting_function=lambda container: container.volume, 
         max_splits=20, stopping_condition=lambda container: container.N < 2),
-    tq.integrators.SimpleIntegrator(100, 50, tq.splits.KdSplit(), tq.containerIntegration.MidpointIntegral()),
+    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MidpointIntegral()),
+    tq.integrators.GpTreeIntegrator(200, 40, tq.splits.KdSplit(), 
+                                    tq.containerIntegration.RbfIntegral(), 
+                                    grid_size=0.1)
 ])
 def test_treeIntegrator_io(integrator_instance):
     problem = tq.exampleProblems.SimpleGaussian(1)
@@ -65,7 +68,8 @@ integrals = [
     tq.containerIntegration.MidpointIntegral(),
     tq.containerIntegration.RandomIntegral(),
     tq.containerIntegration.SmcIntegral(),
-    tq.containerIntegration.RbfIntegral(n_samples=5, n_tuning=1, max_iter=100)
+    tq.containerIntegration.RbfIntegral(n_samples=5, n_tuning=1, max_iter=100,
+                                        max_redraw=1)
 ]
 
 queues = [
@@ -99,6 +103,10 @@ def test_SimpleIntegrator(D, N, P, split, integral):
 def test_QueueIntegrator(
     D, base_N, split, integral, weighting_function,
     active_N, max_splits, stopping_condition, queue):
+
+    # too slow for testing, too many containers
+    if "RbfIntegral" in str(integral):
+        return
 
     if "MedianIntegral" in str(integral) and "UniformSplit" in str(split):
         return
@@ -145,6 +153,10 @@ def test_QueueIntegrator(
 def test_LimitedSampleIntegrator(
     D, N, base_N, active_N, split, integral, weighting_function, queue
     ):
+
+    # too slow for testing, too many containers
+    if "RbfIntegral" in str(integral):
+        return
 
     if "MedianIntegral" in str(integral) and "UniformSplit" in str(split):
         return

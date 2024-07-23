@@ -129,6 +129,8 @@ class IterativeGPFitting:
     container : Container
         Container object to draw samples from 
         and track evaluations.
+    kernel : sklearn.gaussian_process.kernels.Kernel
+        the kernel used to fit GP
     n_samples : int
         increment of number of samples each time
     max_iter : int, optional (default=5)
@@ -138,11 +140,6 @@ class IterativeGPFitting:
     performance_threshold : float, optional (default=0.8)
         Performance threshold for the r2 score to 
         stop the iterative process.
-    length : float
-        Initial length scale for the RBF kernel.
-    range : float
-        Range for the length scale bounds 
-        (as a factor of the length).
     n_tuning : int
         Number of restarts for the GP optimizer.
     max_iter_optimizer : int
@@ -152,8 +149,7 @@ class IterativeGPFitting:
     """
     def __init__(self, f: Callable, container: Container, 
                  kernel: Kernel,
-                 n_samples: int, length: float, range: float, 
-                 n_tuning: int, 
+                 n_samples: int, n_tuning: int, 
                  max_iter_optimizer: int, factr: float, 
                  performance_threshold: float=0.8, 
                  max_iter: int=5):
@@ -162,8 +158,6 @@ class IterativeGPFitting:
         self.n_samples = n_samples
         self.kernel = kernel
         self.max_iter = max_iter
-        self.length = length
-        self.range = range
         self.n_tuning = n_tuning
         self.factr = factr
         self.performance_threshold = performance_threshold

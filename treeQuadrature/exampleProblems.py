@@ -74,6 +74,9 @@ class Problem(ABC):
         """
         pass
 
+    def __str__(self) -> str:
+        return f'Problem(D={self.D}, lows={self.lows}, highs={self.highs})'
+
 
 class PyramidProblem(Problem):
     def __init__(self, D):
@@ -95,6 +98,9 @@ class PyramidProblem(Problem):
             1-dimensional array of the same length as X.
         """
         return 1 - np.max(np.abs(X), axis=1)
+    
+    def __str__(self) -> str:
+        return f'Pyramid(D={self.D})'
 
 
 class BayesProblem(Problem):
@@ -210,6 +216,9 @@ class SimpleGaussian(BayesProblem):
         # Truth
         self.answer = 1 / (2.0**D)
 
+    def __str__(self) -> str:
+        return f'SimpleGaussian(D={self.D})'
+
 class Gaussian(BayesProblem):
     """
     Integration of general Gaussian pdf on rectangular bounds
@@ -291,6 +300,9 @@ class Gaussian(BayesProblem):
         integral_value = upper_cdf - lower_cdf
         
         return integral_value
+    
+    def __str__(self) -> str:
+        return f'Gaussian(D={self.D}, mean={self.mu}, cov={self.Sigma})'
 
 class Camel(BayesProblem):
     """
@@ -324,6 +336,9 @@ class Camel(BayesProblem):
             D=D, low=self.lows, high=self.highs)
         self.answer = 1 / (2.0**D)
 
+    def __str__(self) -> str:
+        return f'Camel(D={self.D})'
+
 
 class QuadCamel(BayesProblem):
     """
@@ -353,3 +368,6 @@ class QuadCamel(BayesProblem):
         self.p = dists.Uniform(
             D=D, low=self.lows, high=self.highs)
         self.answer = 1 / (10.0**D)
+
+    def __str__(self) -> str:
+        return f'QuadCamel(D={self.D})'

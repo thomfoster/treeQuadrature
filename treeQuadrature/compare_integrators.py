@@ -118,7 +118,8 @@ def test_integrators(integrators: List[Integrator],
                      output_file: str='results.csv', 
                      max_time: float=60.0, 
                      verbose: int=1, 
-                     seed: int=2024) -> None:
+                     seed: int=2024, 
+                     n_repeat: int=1) -> None:
     """
     Test different integrators on a list of problems 
     and save the results to a CSV file.
@@ -139,12 +140,17 @@ def test_integrators(integrators: List[Integrator],
         Maximum allowed time (in seconds) for each integration.
         Default is 60.0 seconds.
     verbose : int, optional
-        if 1, print problems and integrator stages
-        otherwise, print nothing.
+        if 1, print the problem and integrator being tested; 
+        if 2, print details of each integrator as well; 
+        if 0, print nothing.
         Default is 1
     seed : int, optional
         specify the randomness seed 
         for reproducibility 
+    n_repeat : int, optional
+        Number of times to repeat the integration and 
+        average the results.
+        Default is 1
     """
 
     np.random.seed(seed)
@@ -162,66 +168,106 @@ def test_integrators(integrators: List[Integrator],
             if verbose >= 1:
                 print(f'testing Integrator: {integrator_name}')
 
-            start_time = time.time()
-            parameters = signature(integrator).parameters
-            try:
-                signal.signal(signal.SIGALRM, handler)
-                signal.alarm(int(max_time))
+            estimates = []
+            n_evals_list = []
+            total_time_taken = 0
 
-                if 'return_containers' in parameters:
-                    result = integrator(problem, return_N=True, return_containers=True)
-                else:
-                    result = integrator(problem, return_N=True)
+            for repeat in range(n_repeat):
+                np.random.seed(seed + repeat)
+                start_time = time.time()
+                parameters = signature(integrator).parameters
+                try:
+                    signal.signal(signal.SIGALRM, handler)
+                    signal.alarm(int(max_time))
 
-                signal.alarm(0)  # Disable the alarm
+                    if 'verbose' in parameters and verbose >= 2:
+                        result = integrator(problem, return_N=True, 
+                                    verbose=True)
+                    else:
+                        result = integrator(problem, return_N=True)
 
-                end_time = time.time()
-                time_taken = end_time - start_time
+                    signal.alarm(0)  # Disable the alarm
 
-            except TimeoutException:
-                print(
-                    f'Time limit exceeded for {integrator_name} on {problem_name}, '
-                    'increase max_time or change the problem/integrator'
-                    )
+                    end_time = time.time()
+                    time_taken = end_time - start_time
+                    total_time_taken += time_taken
+
+                except TimeoutException:
+                    print(
+                        f'Time limit exceeded for {integrator_name} on {problem_name}, '
+                        'increase max_time or change the problem/integrator'
+                        )
+                    results.append({
+                        'integrator': integrator_name,
+                        'problem': problem_name,
+                        'true_value': problem.answer,
+                        'estimate': None,
+                        'estimate_std': None,
+                        'error_type': 'Timeout',
+                        'error': None,
+                        'error_std': None,
+                        'n_evals': None,
+                        'n_evals_std': None,
+                        'time_taken': 'Exceeded max_time'
+                    })
+                    break
+                except Exception as e:
+                    print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
+                    results.append({
+                        'integrator': integrator_name,
+                        'problem': problem_name,
+                        'true_value': problem.answer,
+                        'estimate': None,
+                        'estimate_std': None,
+                        'error_type': e,
+                        'error': None,
+                        'error_std': None,
+                        'n_evals': None,
+                        'n_evals_std': None,
+                        'time_taken': 'Exceeded max_time'
+                    })
+                    print_exc()
+                    break
+
+                estimate = result['estimate']
+                n_evals = result['n_evals']
+                estimates.append(estimate)
+                n_evals_list.append(n_evals)
+
+            if len(estimates) == n_repeat:
+                estimates = np.array(estimates)
+                avg_estimate = np.mean(estimates)
+                avg_n_evals = np.mean(n_evals_list)
+                avg_time_taken = total_time_taken / n_repeat
+
+                if problem.answer != 0:
+                    errors = 100 * np.abs(estimates - problem.answer) / problem.answer
+                    avg_error = f'{np.mean(errors):.4f} %'
+                    error_name = 'Relative error'
+                else: 
+                    errors = np.abs(estimates - problem.answer)
+                    avg_error = np.mean(errors)
+                    error_name = 'Absolute error'
+
                 results.append({
                     'integrator': integrator_name,
                     'problem': problem_name,
-                    'estimate': None,
-                    'error_type': 'Timeout',
-                    'error': None,
-                    'n_evals': None,
-                    'time_taken': 'Exceeded max_time'
+                    'true_value': problem.answer,
+                    'estimate': avg_estimate,
+                    'estimate_std': np.std(estimates),
+                    'error_type': error_name,
+                    'error': avg_error,
+                    'error_std': np.std(errors),
+                    'n_evals': avg_n_evals,
+                    'n_evals_std': np.std(n_evals_list),
+                    'time_taken': avg_time_taken
                 })
-                continue
-            except Exception as e:
-                print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
-                print_exc()
-                continue
-
-            estimate = result['estimate']
-            n_evals = result['n_evals']
-            if problem.answer != 0:
-                error = 100 * np.abs(estimate - problem.answer) / problem.answer
-                error_name = 'Relative error'
-            else: 
-                error = np.abs(estimate - problem.answer)
-                error_name = 'Absolute error'
-
-            results.append({
-                'integrator': integrator_name,
-                'problem': problem_name,
-                'estimate': estimate,
-                'error_type': error_name,
-                'error': error,
-                'n_evals': n_evals,
-                'time_taken': time_taken
-            })
     
     # Save results to a CSV file
     with open(output_file, mode='w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=[
-            'integrator', 'problem', 'estimate', 'error_type', 
-            'error', 'n_evals', 'time_taken'])
+            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken'])
         writer.writeheader()
         for result in results:
             writer.writerow(result)

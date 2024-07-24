@@ -69,6 +69,9 @@ class RbfIntegral(ContainerIntegral):
         for key, value in self.options.items():
             setattr(self, key, value)
 
+    def __str__(self):
+        return 'RbfIntegral'
+
     @staticmethod
     def _validate_options(options):
         length = options['length']

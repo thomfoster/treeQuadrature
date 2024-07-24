@@ -1,8 +1,8 @@
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, Optional
 from sklearn.gaussian_process.kernels import RBF
 import warnings
 
-from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, rbf_Integration
+from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, rbf_Integration, GPFit
 from .containerIntegral import ContainerIntegral
 from ..container import Container
 
@@ -14,36 +14,20 @@ class RbfIntegral(ContainerIntegral):
 
     Attributes
     ----------
-    length : float
+    length : int or float
         the initial value of the length scale of RBF kernel
         default 1.0
-    range : float
+    range : int or float
         GPRegressor will search hyper-parameter
         among (length * 1/range, length * range)
         Default 1e2
-    const : float
-        the initial value of the constant kerenl
-        default 1.0
-    n_samples : int
-        number of random samples
-        uniformly redrawn from the container
-        to fit Gaussian Process.
-        Defaults to 15
-    n_tuning : int
-        number of different initialisations used 
-        for tuning length scale of RBF
-        default : 10
-    factr : int or float
-        convergence criteria for fmin_l_bfgs_b optimiser
-        used to fit Gaussian Process
-        default : 1e7
-    max_iter : int
-        maximum number of iterations for fmin_l_bfgs_b optimiser
-        default : 1e4
     thershold : float
-        minimum R2 score that must be achieved by 
+        minimum score that must be achieved by 
         Gaussian Process. 
-        Default = 0.8
+    threshold_direction : str
+        one of 'up' and 'down'. 
+        if 'up', accept the model if score >= performance_threshold; 
+        if 'down', accept the model if score >= performance_threshold
     max_redraw : int
         maximum number of times to increase the 
         number of samples in GP fitting. 
@@ -56,17 +40,24 @@ class RbfIntegral(ContainerIntegral):
         if True, returns the 
         Defaults to False
     """
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, gp: Optional[GPFit]=None, **kwargs) -> None:
+        """
+        Arguments
+        ---------
+        gp : GPFit, optional
+            the gaussian process model fitter
+            default using sklearn
+        """
+
+        self.gp = gp
         
         self.options : Dict[str, Any] = {
             'length': 10,
             'range': 1e2,
             'n_samples': 15,
-            'n_tuning': 10,
-            'factr': 1e7,
-            'max_iter': 1e4,
             'max_redraw': 5,
             'threshold' : 0.8,
+            'threshold_direction' : 'up',
             'check_GP': False,
             'return_std': False
         }
@@ -77,8 +68,6 @@ class RbfIntegral(ContainerIntegral):
         # set options correspondingly
         for key, value in self.options.items():
             setattr(self, key, value)
-        
-        self.name = 'RbfIntegral'
 
     @staticmethod
     def _validate_options(options):
@@ -87,25 +76,15 @@ class RbfIntegral(ContainerIntegral):
             raise TypeError(
                 f'length must be an int or float, got {length}'
                 )
+        range = options['range']
+        if not isinstance(range, (int, float)):
+            raise TypeError(
+                f'range must be an int or float, got {length}'
+                )
         n_samples = options['n_samples']
         if not isinstance(n_samples, int):
             raise TypeError(
                 f'n_samples must be an int, got {n_samples}'
-                )
-        n_tuning = options['n_tuning']
-        if not isinstance(n_tuning, int):
-            raise TypeError(
-                f'n_tuning must be an int, got {n_tuning}'
-                )
-        factr = options['factr']
-        if not isinstance(factr, (int, float)):
-            raise TypeError(
-                f'factr must be an int or float, got {factr}'
-                )
-        max_iter = options['max_iter']
-        if not isinstance(max_iter, (int, float)):
-            raise TypeError(
-                f'max_iter must be an int or float, got {max_iter}'
                 )
         max_redraw = options['max_redraw']
         if not isinstance(max_redraw, int):
@@ -116,11 +95,7 @@ class RbfIntegral(ContainerIntegral):
         if not isinstance(threshold, float):
             raise TypeError(
                 f'threshold must be a float, got {threshold}'
-                )
-        if threshold > 1 or threshold < 0:
-            raise ValueError(
-                f'threshold must be in [0, 1], got {threshold}'
-                )
+                )    
         if not isinstance(options['check_GP'], bool):
             raise TypeError('check_GP must be a bool')
         if not isinstance(options['return_std'], bool):
@@ -151,10 +126,12 @@ class RbfIntegral(ContainerIntegral):
             and std if return_std = True, 
             and hyper_parameters of GP fitting if 
         """
+
+        ### reset options
         options = self.options.copy()
         options.update(kwargs)
 
-        if self.max_redraw * self.n_samples > 500:
+        if self.max_redraw * self.n_samples > 400:
             warnings.warn(
                 'the computational cost could be extremely high'
                 'due to high values of max_iter and n_samples'
@@ -162,19 +139,21 @@ class RbfIntegral(ContainerIntegral):
 
         RbfIntegral._validate_options(options)
 
-        # Set instance variables based on self.options
         for key, value in options.items():
             setattr(self, key, value)
 
-        # fit GP using RBF kernel
+        ### fit GP using RBF kernel
         kernel = RBF(self.length, (self.length*(1/self.range), 
                                    self.length*self.range))
-        gp = IterativeGPFitting(f, container, kernel,
-                 self.n_samples, self.n_tuning, 
-                 self.max_iter, self.factr, 
-                 self.threshold, self.max_redraw).fit()
+        iGP = IterativeGPFitting(n_samples=self.n_samples, max_redraw=self.max_redraw, 
+                 performance_threshold=self.threshold, 
+                 threshold_direction=self.threshold_direction,
+                 gp=self.gp)
+        performance = iGP.fit(f, container, kernel)
+        gp = iGP.gp
         
         # Track number of function evaluations
+
         container.add(gp.X_train_, gp.y_train_)  
 
         ### GP diagnosis
@@ -182,10 +161,12 @@ class RbfIntegral(ContainerIntegral):
             # TODO - decide where to plot
             GP_diagnosis(gp, container)
         
-        integral_result = rbf_Integration(gp, container, self.return_std)
+        integral_result = rbf_Integration(gp, container, self.return_std, 
+                                          performance, self.threshold, 
+                                          self.threshold_direction)
         
         if return_hyper_params:
-            hyper_params = {'length' : gp.kernel_.length_scale}
+            hyper_params = {'length' : gp.hyper_params['length_scale']}
             return integral_result, hyper_params
         else:
             return integral_result

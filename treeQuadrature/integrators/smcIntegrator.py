@@ -1,12 +1,13 @@
 import numpy as np
 
 from .integrator import Integrator
-from ..exampleProblems import Problem
+from ..exampleProblems import BayesProblem
 
 class SmcIntegrator(Integrator):
     """
     Simple integrator: Draw N samples from prior,
     take sample mean of likelihood values at these samples.
+    only works for BayesProblem
 
     Parameters
     ----------
@@ -16,7 +17,7 @@ class SmcIntegrator(Integrator):
     def __init__(self, N: int):
         self.N = N
 
-    def __call__(self, problem: Problem, return_N: bool=False, 
+    def __call__(self, problem: BayesProblem, return_N: bool=False, 
                  return_std: bool=False):
         """
         Perform the integration process.
@@ -39,7 +40,10 @@ class SmcIntegrator(Integrator):
             - 'std' (float) : standard deviation of the estimate, if return_std is True
         """
         # Draw N samples from the prior distribution
-        xs = problem.p.rvs(self.N)
+        if problem.p is not None:
+            xs = problem.p.rvs(self.N)
+        else:
+            xs = problem.rvs(self.N)
         # Evaluate the likelihood at these samples
         ys = problem.d.pdf(xs).reshape(-1)
         G = np.mean(ys)

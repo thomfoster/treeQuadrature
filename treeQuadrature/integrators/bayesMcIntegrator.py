@@ -2,7 +2,7 @@ from ..exampleProblems import Problem
 from .integrator import Integrator
 from ..samplers import Sampler, UniformSampler
 from ..container import Container
-from ..gaussianProcess import rbf_Integration, IterativeGPFitting, SklearnGPFit
+from ..gaussianProcess import kernel_integration, IterativeGPFitting, SklearnGPFit
 
 from sklearn.gaussian_process.kernels import RBF, Kernel
 import numpy as np
@@ -65,14 +65,14 @@ class BayesMcIntegrator(Integrator):
         gp_fitter = SklearnGPFit(n_tuning=self.n_tuning, max_iter=self.max_iter, 
                                  factr=self.factr)
         # draw all samples at once, so threshold does not matter
-        iGp = IterativeGPFitting(n_samples=self.N, max_redraw=1, gp=gp_fitter, 
+        iGp = IterativeGPFitting(n_samples=self.N, n_splits=0, max_redraw=1, gp=gp_fitter, 
                                  performance_threshold=0.0, threshold_direction='up')
         iGp.fit(problem.integrand, cont, self.kernel)
         gp = iGp.gp
 
         result = {}
         if isinstance(self.kernel, RBF):
-            integral_result = rbf_Integration(gp, cont, return_std)
+            integral_result = kernel_integration(gp, cont, return_std)
             if return_std:
                 result['estimate'] = integral_result[0]
                 result['std'] = integral_result[1]

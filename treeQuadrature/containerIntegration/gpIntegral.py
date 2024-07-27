@@ -2,7 +2,7 @@ from typing import Dict, Any, Callable, Optional
 from sklearn.gaussian_process.kernels import RBF
 import warnings
 
-from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, rbf_Integration, GPFit
+from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, kernel_integration, GPFit
 from .containerIntegral import ContainerIntegral
 from ..container import Container
 
@@ -24,6 +24,11 @@ class RbfIntegral(ContainerIntegral):
     thershold : float
         minimum score that must be achieved by 
         Gaussian Process. 
+    n_samples : int
+        number of samples to be drawn in each round of IterativeGPFitting
+    n_splits : int
+        number of K-fold cross-validation splits
+        if n_splits = 0, K-Fold CV will not be performed. 
     threshold_direction : str
         one of 'up' and 'down'. 
         if 'up', accept the model if score >= performance_threshold; 
@@ -55,6 +60,7 @@ class RbfIntegral(ContainerIntegral):
             'length': 10,
             'range': 1e2,
             'n_samples': 15,
+            'n_splits' : 5,
             'max_redraw': 5,
             'threshold' : 0.8,
             'threshold_direction' : 'up',
@@ -148,10 +154,11 @@ class RbfIntegral(ContainerIntegral):
         ### fit GP using RBF kernel
         kernel = RBF(self.length, (self.length*(1/self.range), 
                                    self.length*self.range))
-        iGP = IterativeGPFitting(n_samples=self.n_samples, max_redraw=self.max_redraw, 
-                 performance_threshold=self.threshold, 
-                 threshold_direction=self.threshold_direction,
-                 gp=self.gp)
+        iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
+                                 max_redraw=self.max_redraw, 
+                                 performance_threshold=self.threshold, 
+                                 threshold_direction=self.threshold_direction,
+                                 gp=self.gp)
         performance = iGP.fit(f, container, kernel)
         gp = iGP.gp
         
@@ -164,7 +171,7 @@ class RbfIntegral(ContainerIntegral):
             # TODO - decide where to plot
             GP_diagnosis(gp, container)
         
-        integral_result = rbf_Integration(gp, container, self.return_std, 
+        integral_result = kernel_integration(gp, container, self.return_std, 
                                           performance, self.threshold, 
                                           self.threshold_direction)
         

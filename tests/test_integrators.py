@@ -36,7 +36,7 @@ def test_io(integrator_instance):
         max_splits=20, stopping_condition=lambda container: container.N < 2),
     tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MidpointIntegral()),
     tq.integrators.GpTreeIntegrator(200, 40, tq.splits.KdSplit(), 
-                                    tq.containerIntegration.RbfIntegral(), 
+                                    tq.containerIntegration.RbfIntegral(n_splits=0), 
                                     grid_size=0.1)
 ])
 def test_treeIntegrator_io(integrator_instance):
@@ -69,7 +69,7 @@ integrals = [
     tq.containerIntegration.RandomIntegral(),
     tq.containerIntegration.SmcIntegral(),
     tq.containerIntegration.RbfIntegral(n_samples=5, n_tuning=1, max_iter=100,
-                                        max_redraw=1)
+                                        max_redraw=1, n_splits=0)
 ]
 
 queues = [

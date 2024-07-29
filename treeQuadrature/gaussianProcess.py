@@ -3,14 +3,19 @@ import warnings
 from numpy.typing import ArrayLike
 import matplotlib.pyplot as plt
 from typing import Callable, Union, Optional
+
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.model_selection import KFold
 from sklearn.gaussian_process.kernels import Kernel, RBF
 from sklearn.metrics import r2_score, mean_squared_error
+
 from scipy.special import erf
 from scipy.optimize import fmin_l_bfgs_b
 from scipy.integrate import quad
+
+import torch
+from gpplus.models.gp_plus import GP_Plus
 
 from abc import ABC, abstractmethod
 
@@ -21,7 +26,9 @@ class GPFit(ABC):
     """
     Abstract base class for fitting Gaussian Process models.
 
-    Subclasses must implement the `fit_GP` method.
+    Subclasses must implement the `fit`, `predict` method.
+    and properties `X_train_`, `y_train_`, `hyper_params`, 
+    `kernel_`, `alpha_`
     """
 
     def __init__(self):
@@ -230,6 +237,31 @@ class SklearnGPFit(GPFit):
         else: 
             return self.gp.kernel_
 
+
+class GpplusFit(GPFit):
+    def __init__(self):
+        super().__init__()
+        self.X_train_ = None
+        self.y_train_ = None
+
+    def fit(self, xs: np.ndarray, ys: np.ndarray, kernel: str='Rough_RBF'):
+        self.gp = GP_Plus(torch.from_numpy(xs), torch.from_numpy(ys), 
+                        quant_correlation_class=kernel)
+        self.gp.fit()
+
+        self.X_train_ = xs
+        self.y_train_ = ys
+
+    def predict(self, xs, return_std: bool):
+        self.gp.predict(torch.from_numpy(xs), return_std)
+
+    @property
+    def hyper_params(self):
+        return self.gp.get_params(name="Omega")
+    
+    @property
+    def kernel_(self):
+        raise NotImplementedError
 
 
 def gp_kfoldCV(xs, ys, kernel, gp: GPFit, 

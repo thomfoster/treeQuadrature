@@ -5,6 +5,8 @@ from ..container import Container
 class Split(ABC):
     """
     Abstract base class for splitting a container into containers.
+
+    Return a list of length one if no valid split found
     """
 
     @abstractmethod

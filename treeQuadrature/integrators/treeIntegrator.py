@@ -5,6 +5,9 @@ from inspect import signature
 import warnings
 import numpy as np
 
+# parallel computing
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
 from .integrator import Integrator
 from ..container import Container
 from ..exampleProblems import Problem
@@ -14,6 +17,17 @@ from ..samplers import Sampler, UniformSampler
 
 
 default_sampler = UniformSampler()
+
+def parallel_container_integral(integral: ContainerIntegral, 
+                                cont: Container, integrand: callable, 
+                                return_std: bool):
+    if return_std:
+        contribution, std = integral.containerIntegral(cont, integrand, 
+                                                       return_std=True)
+        return contribution, std, cont
+    else:
+        contribution = integral.containerIntegral(cont, integrand)
+        return contribution, None, cont
 
 class TreeIntegrator(Integrator):
     """
@@ -136,44 +150,50 @@ class TreeIntegrator(Integrator):
             finished_containers = self.construct_tree(root, *args, **kwargs)
 
         # uncertainty estimates
-        if return_std:
-            if hasattr(self.integral, 'return_std'):
-                if verbose: 
-                    print('integrating individual containers')
-                results = [self.integral.containerIntegral(cont, 
-                                                           problem.integrand, 
-                                                           return_std=True)
-                         for cont in finished_containers]
-                contributions = [result[0] for result in results]
-                stds = [result[1] for result in results]
-            else:
-                warnings.warn(
-                    f'{str(self.integral)} does not '
-                     'have parameter return_std, will be ignored', 
-                     UserWarning)
-                return_std = False
-
-                if verbose: 
-                    print('integrating individual containers')
-                contributions = [self.integral.containerIntegral(cont, problem.integrand)
-                            for cont in finished_containers]
-            
-        else: 
-            # Integrate containers
-            if verbose: 
-                    print('integrating individual containers')
-            contributions = [self.integral.containerIntegral(cont, problem.integrand)
-                            for cont in finished_containers]
+        compute_std = return_std and hasattr(self.integral, 'return_std')
+        if not hasattr(self.integral, 'return_std') and return_std:
+            warnings.warn(
+                f'{str(self.integral)} does not have parameter return_std, will be ignored', 
+                UserWarning
+            )
+            compute_std = False
+ 
+        if verbose: 
+            print('Integrating individual containers', 
+                'with standard deviation' if compute_std else '')
         
+        # for retracking containers 
+        containers = []
+        with ProcessPoolExecutor() as executor:
+            futures = {
+                executor.submit(parallel_container_integral, 
+                                self.integral, cont, problem.integrand, 
+                                compute_std): cont
+                for cont in finished_containers
+            }
+
+            results = []
+            for future in as_completed(futures):
+                contribution, std, modified_cont = future.result()
+                results.append((contribution, std))
+                containers.append(modified_cont)
+
+        if compute_std:
+            contributions = [result[0] for result in results]
+            stds = [result[1] for result in results]
+        else:
+            contributions = [result[0] for result in results]
+            stds = None
+
         G = np.sum(contributions)
-        N = sum([cont.N for cont in finished_containers])
+        N = sum([cont.N for cont in containers])
 
 
         return_values = {'estimate' : G}
         if return_N:
             return_values['n_evals'] = N
         if return_containers:
-            return_values['containers'] = finished_containers
+            return_values['containers'] = containers
             return_values['contributions'] = contributions
         if return_std:
             return_values['stds'] = stds

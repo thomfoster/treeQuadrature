@@ -1,18 +1,21 @@
 import matplotlib.pyplot as plt
-import numpy as np
+import time, warnings
 
+from .treeIntegrator import TreeIntegrator
 from ..queues import ReservoirQueue
 from ..container import Container
+from ..splits import Split
+from ..samplers import Sampler
+from ..containerIntegration import ContainerIntegral
+from ..exampleProblems import Problem
 
-# Default finished condition will never prevent container being split
-
-
-def default_stopping_condition(container): return False
+from typing import Callable, Optional
 
 
 default_queue = ReservoirQueue(accentuation_factor=100)
 
 
+# a function for debugging
 def save_weights_image(q):
     weights = q.weights
     ps = q.get_probabilities(weights)
@@ -26,81 +29,107 @@ def save_weights_image(q):
     plt.close()
 
 
-class LimitedSampleIntegrator:
-    """
-    Integrator that builds on from queueIntegrator with more friendly
-    controls - just keeps sampling until all samples used up.
-    User does not need to specify the stopping condition
-
-    Parameters
-    ----------
-    N : int
-        Total number of samples to use.
-    base_N : int
-        Number of base samples.
-    active_N : int
-        Number of active samples per iteration.
-    split : function
-        Function to split a container into sub-containers.
-    integral : function
-        Function to compute the integral over a container.
-    weighting_function : function
-        Function to compute the weight of a container.
-    queue : class
-        Queue class to manage the containers, default is PriorityQueue.
-    """
-
+class LimitedSampleIntegrator(TreeIntegrator):
     def __init__(
             self,
-            N,
-            base_N,
-            active_N,
-            split,
-            integral,
-            weighting_function,
-            queue=default_queue):
+            N: int,
+            base_N: int,
+            active_N: int,
+            split: Split,
+            integral: ContainerIntegral,
+            weighting_function: Callable,
+            sampler: Optional[Sampler]=None,
+            queue: ReservoirQueue=default_queue):
+        """
+        Integrator that builds on from queueIntegrator with more friendly
+        controls - just keeps sampling until all samples used up.
+        User does not need to specify the stopping condition
+
+        Parameters
+        ----------
+        N : int
+            Total number of samples to use.
+        base_N : int
+            Number of initial base samples.
+        active_N : int
+            Number of active samples per iteration.
+        split : function
+            Function to split a container into sub-containers.
+        integral : function
+            Function to compute the integral over a container.
+        weighting_function : function
+            Function to compute the weight of a container.
+        sampler : Sampler
+            a method for generating initial samples
+            when problem does not have rvs method. 
+            Default: UniformSampler
+        queue : class
+            Queue class to manage the containers, default is PriorityQueue.
+
+        Example
+        -------
+        >>> from treeQuadrature.integrators import LimitedSampleIntegrator
+        >>> from treeQuadrature.splits import MinSseSplit
+        >>> from treeQuadrature.containerIntegration import RandomIntegral
+        >>> from treeQuadrature.exampleProblems import SimpleGaussian
+        >>> problem = SimpleGaussian(D=2)
+        >>> 
+        >>> minSseSplit = MinSseSplit()
+        >>> randomIntegral = RandomIntegral()
+        >>> volume_weighting = lambda container: container.volume
+        >>> integ_limited = LimitedSampleIntegrator(
+        >>>    N=1000, base_N=500, active_N=10, split=minSseSplit, integral=randomIntegral, 
+        >>>    weighting_function=volume_weighting
+        >>> )
+        >>> estimate = integ_limited(problem)
+        >>> print("error of random integral =", 
+        >>>      str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
+        """
         
+        if sampler is None:
+            super().__init__(split, integral, base_N)
+        else:
+            super().__init__(split, integral, base_N, sampler=sampler)
         self.N = N
-        self.base_N = base_N
         self.active_N = active_N
-        self.split = split
-        self.integral = integral
         self.weighting_function = weighting_function
         self.queue = queue
 
-    def __call__(self, problem, return_N=False, return_all=False):
-        """
-        Perform the integration process.
+    def __call__(self, problem: Problem, return_N: bool=False, return_containers: bool=False, return_std: bool=False):
+        return super().__call__(problem, return_N, return_containers, return_std, 
+                                integrand=problem.integrand)
 
-        Arguments
+    def construct_tree(self, root: Container, integrand: Callable, 
+                       max_iter: int = 1e4, verbose: bool = False):
+        """
+        Actively refine the containers with samples.
+
+        Parameters
         ----------
-        problem : Problem
-            The integration problem to be solved
-        return_N : bool, optional
-            If True, return the number of samples used.
-        return_all : bool, optional
-            If True, return containers and their contributions to the integral
+        root : Container
+            The root container.
+        integrand : Callable
+            The integrand function.
+        max_iter : int, optional
+            Maximum number of iterations, 
+            by default 1e4
+        verbose : bool, optional
+            Whether to print verbose output, by default False.
 
         Returns
         -------
-        result : tuple or float
-            The computed integral and optionally the number of samples, finished containers, contributions, and remaining samples.
+        List[Container]
+            A list of finished containers.
         """
-        D = problem.D
-
-        # Draw samples
-        X = problem.d.rvs(self.base_N)
-        y = problem.pdf(X)
-
-        root = Container(X, y, mins=[problem.low] * D, maxs=[problem.high] * D)
-
-        # Refine with further active samples
-        q = self.queue()
+        q = self.queue
         q.put(root, 1)
         finished_containers = []
         num_samples_left = self.N - self.base_N
 
-        while not q.empty():
+        start_time = time.time()
+        iteration_count = 0
+
+        while not q.empty() and iteration_count < max_iter:
 
             # save_weights_image(q)
 
@@ -108,7 +137,7 @@ class LimitedSampleIntegrator:
 
             if num_samples_left >= self.active_N:
                 X = c.rvs(self.active_N)
-                y = problem.pdf(X)
+                y = integrand(X)
                 c.add(X, y)
                 num_samples_left -= self.active_N
 
@@ -116,18 +145,27 @@ class LimitedSampleIntegrator:
                 finished_containers.append(c)
                 continue
 
-            children = self.split(c)
+            children = self.split.split(c)
             for child in children:
                 weight = self.weighting_function(child)
                 q.put(child, weight)
 
-        # Integrate containers
-        contributions = [self.integral(cont, problem.pdf)
-                         for cont in finished_containers]
-        G = np.sum(contributions)
-        N = sum([cont.N for cont in finished_containers])
+            if iteration_count % 100 == 0 and verbose:  # Log every 100 iterations
+                elapsed_time = time.time() - start_time
+                print(f"Iteration {iteration_count}: Queue size = {q.qsize()}, "
+                      f"Number of containers = {len(finished_containers)}, "
+                      f"Elapsed time = {elapsed_time:.2f}s")
+        
+        total_time = time.time() - start_time
+        if verbose:
+            print(f"Total finished containers: {len(finished_containers)}")
+            print(f"Total iterations: {iteration_count}")
+            print(f"Total time taken: {total_time:.2f}s")
 
-        ret = (G, N) if return_N else G
-        ret = (G, N, finished_containers, contributions,
-               num_samples_left) if return_all else ret
-        return ret
+        if iteration_count == max_iter:
+            warnings.warn(
+                'Maximum iterations reached. Either increase max_iter or check split and samples.', 
+                RuntimeWarning
+            )
+
+        return finished_containers

@@ -1,5 +1,7 @@
 import vegas
 
+from .integrator import Integrator
+from ..exampleProblems import Problem
 
 class ShapeAdapter:
     def __init__(self, f):
@@ -9,7 +11,7 @@ class ShapeAdapter:
         return self.f(X)[0, 0]
 
 
-class VegasIntegrator:
+class VegasIntegrator(Integrator):
     """
     Integrator that uses the VEGAS algorithm for adaptive Monte Carlo integration.
 
@@ -21,31 +23,33 @@ class VegasIntegrator:
         Number of adaptive iterations to perform.
     """
 
-    def __init__(self, N, NITN):
+    def __init__(self, N: int, NITN: int):
         self.N = N
         self.NITN = NITN
 
-    def __call__(self, problem, return_N=False, return_all=False):
+    def __call__(self, problem: Problem, return_N: bool=False):
         """
         Perform the integration process using the VEGAS algorithm.
 
         Parameters
         ----------
-        problem : object
-            The problem instance with attributes D and pdf.
+        problem : Problem
+            The integration problem
         return_N : bool, optional
             If True, return the number of samples used.
-        return_all : bool, optional
-            If True, return containers and their contributions to the integral
 
-        Returns
+        Return
         -------
-        result : float or tuple
-            The computed integral and optionally the number of samples.
+        dict
+            with the following keys:
+            - 'estimate' (float) : estimated integral value
+            - 'n_evals' (int) :  number of function estiamtions, if return_N is True
         """
         integ = vegas.Integrator([[-1.0, 1.0]] * problem.D)
-        f = ShapeAdapter(problem.pdf)
+        f = ShapeAdapter(problem.integrand)
         G = integ(f, nitn=self.NITN, neval=self.N).mean
 
-        ret = (G, self.N * self.NITN) if return_N or return_all else G
+        ret = {'estimate': G}
+        if return_N:
+            ret['n_evals'] = self.N * self.NITN
         return ret

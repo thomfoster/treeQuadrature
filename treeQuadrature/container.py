@@ -1,11 +1,4 @@
 import numpy as np
-from scipy.spatial import ConvexHull
-import warnings
-
-# for plotting
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-import matplotlib.pyplot as plt
-from itertools import product
 
 
 class ArrayList:
@@ -45,56 +38,11 @@ class ArrayList:
 
 class Container:
     '''
-    Represents a convex hull in n-dim space
-    with finite volume
+    Represents a finite region of n-dim space
     and the samples it holds.
-
-    Attributes
-    ----------
-    _X, _y : ArrayList
-        stores the samples and evaluations efficiently 
-    mins, maxs : float or list or numpy array of shape (D,)
-        the low and high boundaries of the 
-        only for hyper-rectangle containers
-    volume : float
-        volume of the container
-    is_finite : bool
-        indicator of whether the container has finite volume
-    midpoint : numpy array of shape (D,)
-        the midpoint of container
-    boundary_points : numpy array
-        each row is a boundary point of the convex hull
-        will be automatically arranged in clockwise order 
-    hull : ConvexHull
-        created based on boundary_points.
-        None if container is not finite or the problem is 1D
-    is_rectangle : bool
-        indicates whether the Container is a hyper-rectangle
-
-    Methods 
-    -------
-    add(new_x, new_y)
-        add new sample points
-    rvs(n)
-        uniformly randomly draw n samples in this container
-        Return : numpy array of shape (n, D)
-    split(split_dimension, split_value)
-        split the container into two along split_dimension at split_value
-        Return : list of two sub-containers
     '''
 
-    def __init__(self, X, y, mins=None, maxs=None, boundary_points=None):
-        """
-        Attributes
-        ----------
-        X : numpy array of shape (N, D)
-            each row is a sample
-        y : numpy array of shape (N, 1)
-            the function value at each sample
-        mins, maxs : numpy array of shape (D,)
-            the low and high boundaries of the hyper-rectangle
-            could be +- np.inf
-        """
+    def __init__(self, X, y, mins=None, maxs=None):
         assert X.ndim == 2
         assert y.ndim == 2
         assert X.shape[0] == y.shape[0]
@@ -102,206 +50,23 @@ class Container:
 
         self.D = X.shape[1]
 
-        # handle boundary points
-        if boundary_points is None: # hyper-rectangle
-            # if mins(maxs) are None, create unbounded container
-            self.mins = self._handle_min_max_bounds(mins, -np.inf) 
-            self.maxs = self._handle_min_max_bounds(maxs, np.inf)
+        # Compute container properties
+        self.mins = np.array(mins) if mins is not None else np.array(
+            [-np.inf] * self.D)
+        self.maxs = np.array(maxs) if maxs is not None else np.array(
+            [np.inf] * self.D)
+        self.volume = np.product(self.maxs - self.mins)
+        self.is_finite = not np.isinf(self.volume)
+        self.midpoint = (
+            self.mins + self.maxs) / 2 if self.is_finite else np.nan
 
-            self.volume = np.prod(self.maxs - self.mins)
-            self.is_finite = not np.isinf(self.volume)
-            self.boundary_points = self._construct_hyperrectangle()
-            self.is_rectangle = True
-        elif boundary_points is not None and mins is None and maxs is None: # arbitrary convex hull
-            # convexity check
-            if not Container._is_convex(boundary_points):
-                raise ValueError(
-                    f'the shape created by boundary_points {self.boundary_points}'
-                    'is NOT convex'
-                )
-            
-            if self.D == 1:
-                raise ValueError('Convex Hull cannot be created for 1-dimensional problems')
-            
-            self.is_finite = True
-            self.boundary_points = np.array(boundary_points)
-            self.mins = np.min(self.boundary_points, axis=0)
-            self.maxs = np.max(self.boundary_points, axis=0)
-            self.is_rectangle = False
-        else: 
-            raise Exception(
-                'mins, maxs, and boundary_points cannot be provided simutaneously'
-            )
-
-        # dimensionality checks
         assert self.mins.shape[0] == self.D
         assert self.maxs.shape[0] == self.D
 
-        ### compute basic properties
-        if self.is_finite and self.D != 1:
-            # reorder boundary points clockwise
-            self.boundary_points = Container._reorder_clockwise(self.boundary_points)
-            self.hull = ConvexHull(self.boundary_points)
-            self.volume = self.hull.volume
-        else:
-            self.hull = None
-        self.midpoint = np.mean(self.boundary_points, axis=0) if self.is_finite else np.nan
-
-        ### add sample points into the hidden ArrayList
-        # create empty ArrayList
         self._X = ArrayList(D=self.D)
         self._y = ArrayList(D=1)
 
-        # filter points
-        X_filtered, y_filtered = self._filter_points(X, y)
-        self.add(X_filtered, y_filtered)
-
-    def _handle_min_max_bounds(self, bounds, default_value):
-        """Handle different types of min/max bounds."""
-        if isinstance(bounds, (int, float)):
-            return np.array([bounds] * self.D)
-        elif isinstance(bounds, (list, np.ndarray)):
-            return np.array(bounds)
-        else:
-            return np.array([default_value] * self.D)
-        
-    def _filter_points(self, X, y, return_bool = False):
-        """
-        Check whether all the points X are in the convex hull defined by self.boundary_points,
-        and return a numpy array with those in the container. Throw a warning if any point is not
-        in the container.
-
-        Parameters
-        ----------
-        X : np.ndarray of shape (N, D)
-            An array of points to check.
-        y : np.ndarray of shape (N, )
-            corresponding values
-        return_bool : bool
-            if true, return a bool inside 
-        
-        Returns
-        -------
-        np.ndarray, np.ndarray, bool
-            Two arrays: one of the points that are within the convex hull or bounds, 
-            and another of the corresponding y values.
-            bool: indicates whether all points are inside the container
-        
-        """
-
-        # 1-D case: check whether between bounds
-        if self.D == 1:
-            in_bounds = (X >= self.mins) & (X <= self.maxs)
-            in_bounds = in_bounds.flatten()  # Ensure it's a 1D boolean array for indexing
-            if not np.all(in_bounds):
-                inside = False
-                warnings.warn("Some points are out of the container bounds.")
-            else: 
-                inside = True
-
-            if return_bool:
-                return X[in_bounds], y[in_bounds], inside
-            else: 
-                return X[in_bounds], y[in_bounds]
-
-        # general case
-        in_hull = np.ones(len(X), dtype=bool)
-        
-        # check whether all ponits are in the container
-        for i, point in enumerate(X):
-            # allows for small numerical margin 1e-12
-            if not all((np.dot(eq[:-1], point) + eq[-1] <= 1e-12) for eq in self.hull.equations):
-                in_hull[i] = False
-                warnings.warn(f"Point {point} is not in the container")
-
-        inside = np.all(in_hull)
-        if not inside:
-            print(f'mins: {self.mins}, maxs: {self.maxs}')
-
-        if return_bool:
-            return X[in_hull], y[in_hull], inside
-        else: 
-            return X[in_hull], y[in_hull]
-
-    @staticmethod
-    def _is_convex(points):
-        """
-        Check if the points form a convex polygon.
-        
-        Parameters
-        ----------
-        points : np.ndarray
-            An array of points representing the boundary of the polygon.
-        
-        Returns
-        -------
-        bool
-            True if the polygon is convex, False otherwise.
-        """
-        n = len(points)
-        if n < 4:
-            return True  # A triangle is always convex
-
-        def cross_product(o, a, b):
-            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
-
-        is_positive = None
-        for i in range(n):
-            o = points[i]
-            a = points[(i + 1) % n]
-            b = points[(i + 2) % n]
-            cross = cross_product(o, a, b)
-            if cross != 0:
-                if is_positive is None:
-                    is_positive = cross > 0
-                elif (cross > 0) != is_positive:
-                    return False
-        return True
-    
-    @staticmethod
-    def _reorder_clockwise(points):
-        """
-        Reorder the boundary points so that they are in clockwise order.
-
-        Parameters
-        ----------
-        points : np.ndarray
-            An array of points representing the boundary of the polygon.
-
-        Returns
-        -------
-        np.ndarray
-            The reordered array of points in clockwise order.
-        """
-        # Calculate the centroid of the points
-        centroid = np.mean(points, axis=0)
-
-        # Calculate the angles of each point relative to the centroid
-        angles = np.arctan2(points[:, 1] - centroid[1], points[:, 0] - centroid[0])
-
-        # Sort the points based on the angles in clockwise order
-        clockwise_order = np.argsort(angles)
-        return points[clockwise_order]
-
-    def _construct_hyperrectangle(self):
-        """
-        Construct boundary points of a hyper-rectangle from mins and maxs.
-        
-        Returns
-        -------
-        points : numpy array of shape (2^D, D)
-            The vertices of the hyper-rectangle.
-        """
-        D = self.D
-        # Create a meshgrid of indices for all combinations
-        grid = np.indices((2,) * D).reshape(D, -1).T
-        
-        # Use the grid to select elements from mins and maxs
-        mins_expanded = np.expand_dims(self.mins, axis=0)
-        maxs_expanded = np.expand_dims(self.maxs, axis=0)
-        
-        points = mins_expanded + grid * (maxs_expanded - mins_expanded)
-        return points
+        self.add(X, y)
 
     def add(self, new_X, new_y):
         assert new_X.ndim == 2
@@ -309,17 +74,8 @@ class Container:
         assert new_X.shape[0] == new_y.shape[0]
         assert new_X.shape[1] == self.D
         assert new_y.shape[1] == 1
-        # TODO - figure out why are NaN values generated 
-        # assert np.isnan(new_X).any(), 'new_X has NaN!'
-        # assert np.isnan(new_y).any(), 'new_y has NaN!'
-        # assert np.all(new_X >= self.mins), new_X[new_X < self.mins]
-        # assert np.all(new_X <= self.maxs), new_X[new_X > self.maxs]
-        _, _, all_inside = self._filter_points(new_X, new_y, return_bool=True)
-        assert all_inside, (
-            'Some points are not inside the container, '
-            'cannot add new_X and new_y to container see warnings above'
-        )
-
+        assert np.all(new_X >= self.mins), new_X[new_X < self.mins]
+        assert np.all(new_X <= self.maxs), new_X[new_X > self.maxs]
 
         self._X.add(new_X)
         self._y.add(new_y)
@@ -337,21 +93,6 @@ class Container:
         return self._y.contents
 
     def rvs(self, n):
-        """
-        Draw uniformly random samples from the container
-        
-        Attribute
-        ---------
-        n : int
-            number of samples
-
-        Return
-        ------
-        rs : numpy array of shape (n, D)
-            each row is a sample
-        """
-        ## TODO - modify this to deal with the case self.mins is -inf or self.maxs is inf
-
         rs = np.random.uniform(size=(n, self.D))
         ranges = self.maxs - self.mins
         rs = self.mins + ranges * rs

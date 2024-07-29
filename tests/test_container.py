@@ -30,6 +30,20 @@ def test_init(D):
     assert cont._X.N == 2
     assert np.all(cont._X.contents == X)
 
+@pytest.mark.parametrize("mins, maxs", [
+    ([-1, -2], [2, 3]), 
+    (np.array([-1, -2, -3, -4]), np.array([1, 2, 3, 4]))
+])
+def test_init_rectangle(mins, maxs):
+    D = len(mins)
+    X = np.random.uniform(mins, maxs, size=(2, D))
+    y = np.array([[0.0]]*2)
+    cont = tq.Container(X, y, mins, maxs)
+
+    assert cont.is_finite
+    assert np.all(cont.midpoint == (np.array(mins) + np.array(maxs)) / 2)
+    assert cont.volume == np.prod(np.array(maxs) - np.array(mins))
+
 @pytest.mark.parametrize("x, expected", [
     (-50.0, "Fail"),
     (-5.0, "Success"),
@@ -51,7 +65,7 @@ def test_add_method(container, x, expected):
         else:
             try:
                 container.add(new_X, new_y)
-            except AssertionError:
+            except ValueError:
                 pass
     
     # The other containers should go as labelled
@@ -59,7 +73,7 @@ def test_add_method(container, x, expected):
         if expected == "Fail":
             try:
                 container.add(new_X, new_y)
-            except AssertionError:
+            except ValueError:
                 pass
         else:
             container.add(new_X, new_y)
@@ -122,3 +136,26 @@ def test_volume_method(container):
         assert container.volume == 0
     else:
         assert container.volume == 10 ** container.D
+
+
+@pytest.mark.parametrize("D, mins, maxs", [
+    (1, [-np.inf], [np.inf]),
+    (1, [-1.0], [np.inf]),
+    (1, [-np.inf], [1.0]),
+    (2, [-np.inf, -np.inf], [np.inf, np.inf]),
+    (2, [-1.0, -np.inf], [1.0, np.inf]),
+    (2, [-np.inf, -1.0], [np.inf, 1.0]),
+    (2, [-1.0, -1.0], [1.0, 1.0]),
+    (3, [-np.inf, -np.inf, -np.inf], [np.inf, np.inf, np.inf]),
+    (3, [-1.0, -np.inf, -np.inf], [1.0, np.inf, np.inf]),
+    (3, [-np.inf, -1.0, -np.inf], [np.inf, 1.0, np.inf]),
+    (3, [-np.inf, -np.inf, -1.0], [np.inf, np.inf, 1.0])
+])
+def test_infinite_container(D, mins, maxs):
+    # create empty container
+    X = np.empty(shape=(0,D))
+    y = np.empty(shape=(0,1))
+
+    cont = tq.container.Container(X, y, mins=mins, maxs=maxs)
+    samples = cont.rvs(10)
+    assert cont.filter_points(samples, return_bool=True), 'some samples not in the container'

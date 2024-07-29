@@ -22,3 +22,15 @@ def scale(ys):
 
     return (ys - low) / (high - low)
 
+def handle_bound(value, D, default_value) -> np.ndarray:
+    if value is None:
+        return np.array([default_value] * D)
+    elif isinstance(value, (int, float)):
+        return np.array([value] * D)
+    elif isinstance(value, (list, np.ndarray)) and len(value) == D:
+        return np.array(value)
+    else:
+        raise ValueError(
+            "value must be a float, list, or numpy.ndarray"
+            f"with length {D} when given as a list or numpy.ndarray"
+        )

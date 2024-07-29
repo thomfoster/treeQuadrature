@@ -97,8 +97,11 @@ class SimpleIntegrator(TreeIntegrator):
                 finished_containers.append(c)
             else:
                 children = self.split.split(c)
-                for child in children:
-                    q.put(child)
+                if len(children) == 1:
+                    finished_containers.append(c)
+                else:
+                    for child in children:
+                        q.put(child)
             
             if iteration_count % 100 == 0 and verbose:  # Log every 100 iterations
                 elapsed_time = time.time() - start_time

@@ -8,19 +8,25 @@ class MinSseSplit(Split):
     '''
     Partition into two sub-containers
       that minimises variance of f over each set
+
+    Attribute
+    ---------
+    min_samples_leaf : int, optional (default=1)
+        The minimum number of samples required to be in each resulting leaf.
+        This prevents creating very small partitions that might not generalize well.
     '''
-    def split(self, container: Container, min_samples_leaf: int=1):
+    def __init__(self, min_samples_leaf: int=1) -> None:
+        self.min_samples_leaf = min_samples_leaf
+
+    def split(self, container: Container):
         """
-        Split the container into two sub-containers that minimize 
+        Split the container into two sub-containers that minimises
         the sum of squared errors (SSE) of the target values in each set.
 
         Parameters
         ----------
         container : Container
             The container holding the samples and target values.
-        min_samples_leaf : int, optional (default=1)
-            The minimum number of samples required to be in each resulting leaf.
-            This prevents creating very small partitions that might not generalize well.
     
         Returns
         -------
@@ -38,7 +44,8 @@ class MinSseSplit(Split):
 
         # Evaluate splits
         for dim in range(dims):
-            thresh, score = self.evaluate_split(samples, ys, dim, min_samples_leaf)
+            thresh, score = self.evaluate_split(samples, ys, dim, 
+                                                self.min_samples_leaf)
             if score < best_score:
                 best_dimension = dim
                 best_thresh = thresh
@@ -53,7 +60,8 @@ class MinSseSplit(Split):
         return [lcont, rcont]
 
     @staticmethod
-    def evaluate_split(samples, ys, dim, min_samples_leaf):
+    def evaluate_split(samples: np.ndarray, ys: np.ndarray, 
+                       dim: int, min_samples_leaf: int):
         """
         Evaluate the best split for a given dimension.
 
@@ -85,7 +93,8 @@ class MinSseSplit(Split):
         return MinSseSplit.findMinSplit(xss, yss, min_samples_leaf)
 
     @staticmethod
-    def findMinSplit(xs, ys, min_samples_leaf=1):
+    def findMinSplit(xs: np.ndarray, ys: np.ndarray, 
+                     min_samples_leaf: int):
         '''
         Partition xs and ys such that variance across ys subsets is minimized
 

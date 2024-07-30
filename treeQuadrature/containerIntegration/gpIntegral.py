@@ -75,6 +75,14 @@ class RbfIntegral(ContainerIntegral):
         for key, value in self.options.items():
             setattr(self, key, value)
 
+        self.kernel = RBF(self.length, (self.length*(1/self.range), 
+                                        self.length*self.range))
+        self.iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
+                                 max_redraw=self.max_redraw, 
+                                 performance_threshold=self.threshold, 
+                                 threshold_direction=self.threshold_direction,
+                                 gp=self.gp)
+
     def __str__(self):
         return 'RbfIntegral'
 
@@ -152,15 +160,15 @@ class RbfIntegral(ContainerIntegral):
             setattr(self, key, value)
 
         ### fit GP using RBF kernel
-        kernel = RBF(self.length, (self.length*(1/self.range), 
+        self.kernel = RBF(self.length, (self.length*(1/self.range), 
                                    self.length*self.range))
-        iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
+        self.iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                  max_redraw=self.max_redraw, 
                                  performance_threshold=self.threshold, 
                                  threshold_direction=self.threshold_direction,
                                  gp=self.gp)
-        performance = iGP.fit(f, container, kernel)
-        gp = iGP.gp
+        performance = self.iGP.fit(f, container, self.kernel)
+        gp = self.iGP.gp
         
         # Track number of function evaluations
 

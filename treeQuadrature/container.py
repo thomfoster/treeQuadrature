@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 
 class ArrayList:
@@ -38,44 +39,167 @@ class ArrayList:
 
 class Container:
     '''
-    Represents a finite region of n-dim space
+    Represents a hyper-rectangle in n-dim space
+    with finite volume
     and the samples it holds.
+
+    Attributes
+    ----------
+    _X, _y : ArrayList
+        stores the samples and evaluations efficiently 
+    mins, maxs : numpy.ndarray of shape (D,)
+        the low and high boundaries of the 
+        hyper-rectangle containers
+    volume : float
+        volume of the container
+    is_finite : bool
+        indicator of whether the container has finite volume
+    midpoint : numpy.ndarray of shape (D,)
+        the midpoint of container
+
+    Properties
+    ----------
+    N : int 
+        number of samples (also number of evaluations)
+    X, y : numpy.ndarray
+        samples and evaluations 
+
+    Methods 
+    -------
+    add(new_x, new_y)
+        add new sample points
+    rvs(n)
+        uniformly randomly draw n samples in this container
+        Return : numpy.ndarray of shape (n, D)
+    split(split_dimension, split_value)
+        split the container into two along split_dimension at split_value
+        Return : list of two sub-containers
     '''
 
-    def __init__(self, X, y, mins=None, maxs=None):
-        assert X.ndim == 2
-        assert y.ndim == 2
-        assert X.shape[0] == y.shape[0]
-        assert y.shape[1] == 1
+    def __init__(self, X: np.ndarray, y: np.ndarray, mins=None, maxs=None):
+        """
+        Attributes
+        ----------
+        X : numpy.ndarray of shape (N, D)
+            each row is a sample
+        y : numpy.ndarray of shape (N, 1) or (N,)
+            the function value at each sample
+        mins, maxs : int or float or list or numpy.ndarray of shape (D,), optional
+            the low and high boundaries of the hyper-rectangle
+            could be +- np.inf
+        """
+
+        if np.any(mins == np.inf):
+            raise ValueError(f'mins cannot have np.inf, got {mins}')
+        if np.any(maxs == -np.inf):
+            raise ValueError(f'maxs cannot have -np.inf, got {maxs}')
+
+        X, y = self._handle_X_y(X, y)
 
         self.D = X.shape[1]
 
-        # Compute container properties
-        self.mins = np.array(mins) if mins is not None else np.array(
-            [-np.inf] * self.D)
-        self.maxs = np.array(maxs) if maxs is not None else np.array(
-            [np.inf] * self.D)
-        self.volume = np.product(self.maxs - self.mins)
+        # if mins (maxs) are None, create unbounded container
+        self.mins = self._handle_min_max_bounds(mins, -np.inf) 
+        self.maxs = self._handle_min_max_bounds(maxs, np.inf)
+        # dimensionality checks
+        if self.mins.shape[0] != self.D:
+            raise ValueError('mins should have length D')
+        if self.maxs.shape[0] != self.D:
+            raise ValueError('maxs should have length D')
+
+        self.volume = np.prod(self.maxs - self.mins)
         self.is_finite = not np.isinf(self.volume)
         self.midpoint = (
             self.mins + self.maxs) / 2 if self.is_finite else np.nan
 
-        assert self.mins.shape[0] == self.D
-        assert self.maxs.shape[0] == self.D
-
+        ### add sample points into the hidden ArrayList
+        # create empty ArrayList
         self._X = ArrayList(D=self.D)
         self._y = ArrayList(D=1)
 
-        self.add(X, y)
+        # filter points
+        X_filtered, y_filtered = self.filter_points(X, y)
+        self.add(X_filtered, y_filtered)
+
+    def _handle_min_max_bounds(self, bounds, default_value):
+        """Handle different types of min/max bounds."""
+        if isinstance(bounds, (int, float)):
+            return np.array([bounds] * self.D)
+        elif isinstance(bounds, (list, np.ndarray)):
+            return np.array(bounds)
+        else:
+            return np.array([default_value] * self.D)
+
+    def _handle_X_y(self, X: np.ndarray, y: np.ndarray):
+        # basic checks
+        if X.ndim != 2:
+            raise ValueError(f"X must be a 2-dimensional array, got {X.ndim} dimensions")
+        if (y.ndim != 2 or y.shape[1] != 1) and y.ndim != 1:
+            raise ValueError(
+                "y must be a 1-dimensional array, or 2-dimensional array"
+                f" with shape (N, 1), got {y.ndim}"
+            )
+        if X.shape[0] != y.shape[0]:
+            raise ValueError(f"The number of samples in X and y must be the same, got {X.shape[0]} and {y.shape[0]}")
+        
+        if y.ndim == 1:
+            ret_y = y.reshape(-1, 1)
+        else:
+            ret_y = y.copy()
+
+        return X, ret_y
+        
+    def filter_points(self, X, y=None, return_bool=False, warning=False):
+        """
+        Check whether all the points X are in the container
+        and return a numpy.ndarray with those in the container. Throw a warning if any point is not
+        in the container.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (N, D)
+            An array of points to check.
+        y : np.ndarray of shape (N, ), optional
+            corresponding values
+        return_bool : bool, optional
+            if true, return a bool inside of filtered samples
+            Defaults to False
+        warning : bool, optional
+            if true, throw a warning if some points are outside
+            Defaults to False
+        
+        Returns
+        -------
+        np.ndarray, np.ndarray or bool
+            Two arrays: one of the points that are within the container, 
+            and another of the corresponding y values.
+            bool: indicates whether all points are inside the container
+        
+        """
+
+        in_bounds = np.all((X >= self.mins) & (X <= self.maxs), axis=1)
+        if not np.all(in_bounds):
+            inside = False
+            if warning:
+                warnings.warn(
+                    "Some points are out of the container bounds: "
+                    f"indices {np.where(~in_bounds)[0]}"
+                )
+        else: 
+            inside = True
+
+        if return_bool:
+            return inside
+        else:
+            return X[in_bounds] if y is None else X[in_bounds], y[in_bounds]
 
     def add(self, new_X, new_y):
-        assert new_X.ndim == 2
-        assert new_y.ndim == 2
-        assert new_X.shape[0] == new_y.shape[0]
-        assert new_X.shape[1] == self.D
-        assert new_y.shape[1] == 1
-        assert np.all(new_X >= self.mins), new_X[new_X < self.mins]
-        assert np.all(new_X <= self.maxs), new_X[new_X > self.maxs]
+        new_X, new_y = self._handle_X_y(new_X, new_y)
+        
+        if not np.all(new_X >= self.mins):
+            raise ValueError(f"Some values in new_X are below the minimum bounds: {new_X[new_X < self.mins]}")
+        if not np.all(new_X <= self.maxs):
+            raise ValueError(f"Some values in new_X are above the maximum bounds: {new_X[new_X > self.maxs]}")
 
         self._X.add(new_X)
         self._y.add(new_y)
@@ -93,9 +217,36 @@ class Container:
         return self._y.contents
 
     def rvs(self, n):
-        rs = np.random.uniform(size=(n, self.D))
-        ranges = self.maxs - self.mins
-        rs = self.mins + ranges * rs
+        """
+        Draw uniformly random samples from the container
+        
+        Attribute
+        ---------
+        n : int
+            number of samples
+
+        Return
+        ------
+        rs : numpy.ndarray of shape (n, D)
+            each row is a sample
+        """
+
+        rs = np.empty((n, self.D))
+
+        for d in range(self.D):
+            if np.isinf(self.mins[d]) and np.isinf(self.maxs[d]):
+                # Both bounds are infinite: sample from a standard normal distribution
+                rs[:, d] = np.random.normal(size=n)
+            elif np.isinf(self.mins[d]):
+                # Lower bound is infinite: sample from a exponential distribution
+                rs[:, d] = self.maxs[d] - np.random.exponential(scale=1.0, size=n)
+            elif np.isinf(self.maxs[d]):
+                # Upper bound is infinite: sample from a exponential distribution 
+                rs[:, d] = self.mins[d] + np.random.exponential(scale=1.0, size=n)
+            else:
+                # Both bounds are finite: sample uniformly between the bounds
+                rs[:, d] = np.random.uniform(low=self.mins[d], high=self.maxs[d], size=n)
+
         return rs
 
     def split(self, split_dimension, split_value):
@@ -128,178 +279,3 @@ class Container:
             rX, ry, mins=right_mins, maxs=right_maxs)
 
         return [left_container, right_container]
-
-    def split_by_point(self, point1, point2):
-        """
-        Split the container based on whether samples in self.X are in the left or right container.
-
-        Parameters
-        ----------
-        point1, point2 : list of floats of length 2
-            The boundary points to split.
-
-        Returns
-        -------
-        list of two Container instances
-            The sub-containers resulting from the best split.
-        """
-        assert (point1 in self.boundary_points.tolist()) and \
-            (point2 in self.boundary_points.tolist()), (
-            'point1 and point2 must be one of the boundary points'
-        )
-
-        # Ensure point1 and point2 are not neighboring points
-        idx1 = self.boundary_points.tolist().index(point1)
-        idx2 = self.boundary_points.tolist().index(point2)
-        assert (abs(idx1 - idx2) != 1) and \
-            (abs(idx1 - idx2) != len(self.boundary_points) - 1), (
-            'point1 and point2 must not be neighboring points'
-        )
-
-        # Compute the line equation for the best split
-        A = point2[1] - point1[1]
-        B = point1[0] - point2[0]
-        C = point2[0] * point1[1] - point1[0] * point2[1]
-
-        # Partition samples based on the split line
-        left_idxs, right_idxs = [], []
-        for k, x in enumerate(self.X):
-            value = A * x[0] + B * x[1] + C
-            if value < 0:
-                left_idxs.append(k)
-            else:
-                right_idxs.append(k)
-
-        left_X, left_y = self.X[left_idxs], self.y[left_idxs]
-        right_X, right_y = self.X[right_idxs], self.y[right_idxs]
-
-        # Partition boundary points
-        # splitting points are copied into two sub-containers
-        left_boundary_points, right_boundary_points = [point1, point2], []
-        for point in self.boundary_points:
-            value = A * point[0] + B * point[1] + C
-            if value < 0:
-                left_boundary_points.append(point)
-            else:
-                right_boundary_points.append(point)
-
-        left_container = Container(left_X, left_y, boundary_points=np.array(left_boundary_points))
-        right_container = Container(right_X, right_y, boundary_points=np.array(right_boundary_points))
-
-        return [left_container, right_container]
-
-    def visualize(self, plot_samples=False, ax=None):
-        """
-        Plot the container.
-
-        This method handles both 2D and 3D containers, plotting either the 
-        hyper-rectangle (if defined by `mins` and `maxs`) or the convex hull 
-        (if defined by `boundary_points`).
-
-        Parameters
-        ----------
-        plot_samples : bool
-            If True, plot the sample points stored in self.X.
-            defaults to False
-        ax : Axes, optional
-            a canvas to plot the container on
-            when not given, a new plot will be generated
-        """
-        assert self.is_finite, 'cannot visualize infinite container'
-
-        if self.D == 2:
-            self._plot_2d(plot_samples, ax)
-        elif self.D == 3:
-            self._plot_3d(plot_samples, ax)
-        else:
-            raise ValueError("Plotting is only supported for 2D and 3D containers.")
-
-    def _plot_2d(self, plot_samples, ax):
-        if ax is None:
-            _, ax = plt.subplots()
-            new_plot = True
-        else:
-            new_plot = False
-
-        if self.is_rectangle:
-            self._plot_2d_hyperrectangle(ax)
-        else:
-            self._plot_2d_convex_hull(ax)
-
-        if plot_samples and self.X is not None:
-            self._plot_2d_samples(ax)
-
-        if new_plot:
-            ax.set_xlim([self.mins[0] - 1, self.maxs[0] + 1])
-            ax.set_ylim([self.mins[1] - 1, self.maxs[1] + 1])
-            ax.set_aspect('equal', adjustable='box')
-
-        if new_plot:
-            plt.show()
-
-    def _plot_2d_convex_hull(self, ax):
-        for simplex in self.hull.simplices:
-            ax.plot(self.boundary_points[simplex, 0], self.boundary_points[simplex, 1], 'k-')
-        ax.fill(self.boundary_points[self.hull.vertices, 0], 
-                self.boundary_points[self.hull.vertices, 1], 
-                'k', alpha=0.2)
-
-    def _plot_2d_hyperrectangle(self, ax):
-        rect = plt.Rectangle(self.mins, *(self.maxs - self.mins), fill=None, edgecolor='r')
-        ax.add_patch(rect)
-
-    def _plot_2d_samples(self, ax):
-        ax.scatter(self.X[:, 0], self.X[:, 1], color='red', marker='x', label='Samples')
-
-    def _plot_3d(self, plot_samples, ax):
-        if ax is None:
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            new_plot = True
-        else: 
-            new_plot = False
-
-        if self.is_rectangle:
-            self._plot_3d_hyperrectangle(ax)
-        else:
-            self._plot_3d_convex_hull(ax)
-            
-        if plot_samples and self.X is not None:
-            self._plot_3d_samples(ax)
-
-        if new_plot:
-            ax.set_xlim([self.mins[0] - 1, self.maxs[0] + 1])
-            ax.set_ylim([self.mins[1] - 1, self.maxs[1] + 1])
-            ax.set_zlim([self.mins[2] - 1, self.maxs[2] + 1])
-
-        if new_plot:
-            plt.show()
-
-    def _plot_3d_convex_hull(self, ax):
-        for simplex in self.hull.simplices:
-            simplex = np.append(simplex, simplex[0])  # Cycle back to the first point
-            ax.plot(self.boundary_points[simplex, 0], self.boundary_points[simplex, 1], 
-                    self.boundary_points[simplex, 2], 'k-')
-        poly3d = [[self.boundary_points[vertice] for vertice in face] for face in self.hull.simplices]
-        ax.add_collection3d(Poly3DCollection(poly3d, facecolors='k', linewidths=1, alpha=0.2))
-
-    def _plot_3d_hyperrectangle(self, ax):
-        # Vertices of the 3D hyperrectangle
-        vertices = np.array(list(product(*zip(self.mins, self.maxs))))
-
-        # Define the 12 edges of the 3D hyperrectangle
-        edges = [
-            [vertices[j] for j in [0, 1, 3, 2]],
-            [vertices[j] for j in [4, 5, 7, 6]],
-            [vertices[j] for j in [0, 1, 5, 4]],
-            [vertices[j] for j in [2, 3, 7, 6]],
-            [vertices[j] for j in [0, 2, 6, 4]],
-            [vertices[j] for j in [1, 3, 7, 5]]
-        ]
-
-        # Plot the edges
-        for edge in edges:
-            ax.add_collection3d(Poly3DCollection([edge], color='r', linewidths=1, edgecolors='r', alpha=.25))
-
-    def _plot_3d_samples(self, ax):
-        ax.scatter(self.X[:, 0], self.X[:, 1], self.X[:, 2], color='red', marker='x', label='Samples')

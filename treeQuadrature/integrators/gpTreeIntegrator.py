@@ -1,8 +1,9 @@
 from typing import List
-import warnings, time
+import warnings, time, traceback
 from queue import SimpleQueue
 from inspect import signature
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 
 from ..splits import Split
 from .integrator import Integrator
@@ -10,6 +11,7 @@ from ..containerIntegration import ContainerIntegral
 from ..samplers import Sampler, UniformSampler
 from ..container import Container
 from ..exampleProblems import Problem
+from ..gaussianProcess import kernel_integration
 
 
 default_sampler = UniformSampler()
@@ -196,24 +198,73 @@ class GpTreeIntegrator(Integrator):
                 
         return tree
 
-    def fit_gps(self, tree: BinaryTree, integrand, verbose: bool = False):
+    def fit_gps(self, tree: BinaryTree, integrand, verbose: bool = False, 
+                return_std: bool=False):
         leaf_nodes = tree.get_leaf_nodes()
         grid = build_grid(leaf_nodes, self.grid_size)
         
-        for node in leaf_nodes:
-            container = node.container
-            kernel_args = {k: v for k, v in (node.hyper_params or {}).items()}
-            if verbose:
-                print(f"Fitting GP for container with {container.N} data points")
-            integral_result, hyper_params = self.integral.containerIntegral(container, integrand, 
-                                                                            return_hyper_params=True, 
-                                                                            **kernel_args)
-            self.integral_results[node] = integral_result
-            node.hyper_params = hyper_params  # Store hyper-parameters in the node
-            # Pass hyper-parameters to neighbors
-            neighbors = find_neighbors_grid(grid, node, self.grid_size)
-            for neighbor in neighbors:
-                neighbor.hyper_params = hyper_params
+        batches = [nodes for _, nodes in grid.items()]
+
+        def fit_batch(batch):
+            containers = [node.container for node in batch]
+
+            # Check if hyperparameters are available and set them, otherwise use defaults
+            try:
+                kernel = self.integral.kernel
+                iGP = self.integral.iGP
+                threshold = self.integral.threshold
+                threshold_direction = self.integral.threshold_direction
+            except AttributeError:
+                print('containerIntegral must have attributes `kernel`, '
+                      '`iGP`, `threshold`, `threshold_direction`') 
+                
+            representative_hyper_params = None
+
+            # Select a representative hyperparameter set
+            # TODO - design a more intelligent selection? 
+            for node in batch:
+                if node.hyper_params is not None:
+                    representative_hyper_params = node.hyper_params
+                    break
+            
+            if representative_hyper_params is None:
+                # If no hyperparameters are set, use the default kernel parameters
+                representative_hyper_params = kernel.get_params()
+
+            # Set the kernel parameters with the selected hyperparameters
+            kernel.set_params(**representative_hyper_params)
+
+            try:
+                performance = iGP.fit(integrand, containers, kernel, add_samples=True)
+                gp = iGP.gp
+            except Exception as e:
+                print(f"GP fitting failed for batch: {e}")
+                traceback.print_exc()
+                return
+
+            hyper_params = gp.hyper_params
+
+            for node in batch:
+                container = node.container
+                if verbose:
+                    print(f"Fitting GP for container with {container.N} data points")
+                try:
+                    integral_result = kernel_integration(gp, container, 
+                                                                    return_std, performance, 
+                                                                    threshold, threshold_direction)
+                    self.integral_results[node] = integral_result
+                    node.hyper_params = hyper_params
+                except Exception as e:
+                    raise Exception(f"Failed to process node {node}: {e}")
+
+                # Pass hyper-parameters to neighbors
+                neighbors = find_neighbors_grid(grid, node, self.grid_size)
+                for neighbor in neighbors:
+                    neighbor.hyper_params = hyper_params
+
+        # parallel processing
+        with ThreadPoolExecutor() as executor:
+            executor.map(fit_batch, batches)
 
     def __call__(self, problem: Problem, return_N: bool = False, 
                  return_containers: bool = False, return_std: bool = False, 
@@ -246,7 +297,7 @@ class GpTreeIntegrator(Integrator):
 
         if verbose:
             print('fitting GP to containers and passing hyper-parameters')
-        self.fit_gps(tree, problem.integrand, verbose)
+        self.fit_gps(tree, problem.integrand, verbose, return_std)
 
         leaf_nodes = tree.get_leaf_nodes()
 
@@ -262,6 +313,19 @@ class GpTreeIntegrator(Integrator):
                 return_std = False
                 contributions = [self.integral_results[node] for node in leaf_nodes]
         else: 
+            # Collect contributions from integral results
+            contributions = []
+            missing_nodes = []
+            for node in leaf_nodes:
+                try:
+                    contributions.append(self.integral_results[node])
+                except KeyError:
+                    missing_nodes.append(node)
+
+            if missing_nodes:
+                raise RuntimeError(
+                    f"Missing integral results for {len(missing_nodes)} of {len(leaf_nodes)} containers."
+                    )
             contributions = [self.integral_results[node] for node in leaf_nodes]
 
         G = np.sum(contributions)

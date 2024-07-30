@@ -166,16 +166,16 @@ def test_integrators(integrators: List[Integrator],
     for problem in problems:
         problem_name = str(problem)
 
-        if (integrator_name, problem_name) in completed_tests:
-            if verbose >= 1:
-                print(f"Skipping completed test for {integrator_name} on {problem_name}")
-            continue
-
         if verbose >= 1:
             print(f'testing Probelm: {problem_name}')
 
         for i, integrator in enumerate(integrators):
             integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
+
+            if (integrator_name, problem_name) in completed_tests:
+                if verbose >= 1:
+                    print(f"Skipping completed test for {integrator_name} on {problem_name}")
+                continue
 
             integrator_attributes = {
                 k: v for k, v in integrator.__dict__.items() 
@@ -184,6 +184,8 @@ def test_integrators(integrators: List[Integrator],
 
             if verbose >= 1:
                 print(f'testing Integrator: {integrator_name}')
+                if verbose >= 2:
+                    print(f'with attributes {integrator_attributes}')
 
             estimates = []
             n_evals_list = []

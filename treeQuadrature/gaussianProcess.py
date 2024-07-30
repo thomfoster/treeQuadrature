@@ -154,22 +154,12 @@ class SklearnGPFit(GPFit):
         self.n_tuning = n_tuning
         self.max_iter = max_iter
         self.factr = factr
-        
-    @staticmethod
-    def custom_optimizer(obj_func, initial_theta, bounds, max_iter, factr):
-        result = fmin_l_bfgs_b(obj_func, initial_theta, 
-                               bounds=bounds, 
-                               maxiter=max_iter, 
-                               factr=factr)
-        return result[0], result[1]
     
     def fit(self, xs, ys, kernel: Kernel) -> GaussianProcessRegressor:
         gp = GaussianProcessRegressor(
             kernel=kernel, 
             n_restarts_optimizer=self.n_tuning, 
-            optimizer=lambda obj_func, initial_theta, bounds: 
-                self.custom_optimizer(obj_func, initial_theta, bounds, 
-                                      self.max_iter, self.factr)
+            optimizer=self._optimizer
         )
 
         # Fit the GP model without convergence warnings
@@ -184,6 +174,10 @@ class SklearnGPFit(GPFit):
         self.gp = gp
 
         return gp
+    
+    def _optimizer(self, obj_func, initial_theta, bounds):
+        return fmin_l_bfgs_b(obj_func, initial_theta, bounds=bounds, 
+                             maxiter=self.max_iter, factr=self.factr)[:2]
     
     def predict(self, xs, return_std: bool=False):
         if self.gp is None:

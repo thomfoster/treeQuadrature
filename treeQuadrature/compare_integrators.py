@@ -172,9 +172,12 @@ def test_integrators(integrators: List[Integrator],
         for i, integrator in enumerate(integrators):
             integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
 
-            if (integrator_name, problem_name) in completed_tests:
+            # Check if the result already exists and is valid
+            key = (integrator_name, problem_name)
+            if key in existing_results and existing_results[key]['estimate'] != 'None':
                 if verbose >= 1:
-                    print(f"Skipping completed test for {integrator_name} on {problem_name}")
+                    print(f'Skipping {integrator_name} for {problem_name}: already completed.')
+                results.append(existing_results[key])
                 continue
 
             integrator_attributes = {
@@ -283,13 +286,13 @@ def test_integrators(integrators: List[Integrator],
                     'attributes': integrator_attributes
                 })
     
-    # Save results to a CSV file
-    with open(output_file, mode='w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=[
-            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'attributes'])
-        writer.writeheader()
-        for result in results:
-            writer.writerow(result)
+            # Save for each integrator and each problem
+            with open(output_file, mode='w', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames=[
+                    'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'attributes'])
+                writer.writeheader()
+                for result in results:
+                    writer.writerow(result)
 
     print(f'Results saved to {output_file}')

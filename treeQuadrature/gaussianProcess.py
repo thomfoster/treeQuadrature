@@ -2,7 +2,7 @@ import numpy as np
 import warnings
 from numpy.typing import ArrayLike
 import matplotlib.pyplot as plt
-from typing import Callable, Union, Optional
+from typing import Callable, Union, Optional, List, Tuple
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.model_selection import KFold
@@ -152,21 +152,25 @@ class SklearnGPFit(GPFit):
 
         self.ignore_warning = ignore_warning
         self.n_tuning = n_tuning
-
-        def custom_optimizer(obj_func, initial_theta, bounds):
-            result = fmin_l_bfgs_b(obj_func, initial_theta, 
-                                bounds=bounds, 
-                                maxiter=max_iter, 
-                                factr=factr)
-            return result[0], result[1]
-    
-        self.optimizer = custom_optimizer
+        self.max_iter = max_iter
+        self.factr = factr
         
+    @staticmethod
+    def custom_optimizer(obj_func, initial_theta, bounds, max_iter, factr):
+        result = fmin_l_bfgs_b(obj_func, initial_theta, 
+                               bounds=bounds, 
+                               maxiter=max_iter, 
+                               factr=factr)
+        return result[0], result[1]
     
     def fit(self, xs, ys, kernel: Kernel) -> GaussianProcessRegressor:
-        gp = GaussianProcessRegressor(kernel=kernel, 
-                                      n_restarts_optimizer=self.n_tuning, 
-                                      optimizer=self.optimizer)
+        gp = GaussianProcessRegressor(
+            kernel=kernel, 
+            n_restarts_optimizer=self.n_tuning, 
+            optimizer=lambda obj_func, initial_theta, bounds: 
+                self.custom_optimizer(obj_func, initial_theta, bounds, 
+                                      self.max_iter, self.factr)
+        )
 
         # Fit the GP model without convergence warnings
         if self.ignore_warning:
@@ -325,8 +329,9 @@ class IterativeGPFitting:
         self.gp = gp
         self.n_splits = n_splits
 
-    def fit(self, f: Callable, container: Container, 
-                 kernel, scoring: Callable = r2_score) -> float:
+    def fit(self, f: Callable, container: Union[Container, List[Container]], 
+                 kernel, scoring: Callable = r2_score, 
+                 add_samples: bool=False) -> float:
         """
         fit GP on the container,
         the results can be accessed in self.gp
@@ -335,14 +340,16 @@ class IterativeGPFitting:
         ---------
         f : callable
             Function to evaluate the samples.
-        container : Container
-            Container object to draw samples from 
+        container : Container or List[Container]
+            Container object(s) to draw samples from 
             and track evaluations.
         kernel : Any
             the kernel used to fit GP
         scoring : Callable, optional (default=r2_score)
             A scoring function to evaluate the predictions. It must accept two 
             arguments: the true values and the predicted values.
+        add_sample : bool, optional (default=False)
+            if true, add samples to the container(s)
 
         Return
         ------
@@ -352,9 +359,18 @@ class IterativeGPFitting:
         n = self.n_samples
         iteration = 0
         while iteration < self.max_redraw:
-            # Redraw uniform samples from the container
-            xs = container.rvs(n)
-            ys = f(xs)
+            if isinstance(container, list):
+                # Draw samples from multiple containers
+                samples = self.draw_samples_from_containers(container, n, f)
+            else:
+                # Draw samples from a single container
+                xs = container.rvs(n)
+                ys = f(xs)
+                samples = [(xs, ys, container)]
+
+            # Extract samples for fitting
+            xs = np.vstack([s[0] for s in samples])
+            ys = np.vstack([s[1] for s in samples])
 
             if self.n_splits == 0:
                 self.gp.fit(xs, ys, kernel)
@@ -384,7 +400,50 @@ class IterativeGPFitting:
         if self.n_splits > 0:
             self.gp.fit(xs, ys, kernel)
 
+        if add_samples:
+            # Add samples to respective containers
+            for (xs, ys, c) in samples:
+                c.add(xs, ys)
+
         return performance
+    
+    def draw_samples_from_containers(self, containers: List[Container], n: int, 
+                                 f: Callable) -> List[Tuple[np.ndarray, 
+                                                            np.ndarray, 
+                                                            Container]]:
+        """
+        Draw samples randomly from multiple containers.
+
+        Parameters
+        ----------
+        containers : List[Container]
+            The list of containers to draw samples from.
+        n : int
+            The total number of samples to draw.
+        f : callable
+            The function to evaluate the samples.
+
+        Returns
+        -------
+        samples : List[Tuple[np.ndarray, np.ndarray, Container]]
+            A list of tuples, each containing samples, their evaluations, 
+            and the container they were drawn from.
+        """
+        # Calculate the total volume
+        ## TODO - allow user defined weights
+        total_volume = sum(c.volume for c in containers)
+
+        # Calculate the weights based on the volume of each container
+        weights = [c.volume / total_volume for c in containers]
+
+        samples = []
+        for c, w in zip(containers, weights):
+            n_samples = max(1, int(n * w))
+            x = c.rvs(n_samples)
+            y = f(x)
+            samples.append((x, y, c))
+
+        return samples
 
 def default_criterion(container: Container) -> bool:
     return True

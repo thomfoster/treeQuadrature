@@ -159,6 +159,11 @@ def test_integrators(integrators: List[Integrator],
         for i, integrator in enumerate(integrators):
             integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
 
+            integrator_attributes = {
+                k: v for k, v in integrator.__dict__.items() 
+                if not callable(v) and not k.startswith('_')
+            }
+
             if verbose >= 1:
                 print(f'testing Integrator: {integrator_name}')
 
@@ -200,7 +205,8 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': 'Exceeded max_time'
+                            'time_taken': 'Exceeded max_time', 
+                            'attributes': integrator_attributes
                         })
                         break
                     except Exception as e:
@@ -216,7 +222,8 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': None
+                            'time_taken': None, 
+                            'attributes': integrator_attributes
                         })
                         print_exc()
                         break
@@ -252,14 +259,15 @@ def test_integrators(integrators: List[Integrator],
                     'error_std': np.std(errors),
                     'n_evals': avg_n_evals,
                     'n_evals_std': np.std(n_evals_list),
-                    'time_taken': avg_time_taken
+                    'time_taken': avg_time_taken, 
+                    'attributes': integrator_attributes
                 })
     
     # Save results to a CSV file
     with open(output_file, mode='w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=[
             'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken'])
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'attributes'])
         writer.writeheader()
         for result in results:
             writer.writerow(result)

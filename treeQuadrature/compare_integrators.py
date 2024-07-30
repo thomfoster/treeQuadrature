@@ -159,7 +159,6 @@ def test_integrators(integrators: List[Integrator],
     np.random.seed(seed)
 
     existing_results = load_existing_results(output_file)
-    completed_tests = {(res['integrator'], res['problem']) for res in existing_results}
 
     results = existing_results
 
@@ -180,15 +179,8 @@ def test_integrators(integrators: List[Integrator],
                 results.append(existing_results[key])
                 continue
 
-            integrator_attributes = {
-                k: v for k, v in integrator.__dict__.items() 
-                if not callable(v) and not k.startswith('_')
-            }
-
             if verbose >= 1:
                 print(f'testing Integrator: {integrator_name}')
-                if verbose >= 2:
-                    print(f'with attributes {integrator_attributes}')
 
             estimates = []
             n_evals_list = []
@@ -228,8 +220,7 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': 'Exceeded max_time', 
-                            'attributes': integrator_attributes
+                            'time_taken': 'Exceeded max_time'
                         })
                         break
                     except Exception as e:
@@ -245,8 +236,7 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': None, 
-                            'attributes': integrator_attributes
+                            'time_taken': None
                         })
                         print_exc()
                         break
@@ -282,15 +272,14 @@ def test_integrators(integrators: List[Integrator],
                     'error_std': np.std(errors),
                     'n_evals': avg_n_evals,
                     'n_evals_std': np.std(n_evals_list),
-                    'time_taken': avg_time_taken, 
-                    'attributes': integrator_attributes
+                    'time_taken': avg_time_taken
                 })
     
             # Save for each integrator and each problem
             with open(output_file, mode='w', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=[
                     'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'attributes'])
+                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken'])
                 writer.writeheader()
                 for result in results:
                     writer.writerow(result)

@@ -166,7 +166,7 @@ def test_integrators(integrators: List[Integrator],
     existing_results = load_existing_results(output_file)
 
     results = []
-    
+
     for problem in problems:
         problem_name = str(problem)
 
@@ -260,10 +260,12 @@ def test_integrators(integrators: List[Integrator],
                 if problem.answer != 0:
                     errors = 100 * np.abs(estimates - problem.answer) / problem.answer
                     avg_error = f'{np.mean(errors):.4f} %'
+                    error_std = f'{np.std(errors):.4f} %'
                     error_name = 'Relative error'
                 else: 
                     errors = np.abs(estimates - problem.answer)
                     avg_error = np.mean(errors)
+                    error_std = np.std(errors)
                     error_name = 'Absolute error'
 
                 results.append({
@@ -274,7 +276,7 @@ def test_integrators(integrators: List[Integrator],
                     'estimate_std': np.std(estimates),
                     'error_type': error_name,
                     'error': avg_error,
-                    'error_std': np.std(errors),
+                    'error_std': error_std,
                     'n_evals': avg_n_evals,
                     'n_evals_std': np.std(n_evals_list),
                     'time_taken': avg_time_taken

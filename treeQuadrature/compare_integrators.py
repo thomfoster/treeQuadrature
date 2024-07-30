@@ -110,11 +110,16 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
 
 ## add protection to code interruption
 def load_existing_results(output_file: str) -> List[Dict[str, Any]]:
+    existing_results = {}
     if os.path.exists(output_file):
-        with open(output_file, mode='r') as file:
+        with open(output_file, mode='r', newline='') as file:
             reader = csv.DictReader(file)
-            return list(reader)
-    return []
+            for row in reader:
+                key = (row['integrator'], row['problem'])
+                if row['estimate'] != 'None':
+                    existing_results[key] = row
+
+    return existing_results
 
 def test_integrators(integrators: List[Integrator], 
                      problems: List[Problem], 

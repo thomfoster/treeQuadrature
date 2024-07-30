@@ -6,8 +6,9 @@ import warnings, time, csv, concurrent.futures
 
 from inspect import signature
 import numpy as np
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from traceback import print_exc
+import os
 
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
                         plot: bool=False, verbose: bool=False, 
@@ -107,6 +108,14 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         print(f'----------------------------------')
 
 
+## add protection to code interruption
+def load_existing_results(output_file: str) -> List[Dict[str, Any]]:
+    if os.path.exists(output_file):
+        with open(output_file, mode='r') as file:
+            reader = csv.DictReader(file)
+            return list(reader)
+    return []
+
 def test_integrators(integrators: List[Integrator], 
                      problems: List[Problem], 
                      output_file: str='results.csv', 
@@ -149,10 +158,19 @@ def test_integrators(integrators: List[Integrator],
 
     np.random.seed(seed)
 
-    results = []
+    existing_results = load_existing_results(output_file)
+    completed_tests = {(res['integrator'], res['problem']) for res in existing_results}
+
+    results = existing_results
 
     for problem in problems:
         problem_name = str(problem)
+
+        if (integrator_name, problem_name) in completed_tests:
+            if verbose >= 1:
+                print(f"Skipping completed test for {integrator_name} on {problem_name}")
+            continue
+
         if verbose >= 1:
             print(f'testing Probelm: {problem_name}')
 

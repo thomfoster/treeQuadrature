@@ -14,8 +14,8 @@ parser.add_argument('--max_redraw', type=int, default=4, help='Max redraw attemp
 parser.add_argument('--n_splits', type=int, default=4, help='number of splits for K-fold CV in fitting GP (default: 4)')
 parser.add_argument('--gp_range', type=float, default=50.0, help='Range of GP tuning for GpTreeIntegrator (default: 50.0)')
 parser.add_argument('--grid_size', type=float, default=0.05, help='Range of GP tuning for GpTreeIntegrator (default: 0.05)')
-parser.add_argument('--base_N', type=int, default=8000, help='Base sample size for integrators (default: 8000)')
-parser.add_argument('--lsi_base_N', type=int, default=300, help='Base sample size for LimitedSampleIntegrator (default: 300)')
+parser.add_argument('--base_N', type=int, default=10_000, help='Base sample size for integrators (default: 10_000)')
+parser.add_argument('--lsi_N', type=int, default=20_000, help='Maximum sample size for LimitedSampleIntegrator (default: 20_000)')
 parser.add_argument('--lsi_active_N', type=int, default=10, help='active sample size for LimitedSampleIntegrator (default: 10)')
 parser.add_argument('--bmc_N', type=int, default=400, help='Base sample size for BMC (default: 400)')
 parser.add_argument('--P', type=int, default=50, help='Size of the largest container (default: 50)')
@@ -34,12 +34,11 @@ problems = []
 for D in Ds:
     problems.append(SimpleGaussian(D))
     problems.append(Camel(D))
-    problems.append(QuadCamel(D))
+    # problems.append(QuadCamel(D))
                
 ### container Integrals 
 
-rbfIntegral = RbfIntegral(max_redraw=args.max_redraw, threshold=args.threshold, n_splits=args.n_splits)
-rbfIntegral_2 = RbfIntegral(range=args.gp_range, max_redraw=args.max_redraw, threshold=args.threshold, n_splits=args.n_splits)
+rbfIntegral = RbfIntegral(range=args.gp_range, max_redraw=args.max_redraw, threshold=args.threshold, n_splits=args.n_splits)
 ranIntegral = RandomIntegral()
 
 ### Splits
@@ -51,10 +50,10 @@ integ1 = SimpleIntegrator(base_N=args.base_N, P=args.P,
 integ1.name = 'TQ with RBF'
 
 integ2 = GpTreeIntegrator(base_N=args.base_N, P=args.P, split=split, 
-                          integral=rbfIntegral_2, grid_size=args.grid_size)
+                          integral=rbfIntegral, grid_size=args.grid_size)
 integ2.name = 'GpTQ with RBF'
 
-integ3 = LimitedSampleIntegrator(int(args.base_N/4), base_N=args.lsi_base_N, 
+integ3 = LimitedSampleIntegrator(N=args.lsi_N, base_N=args.base_N, 
                                  active_N=args.lsi_active_N, 
                                  split=split, integral=ranIntegral, 
                                  weighting_function=lambda container: container.volume)

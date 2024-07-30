@@ -1,6 +1,6 @@
 import argparse, os
 
-from treeQuadrature.compare_integrators import test_integrators
+from .controlled_test import test_integrators
 from treeQuadrature.exampleProblems import SimpleGaussian, Camel, QuadCamel
 from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral
 from treeQuadrature.splits import MinSseSplit

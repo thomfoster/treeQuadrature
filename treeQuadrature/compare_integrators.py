@@ -165,8 +165,8 @@ def test_integrators(integrators: List[Integrator],
 
     existing_results = load_existing_results(output_file)
 
-    results = existing_results
-
+    results = []
+    
     for problem in problems:
         problem_name = str(problem)
 

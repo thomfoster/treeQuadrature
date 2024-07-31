@@ -60,6 +60,15 @@ def test_integrators(integrators: List[Integrator],
     for problem in problems:
         problem_name = str(problem)
 
+        # extract n_eval from existing results
+        if existing_results:
+            for key, value in existing_results.items():
+                if value['integrator'] == integrators[0].name and value['n_evals'] is not None and(
+                    value['problem'] == problem_name
+                ):
+                    n_eval = int(float(value['n_evals']))
+                    break
+
         if verbose >= 1:
             print(f'testing Probelm: {problem_name}')
 
@@ -73,6 +82,18 @@ def test_integrators(integrators: List[Integrator],
                     print(f'Skipping {integrator_name} for {problem_name}: already completed.')
                 results.append(existing_results[key])
                 continue
+
+            if i > 0 and n_eval is not None:
+                if isinstance(integrator, VegasIntegrator):
+                    n_iter = integrator.NITN
+                    n = int(n_eval / n_iter)
+                    integrator.N = n
+                elif isinstance(integrator, SmcIntegrator):
+                    integrator.N = n_eval
+                elif isinstance(integrator, LimitedSampleIntegrator):
+                    integrator.N = int(n_eval / 11)
+            elif i > 0:
+                raise Exception('first integrator did not set n_eval')
 
             if verbose >= 1:
                 print(f'testing Integrator: {integrator_name}')
@@ -150,19 +171,10 @@ def test_integrators(integrators: List[Integrator],
                 # Store the average number of evaluations for the first integrator
                 if i == 0:
                     n_eval = avg_n_evals
-                else: 
-                    if isinstance(integrator, VegasIntegrator):
-                        n_iter = integrator.NINT
-                        n = int(n_eval / n_iter)
-                        integrator.N = n
-                    elif isinstance(integrator, SmcIntegrator):
-                        integrator.N = n_eval
-                    elif isinstance(integrator, LimitedSampleIntegrator):
-                        integrator.N = int(n_eval / 11)
                     
                 if problem.answer != 0:
                     errors = 100 * np.abs(estimates - problem.answer) / problem.answer
-                    avg_error = f'{np.mean(errors):.4f} %'
+                    avg_error = f'{np.median(errors):.4f} %'
                     error_std = f'{np.std(errors):.4f} %'
                     error_name = 'Relative error'
                 else: 

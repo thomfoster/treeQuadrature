@@ -6,8 +6,9 @@ import warnings, time, csv, concurrent.futures
 
 from inspect import signature
 import numpy as np
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from traceback import print_exc
+import os
 
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
                         plot: bool=False, verbose: bool=False, 
@@ -107,6 +108,19 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         print(f'----------------------------------')
 
 
+## add protection to code interruption
+def load_existing_results(output_file: str) -> List[Dict[str, Any]]:
+    existing_results = {}
+    if os.path.exists(output_file):
+        with open(output_file, mode='r', newline='') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                key = (row['integrator'], row['problem'])
+                if row['estimate'] != 'None':
+                    existing_results[key] = row
+
+    return existing_results
+
 def test_integrators(integrators: List[Integrator], 
                      problems: List[Problem], 
                      output_file: str='results.csv', 
@@ -149,20 +163,26 @@ def test_integrators(integrators: List[Integrator],
 
     np.random.seed(seed)
 
+    existing_results = load_existing_results(output_file)
+
     results = []
 
     for problem in problems:
         problem_name = str(problem)
+
         if verbose >= 1:
             print(f'testing Probelm: {problem_name}')
 
         for i, integrator in enumerate(integrators):
             integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
 
-            integrator_attributes = {
-                k: v for k, v in integrator.__dict__.items() 
-                if not callable(v) and not k.startswith('_')
-            }
+            # Check if the result already exists and is valid
+            key = (integrator_name, problem_name)
+            if key in existing_results and existing_results[key]['estimate'] != 'None':
+                if verbose >= 1:
+                    print(f'Skipping {integrator_name} for {problem_name}: already completed.')
+                results.append(existing_results[key])
+                continue
 
             if verbose >= 1:
                 print(f'testing Integrator: {integrator_name}')
@@ -205,8 +225,7 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': 'Exceeded max_time', 
-                            'attributes': integrator_attributes
+                            'time_taken': 'Exceeded max_time'
                         })
                         break
                     except Exception as e:
@@ -222,8 +241,7 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': None, 
-                            'attributes': integrator_attributes
+                            'time_taken': None
                         })
                         print_exc()
                         break
@@ -242,10 +260,12 @@ def test_integrators(integrators: List[Integrator],
                 if problem.answer != 0:
                     errors = 100 * np.abs(estimates - problem.answer) / problem.answer
                     avg_error = f'{np.mean(errors):.4f} %'
+                    error_std = f'{np.std(errors):.4f} %'
                     error_name = 'Relative error'
                 else: 
                     errors = np.abs(estimates - problem.answer)
                     avg_error = np.mean(errors)
+                    error_std = np.std(errors)
                     error_name = 'Absolute error'
 
                 results.append({
@@ -256,20 +276,19 @@ def test_integrators(integrators: List[Integrator],
                     'estimate_std': np.std(estimates),
                     'error_type': error_name,
                     'error': avg_error,
-                    'error_std': np.std(errors),
+                    'error_std': error_std,
                     'n_evals': avg_n_evals,
                     'n_evals_std': np.std(n_evals_list),
-                    'time_taken': avg_time_taken, 
-                    'attributes': integrator_attributes
+                    'time_taken': avg_time_taken
                 })
     
-    # Save results to a CSV file
-    with open(output_file, mode='w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=[
-            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'attributes'])
-        writer.writeheader()
-        for result in results:
-            writer.writerow(result)
+            # Save for each integrator and each problem
+            with open(output_file, mode='w', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames=[
+                    'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken'])
+                writer.writeheader()
+                for result in results:
+                    writer.writerow(result)
 
     print(f'Results saved to {output_file}')

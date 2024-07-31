@@ -154,22 +154,12 @@ class SklearnGPFit(GPFit):
         self.n_tuning = n_tuning
         self.max_iter = max_iter
         self.factr = factr
-        
-    @staticmethod
-    def custom_optimizer(obj_func, initial_theta, bounds, max_iter, factr):
-        result = fmin_l_bfgs_b(obj_func, initial_theta, 
-                               bounds=bounds, 
-                               maxiter=max_iter, 
-                               factr=factr)
-        return result[0], result[1]
     
     def fit(self, xs, ys, kernel: Kernel) -> GaussianProcessRegressor:
         gp = GaussianProcessRegressor(
             kernel=kernel, 
             n_restarts_optimizer=self.n_tuning, 
-            optimizer=lambda obj_func, initial_theta, bounds: 
-                self.custom_optimizer(obj_func, initial_theta, bounds, 
-                                      self.max_iter, self.factr)
+            optimizer=self._optimizer
         )
 
         # Fit the GP model without convergence warnings
@@ -184,6 +174,10 @@ class SklearnGPFit(GPFit):
         self.gp = gp
 
         return gp
+    
+    def _optimizer(self, obj_func, initial_theta, bounds):
+        return fmin_l_bfgs_b(obj_func, initial_theta, bounds=bounds, 
+                             maxiter=self.max_iter, factr=self.factr)[:2]
     
     def predict(self, xs, return_std: bool=False):
         if self.gp is None:
@@ -471,20 +465,25 @@ def GP_diagnosis(gp: GPFit, container: Container,
     """
     xs = gp.X_train_
     ys = gp.y_train_
+    n = xs.shape[0]
 
     # Make predictions
-    y_pred, sigma = gp.predict(xs, return_std=True)
-    print(f'average predictive variance {np.mean(sigma)}')
+    y_pred = gp.predict(xs)
 
     # Check R-squared and MSE
     r2 = r2_score(ys, y_pred)
     mse = mean_squared_error(ys, y_pred)
-    print(f"R-squared: {r2:.3f}")
-    print(f"Mean Squared Error: {mse:.3f}") 
+
+    # TODO - pass the threshold to here
+    if r2 < 0.6:
+        print(f'number of training samples : {n}')
+        print(f'volume of container : {container.volume}')
+
+        print(f"R-squared: {r2:.3f}")
+        print(f"Mean Squared Error: {mse:.3f}") 
 
     # posterior mean plot
-    if (xs.shape[1] == 1 or xs.shape[1] == 2
-        ) and criterion(container):
+    if xs.shape[1] == 1 and criterion(container):
         plotGP(gp, xs, ys, 
                mins=container.mins, maxs=container.maxs)
 

@@ -234,6 +234,10 @@ class GpTreeIntegrator(Integrator):
             # Set the kernel parameters with the selected hyperparameters
             kernel.set_params(**representative_hyper_params)
 
+            if verbose:
+                total_n = np.sum([cont.N for cont in containers])
+                print(f"Fitting a batch of containers with {total_n} data points")
+
             try:
                 performance = iGP.fit(integrand, containers, kernel, add_samples=True)
                 gp = iGP.gp
@@ -246,8 +250,6 @@ class GpTreeIntegrator(Integrator):
 
             for node in batch:
                 container = node.container
-                if verbose:
-                    print(f"Fitting GP for container with {container.N} data points")
                 try:
                     integral_result = kernel_integration(gp, container, 
                                                                     return_std, performance, 

@@ -465,20 +465,25 @@ def GP_diagnosis(gp: GPFit, container: Container,
     """
     xs = gp.X_train_
     ys = gp.y_train_
+    n = xs.shape[0]
 
     # Make predictions
-    y_pred, sigma = gp.predict(xs, return_std=True)
-    print(f'average predictive variance {np.mean(sigma)}')
+    y_pred = gp.predict(xs)
 
     # Check R-squared and MSE
     r2 = r2_score(ys, y_pred)
     mse = mean_squared_error(ys, y_pred)
-    print(f"R-squared: {r2:.3f}")
-    print(f"Mean Squared Error: {mse:.3f}") 
+
+    # TODO - pass the threshold to here
+    if r2 < 0.6:
+        print(f'number of training samples : {n}')
+        print(f'volume of container : {container.volume}')
+
+        print(f"R-squared: {r2:.3f}")
+        print(f"Mean Squared Error: {mse:.3f}") 
 
     # posterior mean plot
-    if (xs.shape[1] == 1 or xs.shape[1] == 2
-        ) and criterion(container):
+    if xs.shape[1] == 1 and criterion(container):
         plotGP(gp, xs, ys, 
                mins=container.mins, maxs=container.maxs)
 

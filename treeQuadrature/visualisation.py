@@ -266,7 +266,7 @@ def _plot2D(f, xlim, ylim, levels, n_points):
     plt.show()
 
 
-def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str], 
+def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str], 
                 error_bar: bool = False, plot_absolute=False, 
                 plot_all_errors: bool = False, 
                 y_lim: Optional[List]=None):
@@ -396,7 +396,7 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str],
         print(f'Figure saved to figures/{filename_prefix}_{genre}_error_plot.png')
 
 
-def plot_times(data: pd.DataFrame, filename_prefix: str, genres: list[str]):
+def plot_times(data: pd.DataFrame, filename_prefix: str, genres: List[str]):
     """
     Plot the time taken for each genre and integrator.
     used for csv files produced by test_integrators

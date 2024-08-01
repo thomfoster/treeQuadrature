@@ -6,7 +6,7 @@ from typing import Callable, Union, Optional, List, Tuple
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.model_selection import KFold
-from sklearn.gaussian_process.kernels import Kernel, RBF
+from sklearn.gaussian_process.kernels import Kernel, RBF, Sum, Product
 from sklearn.metrics import r2_score, mean_squared_error
 from scipy.special import erf
 from scipy.optimize import fmin_l_bfgs_b
@@ -156,6 +156,9 @@ class SklearnGPFit(GPFit):
         self.factr = factr
     
     def fit(self, xs, ys, kernel: Kernel) -> GaussianProcessRegressor:
+        # Define a constant mean function with the mean of ys
+        mean_y = ys.mean()
+
         gp = GaussianProcessRegressor(
             kernel=kernel, 
             n_restarts_optimizer=self.n_tuning, 
@@ -488,6 +491,16 @@ def GP_diagnosis(gp: GPFit, container: Container,
                mins=container.mins, maxs=container.maxs)
 
     
+def get_length_scale(kernel):
+    """Recursively find the length scale in a composite kernel."""
+    if isinstance(kernel, RBF):
+        return kernel.length_scale
+    if hasattr(kernel, 'k1'):
+        return get_length_scale(kernel.k1)
+    if hasattr(kernel, 'k2'):
+        return get_length_scale(kernel.k2)
+    raise ValueError("No RBF kernel found in the composite kernel.")
+
 def rbf_mean_post(gp: GPFit, container: Container):
     """
     calculate the posterior mean of integral using RBF kernel
@@ -499,13 +512,7 @@ def rbf_mean_post(gp: GPFit, container: Container):
     """
 
     ### Extract necessary information
-    try:
-        l = gp.hyper_params['length_scale']
-    except KeyError:
-        raise KeyError(
-            "The hyperparameter 'length_scale' is missing in the GP model. "
-            f"hyper_params = {gp.hyper_params}"
-            )
+    l = get_length_scale(gp.kernel_)
     
     xs = gp.X_train_
 
@@ -531,13 +538,7 @@ def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray):
 
     xs = gp.X_train_
 
-    try:
-        l = gp.hyper_params['length_scale']
-    except KeyError:
-        raise KeyError(
-            "The hyperparameter 'length_scale' is missing in the GP model. "
-            f"hyper_params = {gp.hyper_params}"
-            )
+    l = get_length_scale(gp.kernel_)
 
     def integrand(x_j_prime, a_j, b_j):
                 return erf((b_j - x_j_prime) / (np.sqrt(2) * l)
@@ -557,6 +558,26 @@ def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray):
 
     return var_post
 
+
+def contains_rbf(kernel: Kernel) -> bool:
+    """
+    Check if the given kernel or any of its components is an RBF kernel.
+
+    Parameters
+    ----------
+    kernel : Kernel
+        The kernel to check.
+
+    Returns
+    -------
+    bool
+        True if the kernel or any of its components is an RBF kernel, False otherwise.
+    """
+    if isinstance(kernel, RBF):
+        return True
+    elif isinstance(kernel, (Sum, Product)):
+        return contains_rbf(kernel.k1) or contains_rbf(kernel.k2)
+    return False
 
 def kernel_integration(gp: GPFit, container: Container, 
                     return_std: bool, performance: Optional[float]=None, 
@@ -601,7 +622,7 @@ def kernel_integration(gp: GPFit, container: Container,
         tuple has length 2, the second value is 
           integral evaluation std.
     """
-    if isinstance(gp.kernel_, RBF):   #RBF kernel
+    if contains_rbf(gp.kernel_):   # RBF kernel
         integral, k_tilde = kernel_mean_post(gp, container)
 
         if return_std:
@@ -627,7 +648,8 @@ def kernel_integration(gp: GPFit, container: Container,
             else:
                 # mean of kernel on the container
                 var_post = rbf_var_post(container, gp, k_tilde)
-    elif kernel_mean_post is not None and kernel_var_post is not None:  
+    elif kernel_mean_post is not rbf_mean_post and (
+        kernel_var_post is not rbf_var_post):  
         integral = kernel_mean_post(gp, container)
         if return_std:
             var_post = kernel_var_post(gp, container)
@@ -636,7 +658,8 @@ def kernel_integration(gp: GPFit, container: Container,
     else:
         raise Exception(
             'kernel not RBF, '
-            'either kernel_mean_post, kernel_var_post or kernel_post must be provided'
+            'either kernel_mean_post, kernel_var_post '
+            'or kernel_post must be provided'
             )
             
     # value check

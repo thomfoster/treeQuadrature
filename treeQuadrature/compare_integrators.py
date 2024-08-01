@@ -10,7 +10,7 @@ from typing import List, Optional, Dict, Any
 from traceback import print_exc
 import os
 
-def compare_integrators(integrators: List['Integrator'], problem: 'Problem', 
+def compare_integrators(integrators: List[Integrator], problem: Problem, 
                         plot: bool=False, verbose: bool=False, 
                         xlim: Optional[List[float]]=None, 
                         ylim: Optional[List[float]]=None,
@@ -93,6 +93,9 @@ def compare_integrators(integrators: List['Integrator'], problem: 'Problem',
             estimates.append(estimate)
             n_evals_list.append(n_evals)
             times.append(end_time - start_time)
+
+        if len(estimates) == 0:
+            raise Exception('no run succeeded')
 
         avg_estimate = np.mean(estimates)
         std_estimate = np.std(estimates)

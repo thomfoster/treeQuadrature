@@ -290,16 +290,17 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str],
     Notes
     -----
     The data should contain columns 'problem', 'integrator', 'error', 
-    'error_std', 'errors', and 'Dimension'. The 'error' and 'error_std' 
+    'error_std', and 'errors'. The 'error' and 'error_std' 
     columns are expected to have percentage values.
 
     Usage
     -----
     >>> all_data = pd.read_csv('your_data.csv')  # Load your data into a DataFrame
-    >>> all_data['Dimension'] = all_data['problem'].str.extract(r'D=(\d+)').astype(int)
     >>> genres = ["SimpleGaussian", "Camel", "QuadCamel"]
     >>> plot_errors(all_data, 'figures/error', genres)
     """
+
+    data['Dimension'] = data['problem'].str.extract(r'D=(\d+)').astype(int)
 
     # Ensure the 'error' and 'error_std' columns are numeric
     data['error'] = data['error'].str.replace('%', '').astype(float)
@@ -325,7 +326,7 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str],
                 errors.append(data_dim['error'].values[0])
                 error_stds.append(data_dim['error_std'].values[0])
                 if plot_all_errors and 'errors' in data_dim.columns:
-                    all_errors.extend(eval(data_dim['errors'].values[0])) 
+                    all_errors.append(list(map(float, data_dim['errors'].values[0].strip('[]').split())))
             
             if plot_all_errors:
                 plt.scatter([dim] * len(all_errors), all_errors, alpha=0.3, label=f'{integrator} All Errors')
@@ -364,16 +365,17 @@ def plot_times(data: pd.DataFrame, filename_prefix: str, genres: list[str]):
 
     Notes
     -----
-    The data should contain columns 'problem', 'integrator', 'time_taken', 
-    and 'Dimension'.
+    The data should contain columns 'problem', 'integrator', and 'time_taken'
 
     Usage
     -----
     >>> all_data = pd.read_csv('your_data.csv')  # Load your data into a DataFrame
-    >>> all_data['Dimension'] = all_data['problem'].str.extract(r'D=(\d+)').astype(int)
     >>> genres = ["SimpleGaussian", "Camel", "QuadCamel"]
     >>> plot_times(all_data, 'figures/time', genres)
     """
+
+    data['Dimension'] = data['problem'].str.extract(r'D=(\d+)').astype(int)
+
     for genre in genres:
         genre_data = data[data['problem'].str.contains(genre)]
         dimensions = genre_data['Dimension'].unique()

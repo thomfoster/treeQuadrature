@@ -266,8 +266,9 @@ def _plot2D(f, xlim, ylim, levels, n_points):
     plt.show()
 
 
-def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list, 
-                error_bar: bool = False, plot_all_errors: bool = False):
+def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str], 
+                error_bar: bool = False, plot_all_errors: bool = False, 
+                y_lim: list=[-105, 105]):
     """
     Plot errors and error_std for each genre and integrator.
 
@@ -277,12 +278,14 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list,
         The data containing the results of the integrators.
     filename_prefix : str
         The prefix for the filenames where plots will be saved.
-    genres : list
+    genres : list of str
         List of genres to include in the plots.
     error_bar : bool, optional
         If True, plot error bars; otherwise plot without error bars.
     plot_all_errors : bool, optional
         If True, plot all individual errors from 'errors' column.
+    y_lim: list of float, optional
+        the upper and lower limit for plotting error
 
     Notes
     -----
@@ -322,7 +325,7 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list,
                 errors.append(data_dim['error'].values[0])
                 error_stds.append(data_dim['error_std'].values[0])
                 if plot_all_errors and 'errors' in data_dim.columns:
-                    all_errors.extend(eval(data_dim['errors'].values[0]))  # Assuming 'errors' column has list of floats as strings
+                    all_errors.extend(eval(data_dim['errors'].values[0])) 
             
             if plot_all_errors:
                 plt.scatter([dim] * len(all_errors), all_errors, alpha=0.3, label=f'{integrator} All Errors')
@@ -337,15 +340,15 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list,
         plt.title(f'Error and Error Std for {genre}')
         plt.xlabel('Dimension')
         plt.ylabel(f'{data["error_type"].values[0]} (%)')
-        plt.ylim([-5, 105])
+        plt.ylim(y_lim)
         plt.legend()
         plt.grid(True)
-        plt.savefig(f'{filename_prefix}_{genre}_error_plot.png')
+        plt.savefig(f'figures/{filename_prefix}_{genre}_error_plot.png')
         plt.close()
-        print(f'Figure saved to {filename_prefix}_{genre}_error_plot.png')
+        print(f'Figure saved to figures/{filename_prefix}_{genre}_error_plot.png')
 
 
-def plot_times(data: pd.DataFrame, filename_prefix: str, genres: list):
+def plot_times(data: pd.DataFrame, filename_prefix: str, genres: list[str]):
     """
     Plot the time taken for each genre and integrator.
     used for csv files produced by test_integrators
@@ -356,7 +359,7 @@ def plot_times(data: pd.DataFrame, filename_prefix: str, genres: list):
         The data containing the results of the integrators.
     filename_prefix : str
         The prefix for the filenames where plots will be saved.
-    genres : list
+    genres : list of str
         List of genres to include in the plots.
 
     Notes
@@ -394,6 +397,6 @@ def plot_times(data: pd.DataFrame, filename_prefix: str, genres: list):
             plt.ylabel('Time Taken (seconds)')
             plt.legend()
             plt.grid(True)
-            plt.savefig(f'{filename_prefix}_{genre}_time_plot_{integrator}.png')
+            plt.savefig(f'figures/{filename_prefix}_{genre}_time_plot_{integrator}.png')
             plt.close()
-            print(f'Figure saved to {filename_prefix}_{genre}_time_plot_{integrator}.png')
+            print(f'Figure saved to figures/{filename_prefix}_{genre}_time_plot_{integrator}.png')

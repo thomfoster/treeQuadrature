@@ -9,8 +9,8 @@ from treeQuadrature.integrators import SimpleIntegrator
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.container import Container
 
-Ds = range(1, 3)
-N = 8_000
+Ds = range(1, 11)
+N = 6_000
 P = 40
 num_runs = 10
 
@@ -24,9 +24,10 @@ max_samples = np.zeros((num_runs, len(Ds)))
 
 for i in range(num_runs):
     for j, D in enumerate(Ds):
-        print(f'Run {i+1}, D={D}')
+        base_N = int(N * np.log(D+9) / np.log(10))
+        print(f'Run {i+1}, D={D}, base_N={base_N}')
         problem = Camel(D)
-        X = integ.sampler.rvs(N, problem)
+        X = integ.sampler.rvs(base_N, problem)
         y = problem.integrand(X)
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
@@ -37,9 +38,10 @@ for i in range(num_runs):
         min_samples[i, j] = np.min(container_samples)
         max_samples[i, j] = np.max(container_samples)
 
+        largest_container = max(containers, key=lambda container: container.N)
 
         start_time = time.time()
-        integ.integral.containerIntegral(containers[0], problem.integrand)
+        integ.integral.containerIntegral(largest_container, problem.integrand)
         end_time = time.time()
 
         n_cont = len(containers)

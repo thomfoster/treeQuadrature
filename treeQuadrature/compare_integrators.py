@@ -259,7 +259,7 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': 'Exceeded max_time',
+                            'time_taken': f'Exceeded {max_time}s',
                             'errors': None
                         })
                         break

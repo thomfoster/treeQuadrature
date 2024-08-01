@@ -267,8 +267,9 @@ def _plot2D(f, xlim, ylim, levels, n_points):
 
 
 def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str], 
-                error_bar: bool = False, plot_all_errors: bool = False, 
-                y_lim: list=[-105, 105]):
+                error_bar: bool = False, plot_absolute=False, 
+                plot_all_errors: bool = False, 
+                y_lim: Optional[List]=None):
     """
     Plot errors and error_std for each genre and integrator.
 
@@ -284,6 +285,8 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str],
         If True, plot error bars; otherwise plot without error bars.
     plot_all_errors : bool, optional
         If True, plot all individual errors from 'errors' column.
+    plot_absolute : bool, optional
+        If True and error_type is 'Signed Relative error', plot the signed absolute errors.
     y_lim: list of float, optional
         the upper and lower limit for plotting error
 
@@ -305,6 +308,11 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str],
     # Ensure the 'error' and 'error_std' columns are numeric
     data['error'] = data['error'].str.replace('%', '').astype(float)
     data['error_std'] = data['error_std'].str.replace('%', '').astype(float)
+
+    # Define a color map to ensure consistent colors for each integrator
+    color_map = plt.get_cmap('tab10')
+    integrators = data['integrator'].unique()
+    color_dict = {integrator: color_map(i) for i, integrator in enumerate(integrators)}
     
     for genre in genres:
         genre_data = data[data['problem'].str.contains(genre)]
@@ -312,6 +320,9 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str],
         dimensions.sort()
 
         plt.figure(figsize=(14, 7))
+
+        max_error = -np.inf
+        min_error = np.inf
         
         for integrator in genre_data['integrator'].unique():
             if integrator == 'Vegas':
@@ -319,28 +330,64 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list[str],
             genre_integrator_data = genre_data[genre_data['integrator'] == integrator]
             errors = []
             error_stds = []
-            all_errors = []
+            all_errors_list = []
+            used_dimensions = []
             
             for dim in dimensions:
                 data_dim = genre_integrator_data[genre_integrator_data['Dimension'] == dim]
-                errors.append(data_dim['error'].values[0])
-                error_stds.append(data_dim['error_std'].values[0])
-                if plot_all_errors and 'errors' in data_dim.columns:
-                    all_errors.append(list(map(float, data_dim['errors'].values[0].strip('[]').split())))
+                if data_dim.empty or pd.isnull(data_dim['errors']).all():
+                    continue
+
+                error_list_str = data_dim['errors'].values[0]
+                error_list = list(map(float, error_list_str.strip('[]').split()))
+                error_std = float(data_dim['error_std'].values[0])
+                if plot_absolute and (
+                    data_dim['error_type'].values[0] == 'Signed Relative error'):
+                    true_value = float(data_dim['true_value'].values[0])
+                    error_list = true_value * np.array(error_list) / 100.0
+                    error_std = true_value * error_std / 100.0
+
+                errors.append(np.median(error_list))
+                error_stds.append(error_std)
+                all_errors_list.append(error_list)
+                used_dimensions.append(dim)
+
+                # for defining y-axis limits
+                max_error = max(max_error, np.max(error_list) + error_std)
+                min_error = min(min_error, np.min(error_list) - error_std)
+
             
+            color = color_dict[integrator]
             if plot_all_errors:
-                plt.scatter([dim] * len(all_errors), all_errors, alpha=0.3, label=f'{integrator} All Errors')
+                first_label = True
+                for dim, all_errors in zip(used_dimensions, all_errors_list):
+                    label = f'{integrator} All Errors' if first_label else None
+                    plt.scatter([dim] * len(all_errors), all_errors, alpha=0.3, 
+                                label=label, color=color)
+                    first_label = False
             elif error_bar:
                 lower_bound = [e - es for e, es in zip(errors, error_stds)]
                 upper_bound = [e + es for e, es in zip(errors, error_stds)]
-                plt.fill_between(dimensions, lower_bound, upper_bound, alpha=0.2, label=f'{integrator} Range')
-                plt.plot(dimensions, errors, label=integrator, marker='o')
+                plt.fill_between(used_dimensions, lower_bound, upper_bound, 
+                                 alpha=0.2, label=f'{integrator} Range')
+                plt.plot(used_dimensions, errors, label=integrator, marker='o')
             else:
-                plt.plot(dimensions, errors, label=integrator, marker='o')
+                plt.plot(used_dimensions, errors, label=integrator, marker='o')
         
+        if y_lim is not None:
+            plt.ylim(y_lim)
+        elif plot_absolute:
+            plt.ylim([min_error - 0.05 * np.abs(min_error), 
+                      max_error + 0.05 * np.abs(max_error)])
+        else:
+            plt.ylim([-105, 105])
+
         plt.title(f'Error and Error Std for {genre}')
         plt.xlabel('Dimension')
-        plt.ylabel(f'{data["error_type"].values[0]} (%)')
+        if plot_absolute:
+            plt.ylabel('Absolute Error')
+        else:
+            plt.ylabel(f'{data["error_type"].values[0]} (%)')
         plt.ylim(y_lim)
         plt.legend()
         plt.grid(True)

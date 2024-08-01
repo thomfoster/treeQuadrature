@@ -27,9 +27,7 @@ for base_N in base_N_values:
     root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
     # Construct the tree of containers
-    tree = integ.construct_tree(root)
-    leaf_nodes = tree.get_leaf_nodes()
-    containers = [node.container for node in leaf_nodes]
+    containers = integ.construct_tree(root)
 
     # Calculate the average sample size per container
     total_samples = sum(container.N for container in containers)

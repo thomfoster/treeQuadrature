@@ -269,7 +269,10 @@ def _plot2D(f, xlim, ylim, levels, n_points):
 def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str], 
                 error_bar: bool = False, plot_absolute=False, 
                 plot_all_errors: bool = False, 
-                y_lim: Optional[List]=None):
+                y_lim: Optional[List]=None, 
+                font_size: int = 10,
+                plot_title: bool=True, 
+                grid: bool=True):
     """
     Plot errors and error_std for each genre and integrator.
 
@@ -289,6 +292,13 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str],
         If True and error_type is 'Signed Relative error', plot the signed absolute errors.
     y_lim: list of float, optional
         the upper and lower limit for plotting error
+    font_size : int, optional
+        Font size for all text elements in the plot (default is 10).
+    plot_title : bool, optional
+        whether add title or not (default is True).
+    grid : bool, optional
+        whether to plot the grid or not. 
+        Default is True. 
 
     Notes
     -----
@@ -302,6 +312,11 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str],
     >>> genres = ["SimpleGaussian", "Camel", "QuadCamel"]
     >>> plot_errors(all_data, 'figures/error', genres)
     """
+
+    plt.rcParams.update({'font.size': font_size})
+
+    legend_font_size = font_size - 3
+    axis_label_font_size = font_size + 3 
 
     data['Dimension'] = data['problem'].str.extract(r'D=(\d+)').astype(int)
 
@@ -319,7 +334,7 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str],
         dimensions = genre_data['Dimension'].unique()
         dimensions.sort()
 
-        plt.figure(figsize=(14, 7))
+        plt.figure(figsize=(14, 10))
 
         max_error = -np.inf
         min_error = np.inf
@@ -369,7 +384,7 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str],
                 lower_bound = [e - es for e, es in zip(errors, error_stds)]
                 upper_bound = [e + es for e, es in zip(errors, error_stds)]
                 plt.fill_between(used_dimensions, lower_bound, upper_bound, 
-                                 alpha=0.2, label=f'{integrator} Range')
+                                 alpha=0.2, label=f'{integrator} Std')
                 plt.plot(used_dimensions, errors, label=integrator, marker='o')
             else:
                 plt.plot(used_dimensions, errors, label=integrator, marker='o')
@@ -381,22 +396,25 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str],
                       max_error + 0.05 * np.abs(max_error)])
         else:
             plt.ylim([-105, 105])
-
-        plt.title(f'Error and Error Std for {genre}')
-        plt.xlabel('Dimension')
+        
+        if plot_title:
+            plt.title(f'Error and Error Std for {genre}')
+        plt.xlabel('Dimension', fontsize=axis_label_font_size)
         if plot_absolute:
-            plt.ylabel('Absolute Error')
+            plt.ylabel('Absolute Error', fontsize=axis_label_font_size)
         else:
-            plt.ylabel(f'{data["error_type"].values[0]} (%)')
+            plt.ylabel(f'{data["error_type"].values[0]} (%)', 
+                       fontsize=axis_label_font_size)
         plt.ylim(y_lim)
-        plt.legend()
-        plt.grid(True)
+        plt.legend(fontsize=legend_font_size)
+        plt.grid(grid)
         plt.savefig(f'figures/{filename_prefix}_{genre}_error_plot.png')
         plt.close()
         print(f'Figure saved to figures/{filename_prefix}_{genre}_error_plot.png')
 
 
-def plot_times(data: pd.DataFrame, filename_prefix: str, genres: List[str]):
+def plot_times(data: pd.DataFrame, filename_prefix: str, genres: List[str], 
+               font_size: int = 10):
     """
     Plot the time taken for each genre and integrator.
     used for csv files produced by test_integrators
@@ -409,6 +427,8 @@ def plot_times(data: pd.DataFrame, filename_prefix: str, genres: List[str]):
         The prefix for the filenames where plots will be saved.
     genres : list of str
         List of genres to include in the plots.
+    font_size : int, optional
+        Font size for all text elements in the plot (default is 10).
 
     Notes
     -----
@@ -420,6 +440,7 @@ def plot_times(data: pd.DataFrame, filename_prefix: str, genres: List[str]):
     >>> genres = ["SimpleGaussian", "Camel", "QuadCamel"]
     >>> plot_times(all_data, 'figures/time', genres)
     """
+    plt.rcParams.update({'font.size': font_size})
 
     data['Dimension'] = data['problem'].str.extract(r'D=(\d+)').astype(int)
 
@@ -428,7 +449,7 @@ def plot_times(data: pd.DataFrame, filename_prefix: str, genres: List[str]):
         dimensions = genre_data['Dimension'].unique()
         dimensions.sort()
 
-        plt.figure(figsize=(14, 7))
+        plt.figure(figsize=(14, 10))
     
         for integrator in genre_data['integrator'].unique():
             genre_integrator_data = genre_data[genre_data['integrator'] == integrator]

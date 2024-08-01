@@ -94,6 +94,9 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
             n_evals_list.append(n_evals)
             times.append(end_time - start_time)
 
+        if len(estimates) == 0:
+            raise Exception('no run succeeded')
+
         avg_estimate = np.mean(estimates)
         std_estimate = np.std(estimates)
         avg_n_evals = np.mean(n_evals_list)

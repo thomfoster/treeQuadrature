@@ -17,6 +17,21 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
                         dimensions: Optional[List[float]]=None) -> None:
     """
     Compare different integrators on a given problem.
+    Give integrators attribute `name` 
+    for clear outputs. 
+
+    It will print for each integrator: 
+    - Estimated integral value
+    - The signed relative error  (estimate - answer) / answer
+        (unless problem.answer is 0, 
+        in which case signed absolute error will be used)
+    - Number of integrand evaluations
+    - Time taken in seconds
+    if integrator uses containers, 
+    - number of containers used
+    - average number of samples per container
+    - min number of samples per container
+    - max number of samples per container
 
     Parameters
     ----------
@@ -37,6 +52,7 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         which dimensions to plot for higher dimensional problems
     """
     print(f'true value: {problem.answer}')
+    D = problem.D
 
     for i, integrator in enumerate(integrators):
         integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
@@ -71,11 +87,11 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         estimate = result['estimate']
         n_evals = result['n_evals']
         if problem.answer != 0:
-            error = 100 * np.abs(estimate - problem.answer) / problem.answer
-            error_name = 'Relative error'
+            error = 100 * (estimate - problem.answer) / problem.answer
+            error_name = 'Signed Relative error'
         else: 
-            error = np.abs(estimate - problem.answer)
-            error_name = 'Absolute error'
+            error = estimate - problem.answer
+            error_name = 'Signed Absolute error'
 
         print(f'-------- {integrator_name} --------')
         print(f'Estimated value: {estimate}')
@@ -91,19 +107,33 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
                     'xlim and ylim must be provided for plotting'
                     )
 
-            if 'containers' in result and 'contributions' in result:
-                title = 'Integral estimate using ' + integrator_name
-                containers = result['containers']
-                print(f'Number of containers: {len(containers)}')
-                contributions = result['contributions']
+        if 'containers' in result and 'contributions' in result:
+            title = 'Integral estimate using ' + integrator_name
+            containers = result['containers']
+            print(f'Number of containers: {len(containers)}')
+            n_samples = [cont.N for cont in containers]
+            print(f'Average samples/container: {np.mean(n_samples)}')
+            print(f'Minimum samples in containers: {np.min(n_samples)}')
+            print(f'Maximum samples in containers: {np.max(n_samples)}')
+            contributions = result['contributions']
+            if plot:
+                if xlim is None:
+                    raise ValueError(
+                        'xlim must be provided for plotting'
+                        )
+                if ylim is None and D > 1:
+                    raise ValueError(
+                        'ylim must be provided for plotting' 
+                        'higher dimensional problems (D>1)'
+                        )
                 plotContainers(containers, contributions, 
                             xlim=xlim, ylim=ylim,
                             integrand=problem.integrand, 
                             title=title, plot_samples=True, 
                             dimensions=dimensions)
-            else: 
-                warnings.warn('result of integrator has no containers to plot', 
-                          UserWarning)
+        elif plot: 
+            warnings.warn('result of integrator has no containers to plot', 
+                        UserWarning)
         
         print(f'----------------------------------')
 
@@ -131,7 +161,7 @@ def test_integrators(integrators: List[Integrator],
     """
     Test different integrators on a list of problems 
     and save the results to a CSV file.
-    give integrators attribute `name` 
+    Give integrators attribute `name` 
     for clear outputs. 
 
     Parameters
@@ -225,7 +255,8 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': 'Exceeded max_time'
+                            'time_taken': 'Exceeded max_time',
+                            'errors': None
                         })
                         break
                     except Exception as e:
@@ -241,7 +272,8 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': None
+                            'time_taken': None,
+                            'errors': None
                         })
                         print_exc()
                         break
@@ -258,15 +290,15 @@ def test_integrators(integrators: List[Integrator],
                 avg_time_taken = total_time_taken / n_repeat
 
                 if problem.answer != 0:
-                    errors = 100 * np.abs(estimates - problem.answer) / problem.answer
+                    errors = 100 * (estimates - problem.answer) / problem.answer
                     avg_error = f'{np.mean(errors):.4f} %'
                     error_std = f'{np.std(errors):.4f} %'
-                    error_name = 'Relative error'
+                    error_name = 'Signed Relative error'
                 else: 
-                    errors = np.abs(estimates - problem.answer)
+                    errors = estimates - problem.answer
                     avg_error = np.mean(errors)
                     error_std = np.std(errors)
-                    error_name = 'Absolute error'
+                    error_name = 'Signed Absolute error'
 
                 results.append({
                     'integrator': integrator_name,
@@ -279,14 +311,15 @@ def test_integrators(integrators: List[Integrator],
                     'error_std': error_std,
                     'n_evals': avg_n_evals,
                     'n_evals_std': np.std(n_evals_list),
-                    'time_taken': avg_time_taken
+                    'time_taken': avg_time_taken, 
+                    'errors': errors
                 })
     
             # Save for each integrator and each problem
             with open(output_file, mode='w', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=[
                     'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken'])
+                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
                 writer.writeheader()
                 for result in results:
                     writer.writerow(result)

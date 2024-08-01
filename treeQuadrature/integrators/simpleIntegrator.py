@@ -1,5 +1,5 @@
 from queue import SimpleQueue
-from typing import Optional
+from typing import Optional, List
 import time, warnings
 
 from .treeIntegrator import TreeIntegrator
@@ -62,7 +62,7 @@ class SimpleIntegrator(TreeIntegrator):
         self.P = P
 
     def construct_tree(self, root: Container, 
-                       verbose: bool=False, max_iter: int=1e4):
+                       verbose: bool=False, max_iter: int=1e4) -> List[Container]:
         """
         Construct a tree of containers.
 

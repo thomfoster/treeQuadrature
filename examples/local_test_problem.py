@@ -12,11 +12,11 @@ from treeQuadrature import gaussianProcess
 from treeQuadrature.integrators import TreeIntegrator
 
 # problem = PyramidProblem(D=5)
-# problem = Camel(D=2)
-problem = SimpleGaussian(D=1)
+problem = Camel(D=6)
+# problem = SimpleGaussian(D=1)
 
 rbfIntegral = RbfIntegral(max_redraw=4, threshold=0.5, n_splits=3)
-rbfIntegral_2 = RbfIntegral(range=30, max_redraw=4, threshold=0.5, n_splits=0)
+rbfIntegral_2 = RbfIntegral(range=30, max_redraw=4, threshold=0.5, n_splits=3)
 rmedianIntegral = RandomIntegral(n=20)
 rmeanIntegral = SmcIntegral(n=20)
 
@@ -46,8 +46,9 @@ if __name__ == '__main__':
 
 
     # profiler.enable_by_count()
-    compare_integrators([integ3], plot=False, 
+    compare_integrators([integ1], plot=False, 
                         xlim=[0.0, 1.0], ylim=[0.0, 1.0], 
-                        problem=problem, verbose=True, dimensions=[0, 1])
+                        problem=problem, verbose=True, dimensions=[0, 1], 
+                        n_repeat=5)
     # profiler.disable_by_count()
     # profiler.print_stats()

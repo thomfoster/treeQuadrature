@@ -4,6 +4,8 @@ from matplotlib import colormaps
 from matplotlib.axes import Axes
 from sklearn.gaussian_process import GaussianProcessRegressor
 
+import pandas as pd
+
 import numpy as np
 from typing import Optional, List, Callable
 
@@ -262,3 +264,136 @@ def _plot2D(f, xlim, ylim, levels, n_points):
     plt.ylabel('y')
     plt.colorbar(contour)
     plt.show()
+
+
+def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: list, 
+                error_bar: bool = False, plot_all_errors: bool = False):
+    """
+    Plot errors and error_std for each genre and integrator.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        The data containing the results of the integrators.
+    filename_prefix : str
+        The prefix for the filenames where plots will be saved.
+    genres : list
+        List of genres to include in the plots.
+    error_bar : bool, optional
+        If True, plot error bars; otherwise plot without error bars.
+    plot_all_errors : bool, optional
+        If True, plot all individual errors from 'errors' column.
+
+    Notes
+    -----
+    The data should contain columns 'problem', 'integrator', 'error', 
+    'error_std', 'errors', and 'Dimension'. The 'error' and 'error_std' 
+    columns are expected to have percentage values.
+
+    Usage
+    -----
+    >>> all_data = pd.read_csv('your_data.csv')  # Load your data into a DataFrame
+    >>> all_data['Dimension'] = all_data['problem'].str.extract(r'D=(\d+)').astype(int)
+    >>> genres = ["SimpleGaussian", "Camel", "QuadCamel"]
+    >>> plot_errors(all_data, 'figures/error', genres)
+    """
+
+    # Ensure the 'error' and 'error_std' columns are numeric
+    data['error'] = data['error'].str.replace('%', '').astype(float)
+    data['error_std'] = data['error_std'].str.replace('%', '').astype(float)
+    
+    for genre in genres:
+        genre_data = data[data['problem'].str.contains(genre)]
+        dimensions = genre_data['Dimension'].unique()
+        dimensions.sort()
+
+        plt.figure(figsize=(14, 7))
+        
+        for integrator in genre_data['integrator'].unique():
+            if integrator == 'Vegas':
+                continue
+            genre_integrator_data = genre_data[genre_data['integrator'] == integrator]
+            errors = []
+            error_stds = []
+            all_errors = []
+            
+            for dim in dimensions:
+                data_dim = genre_integrator_data[genre_integrator_data['Dimension'] == dim]
+                errors.append(data_dim['error'].values[0])
+                error_stds.append(data_dim['error_std'].values[0])
+                if plot_all_errors and 'errors' in data_dim.columns:
+                    all_errors.extend(eval(data_dim['errors'].values[0]))  # Assuming 'errors' column has list of floats as strings
+            
+            if plot_all_errors:
+                plt.scatter([dim] * len(all_errors), all_errors, alpha=0.3, label=f'{integrator} All Errors')
+            elif error_bar:
+                lower_bound = [e - es for e, es in zip(errors, error_stds)]
+                upper_bound = [e + es for e, es in zip(errors, error_stds)]
+                plt.fill_between(dimensions, lower_bound, upper_bound, alpha=0.2, label=f'{integrator} Range')
+                plt.plot(dimensions, errors, label=integrator, marker='o')
+            else:
+                plt.plot(dimensions, errors, label=integrator, marker='o')
+        
+        plt.title(f'Error and Error Std for {genre}')
+        plt.xlabel('Dimension')
+        plt.ylabel(f'{data["error_type"].values[0]} (%)')
+        plt.ylim([-5, 105])
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(f'{filename_prefix}_{genre}_error_plot.png')
+        plt.close()
+        print(f'Figure saved to {filename_prefix}_{genre}_error_plot.png')
+
+
+def plot_times(data: pd.DataFrame, filename_prefix: str, genres: list):
+    """
+    Plot the time taken for each genre and integrator.
+    used for csv files produced by test_integrators
+    
+    Parameters
+    ----------
+    data : pd.DataFrame
+        The data containing the results of the integrators.
+    filename_prefix : str
+        The prefix for the filenames where plots will be saved.
+    genres : list
+        List of genres to include in the plots.
+
+    Notes
+    -----
+    The data should contain columns 'problem', 'integrator', 'time_taken', 
+    and 'Dimension'.
+
+    Usage
+    -----
+    >>> all_data = pd.read_csv('your_data.csv')  # Load your data into a DataFrame
+    >>> all_data['Dimension'] = all_data['problem'].str.extract(r'D=(\d+)').astype(int)
+    >>> genres = ["SimpleGaussian", "Camel", "QuadCamel"]
+    >>> plot_times(all_data, 'figures/time', genres)
+    """
+    for genre in genres:
+        genre_data = data[data['problem'].str.contains(genre)]
+        dimensions = genre_data['Dimension'].unique()
+        dimensions.sort()
+
+        plt.figure(figsize=(14, 7))
+    
+        for integrator in genre_data['integrator'].unique():
+            genre_integrator_data = genre_data[genre_data['integrator'] == integrator]
+            times = []
+            
+            for dim in dimensions:
+                data_dim = genre_integrator_data[genre_integrator_data['Dimension'] == dim]
+                if not data_dim.empty:
+                    times.append(float(data_dim['time_taken'].values[0]))
+                    
+            plt.plot(dimensions, times, label=integrator, marker='o')
+
+            plt.title(f'Time Taken for {genre} - {integrator}')
+            plt.xlabel('Dimension')
+            plt.ylabel('Time Taken (seconds)')
+            plt.legend()
+            plt.grid(True)
+            plt.savefig(f'{filename_prefix}_{genre}_time_plot_{integrator}.png')
+            plt.close()
+            print(f'Figure saved to {filename_prefix}_{genre}_time_plot_{integrator}.png')

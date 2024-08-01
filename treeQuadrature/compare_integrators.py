@@ -212,7 +212,7 @@ def test_integrators(integrators: List[Integrator],
 
             # Check if the result already exists and is valid
             key = (integrator_name, problem_name)
-            if key in existing_results and existing_results[key]['estimate'] != 'None':
+            if key in existing_results and existing_results[key]['estimate'] != '':
                 if verbose >= 1:
                     print(f'Skipping {integrator_name} for {problem_name}: already completed.')
                 results.append(existing_results[key])

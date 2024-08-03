@@ -68,7 +68,7 @@ integ6.name = 'SMC'
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_path = os.path.join(script_dir, 
-                           f"../results/local_results_{'_'.join(map(str, Ds))}D_{args.n_repeat}repeat_{args.base_N}base_N.csv")
+                           f"../test_results/results_{'_'.join(map(str, Ds))}D_{args.n_repeat}repeat_{args.base_N}base_N.csv")
 
 if __name__ == '__main__':
     test_integrators([integ1, integ3, integ4, integ5, integ6],

@@ -13,7 +13,9 @@ class MidpointIntegral(ContainerIntegral):
     def containerIntegral(self, container, f):
         mid_x = container.midpoint
         mid_y = f(mid_x)[0, 0]
-        return mid_y * container.volume
+        integral_estimate = mid_y * container.volume
+        
+        return {'integral' : integral_estimate}
 
 
 class MedianIntegral(ContainerIntegral):
@@ -33,8 +35,10 @@ class MedianIntegral(ContainerIntegral):
         median = np.median(fs)
         integral_estimate = median * container.volume
 
+        ret = {'integral' : integral_estimate}
+
         if return_std or self.return_std:
             std_estimate = np.std(fs * container.volume) / np.sqrt(container.N)
-            return (integral_estimate, std_estimate)
+            ret['std'] = std_estimate
         
-        return integral_estimate
+        return ret

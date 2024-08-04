@@ -394,20 +394,16 @@ class IterativeGPFitting:
             if self.fit_residuals:
                 mean_y = np.mean(all_ys)
                 residuals = all_ys - mean_y
-                if all_residuals is None:
-                    all_residuals = residuals
-                else:
-                    all_residuals = np.vstack([all_residuals, residuals])
             else:
                 mean_y = 0
                 residuals = all_ys
 
             if self.n_splits == 0: # no cross validation
-                self.gp.fit(xs, residuals, kernel)
-                ys_pred = self.gp.predict(xs)
-                performance = self.scoring(ys, ys_pred)
+                self.gp.fit(all_xs, residuals, kernel)
+                ys_pred = self.gp.predict(all_xs)
+                performance = self.scoring(residuals, ys_pred)
             elif self.n_splits > 0:
-                performance = gp_kfoldCV(xs, ys, kernel, self.gp, 
+                performance = gp_kfoldCV(all_xs, residuals, kernel, self.gp, 
                                          scoring=self.scoring, n_splits=self.n_splits)
             else:
                 raise ValueError('n_splits cannot be negative')
@@ -475,7 +471,8 @@ def default_criterion(container: Container) -> bool:
 
 def GP_diagnosis(igp: IterativeGPFitting, container: Container, 
                  criterion: Callable[[Container], 
-                                     bool]=default_criterion) -> None:
+                                     bool]=default_criterion, 
+                                     plot: bool=False) -> None:
     """
     Check the performance of a Gaussian Process (GP) model.
     
@@ -489,6 +486,9 @@ def GP_diagnosis(igp: IterativeGPFitting, container: Container,
         A function that takes a container and returns a boolean indicating 
         whether to plot the posterior mean.
         Default criterion: always True
+    plot : bool, optional
+        if true, 1D problems will be plotted
+        Default: False
     
     Returns
     -------
@@ -513,7 +513,7 @@ def GP_diagnosis(igp: IterativeGPFitting, container: Container,
         print(f"Mean Squared Error: {mse:.3f}") 
 
     # posterior mean plot
-    if xs.shape[1] == 1 and criterion(container):
+    if xs.shape[1] == 1 and criterion(container) and plot:
         plotGP(igp.gp, xs, ys, 
                mins=container.mins, maxs=container.maxs)
 
@@ -702,7 +702,7 @@ def kernel_integration(igp: IterativeGPFitting, container: Container,
                 '. Will be set to zero.', 
                 UserWarning)
             print('------ GP diagnosis --------')
-            GP_diagnosis(gp, container)
+            GP_diagnosis(igp, container)
             print('----------------------------')
         var_post = 0
 

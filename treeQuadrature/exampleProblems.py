@@ -1,5 +1,6 @@
 from . import exampleDistributions as dists
 from .utils import handle_bound
+from .container import Container
 
 import numpy as np
 from abc import ABC, abstractmethod
@@ -83,7 +84,7 @@ class PyramidProblem(Problem):
         super().__init__(D, lows=-1.0, highs=1.0)
         self.answer = (2 ** self.D) / (self.D + 1)
 
-    def integrand(self, X, *args, **kwargs) -> np.ndarray:
+    def integrand(self, X) -> np.ndarray:
         """
         Pyramid integrand function.
 
@@ -98,6 +99,32 @@ class PyramidProblem(Problem):
             1-dimensional array of the same length as X.
         """
         return 1 - np.max(np.abs(X), axis=1)
+    
+    def exact_integral(self, container: Container) -> float:
+        """
+        Calculate the exact integral of the pyramid function over a given range.
+
+        Parameters
+        ----------
+        mins : numpy.ndarray
+            Lower bounds of the integral.
+        maxs : numpy.ndarray
+            Upper bounds of the integral.
+
+        Returns
+        -------
+        float
+            Exact integral value.
+        """
+        mins = container.mins
+        maxs = container.maxs
+        
+        volume = 1.0
+        for d in range(self.D):
+            volume *= maxs[d] - mins[d]
+        
+        integral_value = volume * (1 - np.max(np.abs([mins, maxs]), axis=0).sum() / self.D)
+        return integral_value
     
     def __str__(self) -> str:
         return f'Pyramid(D={self.D})'

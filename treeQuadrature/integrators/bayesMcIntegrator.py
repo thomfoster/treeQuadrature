@@ -74,7 +74,7 @@ class BayesMcIntegrator(Integrator):
 
         result = {}
         if isinstance(self.kernel, RBF):
-            integral_result = kernel_integration(gp, cont, gp_results, return_std)
+            integral_result = kernel_integration(iGp, cont, gp_results, return_std)
             if return_std:
                 result['estimate'] = integral_result[0]
                 result['std'] = integral_result[1]

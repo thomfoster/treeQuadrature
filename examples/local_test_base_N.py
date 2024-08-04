@@ -8,15 +8,15 @@ from treeQuadrature.integrators import SimpleIntegrator
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.container import Container
 
-Ds = np.arange(3, 14, 1)  # try 2, 5, 8, 10 various dimensions
+Ds = np.arange(2, 15, 2)  # try 2, 5, 8, 10 various dimensions
 n_repeats = 5  # Number of times to repeat the experiment
 
 for D in Ds:
     problem = Camel(D)
 
     # Define a range of base_N values to test
-    base_N_values = range(6000, 15000, 1000)
-    P_values = range(20, 80, 10)
+    base_N_values = range(6000, 15000, 1500)
+    P_values = range(20, 81, 15)
 
     # DataFrame to store the results
     results = []

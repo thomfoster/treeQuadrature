@@ -17,7 +17,9 @@ def plotContainers(containers: List[Container], contributions: List[float],
                    integrand: Optional[Callable]=None, 
                    title: Optional[str]=None, 
                    plot_samples: Optional[bool]=False, 
-                   dimensions: Optional[List[float]]=None):
+                   dimensions: Optional[List[float]]=None, 
+                   colors: str='YlOrRd',
+                   c_bar_labels: str='Contributions'):
     """
     Plot containers and their contributions
     for 1D problems, the integrand can be plotted
@@ -42,7 +44,15 @@ def plotContainers(containers: List[Container], contributions: List[float],
         Defaults to False
     dimensions : list of int, optional
         The two dimensions to plot. 
-        If None, plot all dimensions.        
+        If None, plot all dimensions.    
+    colors : str, Optional
+        the colour map used to plot 2D 
+        container contributions.
+        Default : 'YlOrRd'
+    c_bar_labels : str, Optional
+        labels for colour bar in 
+        2D plot. 
+        Default : 'Contributions'
     """
 
     assert len(containers) == len(contributions), (
@@ -57,17 +67,19 @@ def plotContainers(containers: List[Container], contributions: List[float],
     elif len(dimensions) != 2:
         raise ValueError('dimensions must have length 2')
     
-    assert (dimensions[0] in all_dimensions) and (
-        dimensions[1] in all_dimensions), (
-            f'dimensions must be in 0, 1, ..., {len(all_dimensions)-1}'
-        )
+    if len(all_dimensions) > 1:
+        assert (dimensions[0] in all_dimensions) and (
+            dimensions[1] in all_dimensions), (
+                f'dimensions must be in 0, 1, ..., {len(all_dimensions)-1}'
+            )
 
     if containers[0].D ==1:
         _plotContainers1D(containers, contributions, xlim, 
                           integrand, title, plot_samples)
     elif len(dimensions) == 2:
         _plotContainers2D(containers, contributions, xlim, ylim, title, 
-                          plot_samples, dimensions[0], dimensions[1])
+                          plot_samples, dimensions[0], dimensions[1], 
+                          colors, c_bar_labels)
     else:
         raise ValueError(
             "Only 1D and 2D plots are supported. "
@@ -76,19 +88,26 @@ def plotContainers(containers: List[Container], contributions: List[float],
 
 
 def _plotContainers2D(containers, contributions, xlim, ylim, title, 
-                      plot_samples, dim1, dim2):
+                      plot_samples, dim1, dim2, colors, c_bar_labels):
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot()
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
-    cmap = colormaps['YlOrRd'].resampled(256)
+    cmap = colormaps[colors].resampled(256)
 
-    if len(contributions) > 1:
-        contributions = scale(contributions)
+    # if len(contributions) > 1:
+    #     contributions = scale(contributions)
+
+    norm = plt.Normalize(min(contributions), max(contributions))
 
     for container, contribution in zip(containers, contributions):
         plotContainer(ax, container, dim1, dim2, 
-                      plot_samples=plot_samples, facecolor=cmap(contribution), alpha=0.4)
+                      plot_samples=plot_samples, facecolor=cmap(norm(contribution)), alpha=0.4)
+
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label(c_bar_labels)
 
     if title:
         plt.title(title)
@@ -151,7 +170,6 @@ def plotContainer(ax: Axes, container: Container, dim1: int, dim2: int,
     dim2 : int
         the second dimension to plot
     **kwargs
-        keyword arguments, can be passed to matplotlib.patches.Rectangle
         plot_samples : bool
             if true, produce scatter plot of samples
             Defaulst to True
@@ -165,6 +183,7 @@ def plotContainer(ax: Axes, container: Container, dim1: int, dim2: int,
         ec : color
             edge colour
             Defaults to black
+        and any other kwargs for matplotlib.patches.Rectangle
     '''
 
     # kwargs
@@ -271,8 +290,8 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str],
                 plot_all_errors: bool = False, 
                 y_lim: Optional[List]=None, 
                 font_size: int = 10,
-                plot_title: bool=True, 
-                grid: bool=True):
+                plot_title: bool=True, grid: bool=True, 
+                integrators_to_plot: Optional[List[str]]=None) -> None:
     """
     Plot errors and error_std for each genre and integrator.
 
@@ -299,6 +318,8 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str],
     grid : bool, optional
         whether to plot the grid or not. 
         Default is True. 
+    integrators_to_plot: list of str, optional
+        List of integrators to include in the plots. If not specified, all integrators will be plotted.
 
     Notes
     -----
@@ -328,6 +349,9 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str],
     color_map = plt.get_cmap('tab10')
     integrators = data['integrator'].unique()
     color_dict = {integrator: color_map(i) for i, integrator in enumerate(integrators)}
+
+    if integrators_to_plot is None:
+        integrators_to_plot = integrators
     
     for genre in genres:
         genre_data = data[data['problem'].str.contains(genre)]
@@ -340,7 +364,7 @@ def plot_errors(data: pd.DataFrame, filename_prefix: str, genres: List[str],
         min_error = np.inf
         
         for integrator in genre_data['integrator'].unique():
-            if integrator == 'Vegas':
+            if integrator not in integrators_to_plot:
                 continue
             genre_integrator_data = genre_data[genre_data['integrator'] == integrator]
             errors = []

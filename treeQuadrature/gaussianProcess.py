@@ -563,7 +563,8 @@ def rbf_mean_post(gp: GPFit, container: Container, gp_results: dict):
     return np.dot(K_inv_y, k_tilde) + y_mean * container.volume, k_tilde
 
 
-def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray):
+def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray, 
+                 jitter: float = 1e-8, threshold: float = 1e10):
     """calculate the posterior variance of integral estimate obtained using RBF kernel"""
     b = container.maxs   # right boarder
     a = container.mins   # left boarder
@@ -584,6 +585,8 @@ def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray):
     k_mean = l * np.sqrt(np.pi / 2) * result
 
     K = gp.kernel_(xs)
+    if np.linalg.cond(K) > threshold:
+        K += np.eye(K.shape[0]) * jitter
     K_inv = np.linalg.inv(K)
     # posterior variance
     var_post = k_mean - np.dot(k_tilde.T, np.dot(K_inv, k_tilde))

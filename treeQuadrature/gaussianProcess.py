@@ -157,8 +157,6 @@ class SklearnGPFit(GPFit):
     
     def fit(self, xs, ys, kernel: Kernel) -> GaussianProcessRegressor:
         # Define a constant mean function with the mean of ys
-        mean_y = ys.mean()
-
         gp = GaussianProcessRegressor(
             kernel=kernel, 
             n_restarts_optimizer=self.n_tuning, 
@@ -282,6 +280,16 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
 
 
 
+def is_poor_fit(performance: float, threshold: float, 
+                threshold_direction: str) -> bool:
+    if threshold_direction == 'up':
+        return performance <= threshold
+    elif threshold_direction == 'down':
+        return performance >= threshold
+    else:
+        raise ValueError(
+                    "threshold_direction should be one of 'up' and 'down'")
+
 class IterativeGPFitting:
     """
     Class to perform iterative Gaussian Process (GP) fitting, 
@@ -299,7 +307,9 @@ class IterativeGPFitting:
     n_splits : int, optional
         number of K-fold cross-validation splits
         if n_splits = 0, K-Fold CV will not be performed. 
-
+    scoring : Callable, optional (default=r2_score)
+        A scoring function to evaluate the predictions. It must accept two 
+        arguments: the true values and the predicted values.
     max_redraw : int
         Maximum number of iterations for the iterative process.
         To control number of samples, 
@@ -311,10 +321,13 @@ class IterativeGPFitting:
         one of 'up' and 'down'. 
         if 'up', accept the model if score >= performance_threshold; 
         if 'down', accept the model if score >= performance_threshold
+    fit_residuals : bool
+        if true, fit GP to residuals
     """
     def __init__(self, n_samples: int, max_redraw: int, n_splits: int,
                  performance_threshold: float, threshold_direction: str, 
-                 gp: Optional[GPFit]=None):
+                 gp: Optional[GPFit]=None, scoring: Callable = r2_score, 
+                 fit_residuals: bool=True) -> None:
         self.n_samples = n_samples
         self.max_redraw = max_redraw
         self.performance_threshold = performance_threshold
@@ -325,10 +338,11 @@ class IterativeGPFitting:
             gp = SklearnGPFit()
         self.gp = gp
         self.n_splits = n_splits
+        self.scoring = scoring
+        self.fit_residuals = fit_residuals
 
     def fit(self, f: Callable, container: Union[Container, List[Container]], 
-                 kernel, scoring: Callable = r2_score, 
-                 add_samples: bool=False) -> float:
+                 kernel, add_samples: bool=True) -> float:
         """
         fit GP on the container,
         the results can be accessed in self.gp
@@ -342,26 +356,26 @@ class IterativeGPFitting:
             and track evaluations.
         kernel : Any
             the kernel used to fit GP
-        scoring : Callable, optional (default=r2_score)
-            A scoring function to evaluate the predictions. It must accept two 
-            arguments: the true values and the predicted values.
-        add_sample : bool, optional (default=False)
+        add_sample : bool, optional (default=True)
             if true, add samples to the container(s)
 
         Return
         ------
-        performance : float
-            the performance of best GP model under KFold CV
+        dict
+            - performance (float) the performance of best GP model under KFold CV
+            - y_mean (float) mean of the final training samples
         """
-        n = self.n_samples
         iteration = 0
-        while iteration < self.max_redraw:
+
+        all_xs, all_ys, all_residuals = None, None, None
+
+        while iteration <= self.max_redraw:
+            # Draw samples
             if isinstance(container, list):
-                # Draw samples from multiple containers
-                samples = self.draw_samples_from_containers(container, n, f)
+                samples = self.draw_samples_from_containers(container, 
+                                                                self.n_samples, f)
             else:
-                # Draw samples from a single container
-                xs = container.rvs(n)
+                xs = container.rvs(self.n_samples)
                 ys = f(xs)
                 samples = [(xs, ys, container)]
 
@@ -369,40 +383,54 @@ class IterativeGPFitting:
             xs = np.vstack([s[0] for s in samples])
             ys = np.vstack([s[1] for s in samples])
 
-            if self.n_splits == 0:
-                self.gp.fit(xs, ys, kernel)
+            # Fit the GP model
+            if all_xs is None:
+                all_xs = xs
+                all_ys = ys
+            else:
+                all_xs = np.vstack([all_xs, xs])
+                all_ys = np.vstack([all_ys, ys])
+
+            if self.fit_residuals:
+                mean_y = np.mean(all_ys)
+                residuals = all_ys - mean_y
+                if all_residuals is None:
+                    all_residuals = residuals
+                else:
+                    all_residuals = np.vstack([all_residuals, residuals])
+            else:
+                mean_y = 0
+                residuals = all_ys
+
+            if self.n_splits == 0: # no cross validation
+                self.gp.fit(xs, residuals, kernel)
                 ys_pred = self.gp.predict(xs)
-                performance = scoring(ys, ys_pred)
+                performance = self.scoring(ys, ys_pred)
             elif self.n_splits > 0:
                 performance = gp_kfoldCV(xs, ys, kernel, self.gp, 
-                                        scoring=scoring, n_splits=self.n_splits)
+                                         scoring=self.scoring, n_splits=self.n_splits)
             else:
                 raise ValueError('n_splits cannot be negative')
 
-            if self.threshold_direction == 'up':
-                if performance >= self.performance_threshold:
-                    break
-            elif self.threshold_direction == 'down':
-                if performance <= self.performance_threshold:
-                    break
-            else:
-                raise ValueError(
-                    "thershold_direction should be one of 'up' and 'down'")
+            if not is_poor_fit(performance, self.performance_threshold, 
+                               self.threshold_direction):
+                break
 
-            # increase the number of samples for the next iteration
-            n += self.n_samples  
+            if add_samples:
+                # Add samples to respective containers
+                for (xs, ys, c) in samples:
+                    c.add(xs, ys)
+
             iteration += 1
 
-        # replace the GP model fitted in K-Fold CVv
+        # Final fit with the full set of samples
         if self.n_splits > 0:
-            self.gp.fit(xs, ys, kernel)
+            self.gp.fit(all_xs, residuals, kernel)
 
-        if add_samples:
-            # Add samples to respective containers
-            for (xs, ys, c) in samples:
-                c.add(xs, ys)
-
-        return performance
+        return {
+            'performance': performance,
+            'y_mean': mean_y
+        }
     
     def draw_samples_from_containers(self, containers: List[Container], n: int, 
                                  f: Callable) -> List[Tuple[np.ndarray, 
@@ -445,7 +473,7 @@ class IterativeGPFitting:
 def default_criterion(container: Container) -> bool:
     return True
 
-def GP_diagnosis(gp: GPFit, container: Container, 
+def GP_diagnosis(igp: IterativeGPFitting, container: Container, 
                  criterion: Callable[[Container], 
                                      bool]=default_criterion) -> None:
     """
@@ -453,7 +481,7 @@ def GP_diagnosis(gp: GPFit, container: Container,
     
     Parameters
     ----------
-    gp : GPFit
+    igp : IterativeGPFitting
         The fitted Gaussian Process model.
     container : Container
         Container object that holds the samples and boundaries.
@@ -466,28 +494,27 @@ def GP_diagnosis(gp: GPFit, container: Container,
     -------
     None
     """
-    xs = gp.X_train_
-    ys = gp.y_train_
+    xs = igp.gp.X_train_
+    ys = igp.gp.y_train_
     n = xs.shape[0]
 
     # Make predictions
-    y_pred = gp.predict(xs)
+    y_pred = igp.gp.predict(xs)
 
     # Check R-squared and MSE
-    r2 = r2_score(ys, y_pred)
+    score = igp.scoring(ys, y_pred)
     mse = mean_squared_error(ys, y_pred)
 
-    # TODO - pass the threshold to here
-    if r2 < 0.6:
+    if is_poor_fit(score, igp.performance_threshold, 
+                   igp.threshold_direction):
         print(f'number of training samples : {n}')
         print(f'volume of container : {container.volume}')
-
-        print(f"R-squared: {r2:.3f}")
+        print(f"GP Score: {score:.3f}")
         print(f"Mean Squared Error: {mse:.3f}") 
 
     # posterior mean plot
     if xs.shape[1] == 1 and criterion(container):
-        plotGP(gp, xs, ys, 
+        plotGP(igp.gp, xs, ys, 
                mins=container.mins, maxs=container.maxs)
 
     
@@ -501,7 +528,7 @@ def get_length_scale(kernel):
         return get_length_scale(kernel.k2)
     raise ValueError("No RBF kernel found in the composite kernel.")
 
-def rbf_mean_post(gp: GPFit, container: Container):
+def rbf_mean_post(gp: GPFit, container: Container, gp_results: dict):
     """
     calculate the posterior mean of integral using RBF kernel
 
@@ -528,7 +555,12 @@ def rbf_mean_post(gp: GPFit, container: Container):
     k_tilde = (erf_b - erf_a).prod(axis=1) * (
         (l * np.sqrt(np.pi / 2)) ** container.D)
 
-    return np.dot(K_inv_y, k_tilde), k_tilde
+    try:
+        y_mean = gp_results['y_mean']
+    except KeyError:
+        raise KeyError('cannot find y_mean in gp_results')
+    
+    return np.dot(K_inv_y, k_tilde) + y_mean * container.volume, k_tilde
 
 
 def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray):
@@ -579,12 +611,10 @@ def contains_rbf(kernel: Kernel) -> bool:
         return contains_rbf(kernel.k1) or contains_rbf(kernel.k2)
     return False
 
-def kernel_integration(gp: GPFit, container: Container, 
-                    return_std: bool, performance: Optional[float]=None, 
-                    threshold: Optional[float]=None, 
-                    threshold_direction: Optional[str]=None, 
-                    kernel_mean_post: Optional[Callable]=rbf_mean_post,
-                    kernel_var_post: Optional[Callable]=rbf_var_post,
+def kernel_integration(igp: IterativeGPFitting, container: Container, 
+                       gp_results: dict, return_std: bool, 
+                    kernel_mean_post: Optional[Callable]=None,
+                    kernel_var_post: Optional[Callable]=None,
                     kernel_post: Optional[Callable]=None) -> Union[float, tuple]:
     """
     Estimate the integral of the RBF kernel over 
@@ -592,28 +622,27 @@ def kernel_integration(gp: GPFit, container: Container,
 
     Parameters
     ----------
-    gp : GPFit
+    igp : IterativeGPFitting
         The fitted Gaussian Process model.
     container : Container
         The container object that holds the boundaries.
+    gp_results : dict
+        results from gp.fit() necessary for performing the 
+        kernel integral
     return_std : bool
         When True, return the standard deviation of GP estimation
-    performance : float
-        the performance of the GP model under KFold CV
-    threshold : float
-        Performance threshold for the r2 score to 
-        stop the iterative process.
-    threshold_direction : str
-        one of 'up' and 'down'. 
-        if 'up', accept the model if score >= performance_threshold; 
-        if 'down', accept the model if score >= performance_threshold
     kernel_mean_post, kernel_var_post : functions, optional
         must be provided if not using RBF kernel
-        both take GPFit and Container and returns a float
+        kernel_mean_post : takes a GPFit, Container, 
+          and dictionary (gp fitting results)
+          and returns a float (integral estimate)
+        kernel_var_post : takes a GPFit, Container, 
+          and returns a float (posterior variance)
     kernel_post : function, optional
-        alternative to above, 
-        must take GPFit and Container and return_std : bool
-        and return estiamte and var_post simulaneously 
+        alternative to kernel_mean_post, kernel_var_post
+        must take GPFit, Container, dict (gp fitting results) 
+          and return_std : bool
+          and return estiamte and var_post simulaneously 
 
     Returns
     -------
@@ -622,21 +651,23 @@ def kernel_integration(gp: GPFit, container: Container,
         tuple has length 2, the second value is 
           integral evaluation std.
     """
+    gp = igp.gp
+
     if contains_rbf(gp.kernel_):   # RBF kernel
-        integral, k_tilde = kernel_mean_post(gp, container)
+        try:
+            performance = gp_results['performance']
+        except KeyError:
+            raise KeyError('cannot find performance in gp_results')
+        
+        integral, k_tilde = rbf_mean_post(gp, container, gp_results)
 
         if return_std:
-            def is_poor_fit(performance, threshold, direction):
-                if direction == 'up':
-                    return performance <= threshold
-                elif direction == 'down':
-                    return performance >= threshold
-                return False
-            
             # filter out GP with poor fits
-            if threshold is not None and performance is not None and (
-                threshold_direction is not None):
-                if is_poor_fit(performance, threshold, threshold_direction):
+            if igp.performance_threshold is not None and (
+                performance is not None) and (
+                igp.threshold_direction is not None):
+                if is_poor_fit(performance, igp.performance_threshold, 
+                               igp.threshold_direction):
                     warnings.warn(
                         'Warning: GP fitness is poor'
                         f' score = {performance}'
@@ -644,17 +675,17 @@ def kernel_integration(gp: GPFit, container: Container,
                         UserWarning)
                     var_post = 0
                 else: 
-                    var_post = kernel_var_post(container, gp, k_tilde)
+                    var_post = rbf_var_post(container, gp, k_tilde)
             else:
                 # mean of kernel on the container
                 var_post = rbf_var_post(container, gp, k_tilde)
-    elif kernel_mean_post is not rbf_mean_post and (
-        kernel_var_post is not rbf_var_post):  
-        integral = kernel_mean_post(gp, container)
+    elif kernel_mean_post is not None and (
+        kernel_var_post is not None):  
+        integral = kernel_mean_post(gp, container, gp_results)
         if return_std:
             var_post = kernel_var_post(gp, container)
     elif kernel_post is not None:
-        integral, var_post = kernel_post(gp, container, return_std)
+        integral, var_post = kernel_post(gp, container, gp_results, return_std)
     else:
         raise Exception(
             'kernel not RBF, '
@@ -707,7 +738,9 @@ def plotGP(gp: GPFit, xs: np.ndarray, ys: np.ndarray,
             )
         _plotGP2D(gp, xs, ys, mins[0], maxs[0], mins[1], maxs[1], plot_ci)
     else:
-        raise ValueError('This function only supports 1-dimensional and 2-dimensional problems')
+        raise ValueError(
+            'This function only supports 1-dimensional and 2-dimensional problems'
+            )
 
 def _plotGP1D(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
            x_min: float, x_max: float, plot_ci: Optional[bool]=True):
@@ -795,7 +828,8 @@ def _plotGP2D(gp: GPFit, xs: np.ndarray, ys: np.ndarray,
     plt.colorbar(label='GP mean')
 
     # Plot the original points
-    scatter = plt.scatter(xs[:, 0], xs[:, 1], c=ys, cmap='viridis', edgecolors='k', marker='o', label='Data points')
+    scatter = plt.scatter(xs[:, 0], xs[:, 1], c=ys, cmap='viridis', edgecolors='k', 
+                          marker='o', label='Data points')
 
     # Plot the confidence interval
     if plot_ci:
@@ -807,7 +841,9 @@ def _plotGP2D(gp: GPFit, xs: np.ndarray, ys: np.ndarray,
         # Add dummy plots for the legend
         lower_dummy_line = plt.Line2D([0], [0], linestyle='dashed', color='blue', alpha=0.5)
         upper_dummy_line = plt.Line2D([0], [0], linestyle='dashed', color='red', alpha=0.5)
-        plt.legend([scatter, lower_dummy_line, upper_dummy_line], ['Data points', '95% CI Lower Bound', '95% CI Upper Bound'])
+        plt.legend([scatter, lower_dummy_line, upper_dummy_line], ['Data points', 
+                                                                   '95% CI Lower Bound', 
+                                                                   '95% CI Upper Bound'])
 
     # Add labels and legend
     plt.xlabel('X-axis')

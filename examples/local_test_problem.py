@@ -16,21 +16,21 @@ problem = Camel(D=6)
 # problem = SimpleGaussian(D=1)
 
 rbfIntegral = RbfIntegral(max_redraw=4, threshold=0.5, n_splits=3)
-rbfIntegral_2 = RbfIntegral(range=30, max_redraw=4, threshold=0.5, n_splits=3)
 rmedianIntegral = RandomIntegral(n=20)
 rmeanIntegral = SmcIntegral(n=20)
 
 split = MinSseSplit()
 
 integ1 = SimpleIntegrator(8_000, 50, split, rbfIntegral)
-integ1.name = 'TQ with RBF'
+integ1.name = 'TQ with RBF, fitting to mean'
 
-integ2 = GpTreeIntegrator(8_000, 50, split, rbfIntegral_2, grid_size=0.01)
-integ2.name = 'TQ with RBF and hyper-parameter passing'
-
-integ3 = LimitedSampleIntegrator(1000, 500, 10, split, rmeanIntegral, 
+integ2 = LimitedSampleIntegrator(1000, 500, 10, split, rmeanIntegral, 
                                  lambda container: container.volume)
-integ3.name = 'LimitedSampleIntegrator'
+integ2.name = 'LimitedSampleIntegrator'
+
+rbfIntegral_2 = RbfIntegral(max_redraw=4, threshold=0.5, n_splits=3, fit_residuals=False)
+integ3 = SimpleIntegrator(8_000, 50, split, rbfIntegral_2)
+integ3.name = 'TQ with RBF'
 
 
 if __name__ == '__main__':

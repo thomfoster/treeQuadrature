@@ -1,7 +1,7 @@
 from treeQuadrature.exampleProblems import Problem
 from treeQuadrature.integrators import Integrator
 from treeQuadrature.compare_integrators import load_existing_results
-from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator
+from treeQuadrature.integrators import LimitedSampleIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator
 
 import time, csv, concurrent.futures
 
@@ -77,7 +77,7 @@ def test_integrators(integrators: List[Integrator],
 
             # Check if the result already exists and is valid
             key = (integrator_name, problem_name)
-            if key in existing_results and existing_results[key]['estimate'] != 'None':
+            if key in existing_results and existing_results[key]['estimate'] != '':
                 if verbose >= 1:
                     print(f'Skipping {integrator_name} for {problem_name}: already completed.')
                 results.append(existing_results[key])
@@ -106,6 +106,7 @@ def test_integrators(integrators: List[Integrator],
                 np.random.seed(seed + repeat)
                 start_time = time.time()
                 parameters = signature(integrator).parameters
+                break_integrator = False
 
                 def integrator_wrapper():
                     if 'verbose' in parameters and verbose >= 2:
@@ -136,9 +137,10 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': 'Exceeded max_time',
+                            'time_taken': f'Exceeded max_time {max_time}',
                             'errors': None
                         })
+                        break_integrator = True
                         break
                     except Exception as e:
                         print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
@@ -157,12 +159,16 @@ def test_integrators(integrators: List[Integrator],
                             'errors': None
                         })
                         print_exc()
+                        break_integrator = True
                         break
 
                 estimate = result['estimate']
                 n_evals = result['n_evals']
                 estimates.append(estimate)
                 n_evals_list.append(n_evals)
+
+            if break_integrator:
+                continue
 
             if len(estimates) == n_repeat:
                 estimates = np.array(estimates)

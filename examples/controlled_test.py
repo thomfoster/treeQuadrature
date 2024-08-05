@@ -91,7 +91,7 @@ def test_integrators(integrators: List[Integrator],
                 elif isinstance(integrator, SmcIntegrator):
                     integrator.N = n_eval
                 elif isinstance(integrator, LimitedSampleIntegrator):
-                    integrator.N = int(n_eval / 11)
+                    integrator.N = int(n_eval / (integrator.integral.n + 1))
             elif i > 0:
                 raise Exception('first integrator did not set n_eval')
 

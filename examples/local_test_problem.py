@@ -1,6 +1,6 @@
 from treeQuadrature.exampleProblems import PyramidProblem, SimpleGaussian, Camel
 from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator
-from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, SmcIntegral
+from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, SmcIntegral, AdaptiveRbfIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature import compare_integrators
 
@@ -10,29 +10,45 @@ from treeQuadrature import gaussianProcess
 # from treeQuadrature.integrators import gpTreeIntegrator
 from treeQuadrature.integrators import TreeIntegrator
 
+### Set problem
 # problem = PyramidProblem(D=5)
 problem = Camel(D=2)
 # problem = SimpleGaussian(D=1)
 
-rbfIntegral = RbfIntegral(max_redraw=4, threshold=0.5, n_splits=3)
-rmedianIntegral = RandomIntegral(n=20)
-rmeanIntegral = SmcIntegral(n=20)
+### set basic parameters
+n_samples = 20
+max_redraw = 6
+
+N = 8_000
+P = 50
+
+### Set ContainerIntegral
+rbfIntegral_mean = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, n_samples=n_samples, 
+                          range=1e3)
+rbfIntegral = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, 
+                            fit_residuals=False, 
+                            n_samples=n_samples, 
+                            range=1e3)
+aRbf = AdaptiveRbfIntegral(max_n_samples= int(max_redraw * n_samples))
+rmeanIntegral = SmcIntegral(n=n_samples)
 
 split = MinSseSplit()
 
-integ1 = SimpleIntegrator(8_000, 50, split, rbfIntegral)
+integ1 = SimpleIntegrator(N, P, split, rbfIntegral_mean)
 integ1.name = 'TQ with RBF, fitting to mean'
 
 integ2 = LimitedSampleIntegrator(1000, 500, 10, split, rmeanIntegral, 
                                  lambda container: container.volume)
 integ2.name = 'LimitedSampleIntegrator'
 
-rbfIntegral_2 = RbfIntegral(max_redraw=4, threshold=0.5, n_splits=3, fit_residuals=False)
-integ3 = SimpleIntegrator(8_000, 50, split, rbfIntegral_2)
+integ3 = SimpleIntegrator(N, P, split, rbfIntegral)
 integ3.name = 'TQ with RBF'
 
-integ4 = GpTreeIntegrator(8000, 40, split, rbfIntegral, grid_size=0.01)
+integ4 = SimpleIntegrator(N, P, split, rbfIntegral)
+integ4.name = 'TQ with Adaptive RBF'
 
+integ5 = GpTreeIntegrator(N, P, split, rbfIntegral, grid_size=0.01)
+integ5.name = 'Batch GP'
 
 if __name__ == '__main__':
     ### profile to test runnning time
@@ -47,9 +63,9 @@ if __name__ == '__main__':
 
 
     # profiler.enable_by_count()
-    compare_integrators([integ4, integ1], plot=False, 
+    compare_integrators([integ1, integ4], plot=False, 
                         xlim=[0.0, 1.0], ylim=[0.0, 1.0], 
                         problem=problem, verbose=False, dimensions=[0, 1], 
-                        n_repeat=1)
+                        n_repeat=10)
     # profiler.disable_by_count()
     # profiler.print_stats()

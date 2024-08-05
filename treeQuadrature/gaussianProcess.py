@@ -333,14 +333,20 @@ class IterativeGPFitting:
         if true, fit GP to residuals
     """
     def __init__(self, n_samples: int, max_redraw: int, n_splits: int,
-                 performance_threshold: float, threshold_direction: str, 
+                 performance_threshold: float, threshold_direction: str='up', 
                  gp: Optional[GPFit]=None, scoring: Callable = r2_score, 
                  fit_residuals: bool=True) -> None:
         self.n_samples = n_samples
+
+        if max_redraw < 0:
+            raise ValueError('max_redraw must be a positive integer')
         self.max_redraw = max_redraw
+
         self.performance_threshold = performance_threshold
         if threshold_direction not in ['up', 'down']:
-            raise ValueError("thershold_direction should be one of 'up' and 'down'")
+            raise ValueError(
+                "thershold_direction should be one of 'up' and 'down'"
+                )
         self.threshold_direction = threshold_direction
         if gp is None:
             gp = SklearnGPFit()
@@ -350,7 +356,8 @@ class IterativeGPFitting:
         self.fit_residuals = fit_residuals
 
     def fit(self, f: Callable, container: Union[Container, List[Container]], 
-                 kernel, add_samples: bool=True) -> dict:
+                 kernel, add_samples: bool=True,
+                 initial_samples: Optional[tuple]=None) -> dict:
         """
         fit GP on the container,
         the results can be accessed in self.gp
@@ -366,6 +373,9 @@ class IterativeGPFitting:
             the kernel used to fit GP
         add_sample : bool, optional (default=True)
             if true, add samples to the container(s)
+        initial_samples: tuple, optional
+            if given, start the fit using initial_samples
+            (xs, ys)
 
         Return
         ------
@@ -379,13 +389,24 @@ class IterativeGPFitting:
 
         while iteration <= self.max_redraw:
             # Draw samples
-            if isinstance(container, list):
-                samples = self.draw_samples_from_containers(container, 
-                                                                self.n_samples, f)
+            if initial_samples and iteration == 0:
+                if isinstance(initial_samples, tuple) and (
+                    len(initial_samples) == 2):
+                    xs = initial_samples[0]
+                    ys = initial_samples[1]
+                    samples = [(xs, ys, container)]
+                else:
+                    raise ValueError(
+                        "initial_samples should be a tuple of length 2"
+                        )
             else:
-                xs = container.rvs(self.n_samples)
-                ys = f(xs)
-                samples = [(xs, ys, container)]
+                if isinstance(container, list):
+                    samples = self.draw_samples_from_containers(container, 
+                                                                    self.n_samples, f)
+                else:
+                    xs = container.rvs(self.n_samples)
+                    ys = f(xs)
+                    samples = [(xs, ys, container)]
 
             # Extract samples for fitting
             xs = np.vstack([s[0] for s in samples])
@@ -459,7 +480,6 @@ class IterativeGPFitting:
             and the container they were drawn from.
         """
         # Calculate the total volume
-        ## TODO - allow user defined weights
         total_volume = sum(c.volume for c in containers)
 
         # Calculate the weights based on the volume of each container

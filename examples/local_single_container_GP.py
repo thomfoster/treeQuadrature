@@ -26,6 +26,10 @@ log_base = np.exp(1)
 
 for i in range(num_runs):
     for j, D in enumerate(Ds):
+        # increase length scale and GP search range with N
+        # integ.integral = RbfIntegral(length = np.log(D+log_base-1) / np.log(log_base), range = 500 * np.log(D+1))
+        integ.integral = RbfIntegral(length = D * 3, range = 500 * np.log(D+1))
+
         base_N = int(N * np.log(D+log_base-1) / np.log(log_base))
         print(f'Run {i+1}, D={D}, base_N={base_N}')
         problem = Camel(D)
@@ -89,7 +93,7 @@ plt.close()
 ### Plot time to fit GP
 plt.plot(Ds, mean_times, label='Mean Time')
 plt.fill_between(Ds, mean_times - std_times, mean_times + std_times, alpha=0.2, label='Std Dev')
-plt.title('Time to fit GP in one container vs Dimension of Problem')
+plt.title('Time to fit GP in the largest container vs Dimension of Problem')
 plt.xlabel('Dimension')
 plt.ylabel('Time (s)')
 plt.legend()

@@ -40,14 +40,20 @@ for D in Ds:
 
 rbfIntegral = RbfIntegral(range=args.gp_range, max_redraw=args.max_redraw, threshold=args.threshold, n_splits=args.n_splits)
 ranIntegral = SmcIntegral()
+rbfIntegral_2 = RbfIntegral(range=args.gp_range, max_redraw=args.max_redraw, threshold=args.threshold, n_splits=args.n_splits, 
+                            fit_residuals=False)
 
 ### Splits
 split = MinSseSplit()
 
 ### Integrators
 integ1 = SimpleIntegrator(base_N=args.base_N, P=args.P, 
-                          split=split, integral=rbfIntegral)
+                          split=split, integral=rbfIntegral_2)
 integ1.name = 'TQ with RBF'
+
+integ2 = SimpleIntegrator(base_N=args.base_N, P=args.P, 
+                          split=split, integral=rbfIntegral)
+integ2.name = 'TQ with RBF (mean)'
 
 integ3 = LimitedSampleIntegrator(N=args.lsi_N, base_N=args.lsi_base_N, 
                                  active_N=args.lsi_active_N, 
@@ -69,7 +75,7 @@ output_path = os.path.join(script_dir,
                            f"../test_results/results_{'_'.join(map(str, Ds))}D_{args.n_repeat}repeat_{args.base_N}base_N.csv")
 
 if __name__ == '__main__':
-    test_integrators([integ1, integ3, integ4, integ5, integ6],
+    test_integrators([integ1, integ2, integ3, integ4, integ5, integ6],
                     problems=problems, 
                     output_file=output_path,
                     max_time=args.max_time, n_repeat=args.n_repeat) 

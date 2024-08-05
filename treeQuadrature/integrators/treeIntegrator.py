@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List
+from typing import List, Union
 from inspect import signature
 
 import warnings
@@ -22,12 +22,11 @@ def parallel_container_integral(integral: ContainerIntegral,
                                 cont: Container, integrand: callable, 
                                 return_std: bool):
     if return_std:
-        contribution, std = integral.containerIntegral(cont, integrand, 
-                                                       return_std=True)
-        return contribution, std, cont
-    else:
-        contribution = integral.containerIntegral(cont, integrand)
-        return contribution, None, cont
+        integral_results = integral.containerIntegral(cont, integrand, 
+                                                      return_std=return_std)
+    else: 
+        integral_results = integral.containerIntegral(cont, integrand)
+    return integral_results, cont
 
 class TreeIntegrator(Integrator):
     """
@@ -83,7 +82,8 @@ class TreeIntegrator(Integrator):
     def __call__(self, problem: Problem, 
                  return_N: bool=False, return_containers: bool=False, 
                  return_std: bool=False, verbose: bool=False,
-                   *args, **kwargs) -> dict:
+                 return_all: bool=False, 
+                 *args, **kwargs) -> dict:
         """
         Perform the integration process.
 
@@ -118,6 +118,9 @@ class TreeIntegrator(Integrator):
               container in estimate, if return_containers is True
             - 'stds' (list[float]) : standard deviation of the 
               integral estimate in each container, if return_std is True
+        list[dict], list[Container]
+            if return_all, returns a list of raw results 
+            from self.integral.containerIntegral
         """
 
         if verbose: 
@@ -174,15 +177,18 @@ class TreeIntegrator(Integrator):
 
             results = []
             for future in as_completed(futures):
-                contribution, std, modified_cont = future.result()
-                results.append((contribution, std))
+                integral_results, modified_cont = future.result()
+                results.append(integral_results)
                 containers.append(modified_cont)
+        
+        if return_all:
+            return results, containers
 
         if compute_std:
-            contributions = [result[0] for result in results]
-            stds = [result[1] for result in results]
+            contributions = [result['integral'] for result in results]
+            stds = [result['std'] for result in results]
         else:
-            contributions = [result[0] for result in results]
+            contributions = [result['integral'] for result in results]
             stds = None
 
         G = np.sum(contributions)

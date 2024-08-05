@@ -8,7 +8,7 @@ from typing import Any, Callable
 class ContainerIntegral(ABC):
     @abstractmethod
     def containerIntegral(self, container: Container, f: Callable[..., np.ndarray], 
-                          **kwargs: Any) -> float:
+                          **kwargs: Any) -> dict:
         """
         Arguments
         ---------
@@ -22,8 +22,9 @@ class ContainerIntegral(ABC):
         
         Return
         ------
-        float
-            value of the integral of f on the container
+        dict
+            - integral (float) value of the integral of f on the container
+            - and other necessary results
         """
         pass
 

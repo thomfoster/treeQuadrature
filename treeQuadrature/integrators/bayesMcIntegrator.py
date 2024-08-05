@@ -76,10 +76,10 @@ class BayesMcIntegrator(Integrator):
         if isinstance(self.kernel, RBF):
             integral_result = kernel_integration(iGp, cont, gp_results, return_std)
             if return_std:
-                result['estimate'] = integral_result[0]
-                result['std'] = integral_result[1]
+                result['estimate'] = integral_result['integral']
+                result['std'] = integral_result['std']
             else:
-                result['estimate'] = integral_result
+                result['estimate'] = integral_result['integral']
         else:
             raise NotImplementedError
         

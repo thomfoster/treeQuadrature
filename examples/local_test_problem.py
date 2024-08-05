@@ -3,7 +3,6 @@ from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator
 from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, SmcIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature import compare_integrators
-import numpy as np
 
 ## profiling
 from line_profiler import LineProfiler
@@ -12,7 +11,7 @@ from treeQuadrature import gaussianProcess
 from treeQuadrature.integrators import TreeIntegrator
 
 # problem = PyramidProblem(D=5)
-problem = Camel(D=6)
+problem = Camel(D=2)
 # problem = SimpleGaussian(D=1)
 
 rbfIntegral = RbfIntegral(max_redraw=4, threshold=0.5, n_splits=3)
@@ -32,6 +31,8 @@ rbfIntegral_2 = RbfIntegral(max_redraw=4, threshold=0.5, n_splits=3, fit_residua
 integ3 = SimpleIntegrator(8_000, 50, split, rbfIntegral_2)
 integ3.name = 'TQ with RBF'
 
+integ4 = GpTreeIntegrator(8000, 40, split, rbfIntegral, grid_size=0.01)
+
 
 if __name__ == '__main__':
     ### profile to test runnning time
@@ -46,9 +47,9 @@ if __name__ == '__main__':
 
 
     # profiler.enable_by_count()
-    compare_integrators([integ1], plot=False, 
+    compare_integrators([integ4, integ1], plot=False, 
                         xlim=[0.0, 1.0], ylim=[0.0, 1.0], 
-                        problem=problem, verbose=True, dimensions=[0, 1], 
-                        n_repeat=5)
+                        problem=problem, verbose=False, dimensions=[0, 1], 
+                        n_repeat=1)
     # profiler.disable_by_count()
     # profiler.print_stats()

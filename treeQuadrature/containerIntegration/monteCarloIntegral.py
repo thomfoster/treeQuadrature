@@ -27,7 +27,8 @@ class RandomIntegral(ContainerIntegral):
         # I deliberately ignore previous samples which give skewed estimates
         y = np.median(ys)
 
-        return y * container.volume
+        integral_estimate = y * container.volume
+        return {'integral' : integral_estimate}
 
 
 class SmcIntegral(ContainerIntegral):
@@ -52,4 +53,6 @@ class SmcIntegral(ContainerIntegral):
         ys = f(samples)
         container.add(samples, ys)  # for tracking num function evaluations
         v = container.volume
-        return v * np.mean(ys)
+
+        integral_estimate = v * np.mean(ys)
+        return {'integral' : integral_estimate}

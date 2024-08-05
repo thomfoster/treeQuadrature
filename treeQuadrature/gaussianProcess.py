@@ -258,6 +258,14 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
     performance : float
         Performance measure using k-fold CV based on the provided scoring function.
     """
+
+    assert len(xs) == len(ys), (
+        "The number of samples in xs and ys must match. "
+        f"shape of xs : {xs.shape}; "
+        f"shape of ys : {ys.shape}"
+    )
+
+    ys = np.ravel(ys)
     
     kf = KFold(n_splits=n_splits)
     y_true = []
@@ -342,7 +350,7 @@ class IterativeGPFitting:
         self.fit_residuals = fit_residuals
 
     def fit(self, f: Callable, container: Union[Container, List[Container]], 
-                 kernel, add_samples: bool=True) -> float:
+                 kernel, add_samples: bool=True) -> dict:
         """
         fit GP on the container,
         the results can be accessed in self.gp
@@ -367,7 +375,7 @@ class IterativeGPFitting:
         """
         iteration = 0
 
-        all_xs, all_ys, all_residuals = None, None, None
+        all_xs, all_ys = None, None
 
         while iteration <= self.max_redraw:
             # Draw samples
@@ -563,7 +571,8 @@ def rbf_mean_post(gp: GPFit, container: Container, gp_results: dict):
     return np.dot(K_inv_y, k_tilde) + y_mean * container.volume, k_tilde
 
 
-def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray):
+def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray, 
+                 jitter: float = 1e-8, threshold: float = 1e10):
     """calculate the posterior variance of integral estimate obtained using RBF kernel"""
     b = container.maxs   # right boarder
     a = container.mins   # left boarder
@@ -584,6 +593,8 @@ def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray):
     k_mean = l * np.sqrt(np.pi / 2) * result
 
     K = gp.kernel_(xs)
+    if np.linalg.cond(K) > threshold:
+        K += np.eye(K.shape[0]) * jitter
     K_inv = np.linalg.inv(K)
     # posterior variance
     var_post = k_mean - np.dot(k_tilde.T, np.dot(K_inv, k_tilde))
@@ -615,7 +626,7 @@ def kernel_integration(igp: IterativeGPFitting, container: Container,
                        gp_results: dict, return_std: bool, 
                     kernel_mean_post: Optional[Callable]=None,
                     kernel_var_post: Optional[Callable]=None,
-                    kernel_post: Optional[Callable]=None) -> Union[float, tuple]:
+                    kernel_post: Optional[Callable]=None) -> dict:
     """
     Estimate the integral of the RBF kernel over 
     a given container and set of points.
@@ -646,22 +657,21 @@ def kernel_integration(igp: IterativeGPFitting, container: Container,
 
     Returns
     -------
-    float or tuple
-        float is the estimated integral value, 
-        tuple has length 2, the second value is 
-          integral evaluation std.
+    dict
+        - integral (float) the integral estimate
+        - std (float) standard deviation of integral
     """
     gp = igp.gp
 
-    if contains_rbf(gp.kernel_):   # RBF kernel
-        try:
-            performance = gp_results['performance']
-        except KeyError:
-            raise KeyError('cannot find performance in gp_results')
-        
+    if contains_rbf(gp.kernel_):   # RBF kernel        
         integral, k_tilde = rbf_mean_post(gp, container, gp_results)
 
         if return_std:
+            try:
+                performance = gp_results['performance']
+            except KeyError:
+                raise KeyError('cannot find performance in gp_results')
+            
             # filter out GP with poor fits
             if igp.performance_threshold is not None and (
                 performance is not None) and (
@@ -692,6 +702,8 @@ def kernel_integration(igp: IterativeGPFitting, container: Container,
             'either kernel_mean_post, kernel_var_post '
             'or kernel_post must be provided'
             )
+    
+    ret = {'integral' : integral}
             
     # value check
     if return_std and var_post < 0:
@@ -707,9 +719,9 @@ def kernel_integration(igp: IterativeGPFitting, container: Container,
         var_post = 0
 
     if return_std:
-        return (integral, np.sqrt(var_post))
-    else:
-        return integral
+        ret['std'] = np.sqrt(var_post)
+
+    return ret
 
 
 def plotGP(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 

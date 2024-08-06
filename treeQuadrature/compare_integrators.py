@@ -155,17 +155,12 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
 
 
 ## add protection to code interruption
-def load_existing_results(output_file: str) -> List[Dict[str, Any]]:
-    existing_results = {}
-    if os.path.exists(output_file):
-        with open(output_file, mode='r', newline='') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                key = (row['integrator'], row['problem'])
-                if row['estimate'] != 'None':
-                    existing_results[key] = row
-
-    return existing_results
+def load_existing_results(output_file: str) -> dict:
+    if not os.path.exists(output_file):
+        return {}
+    with open(output_file, mode='r', newline='') as file:
+        reader = csv.DictReader(file)
+        return {(row['integrator'], row['problem']): row for row in reader}
 
 def test_integrators(integrators: List[Integrator], 
                      problems: List[Problem], 
@@ -212,6 +207,7 @@ def test_integrators(integrators: List[Integrator],
     existing_results = load_existing_results(output_file)
 
     results = []
+    new_results = []
 
     for problem in problems:
         problem_name = str(problem)
@@ -260,7 +256,7 @@ def test_integrators(integrators: List[Integrator],
                             f'Time limit exceeded for {integrator_name} on {problem_name}, '
                             'increase max_time or change the problem/integrator'
                             )
-                        results.append({
+                        new_results.append({
                             'integrator': integrator_name,
                             'problem': problem_name,
                             'true_value': problem.answer,
@@ -277,7 +273,7 @@ def test_integrators(integrators: List[Integrator],
                         break
                     except Exception as e:
                         print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
-                        results.append({
+                        new_results.append({
                             'integrator': integrator_name,
                             'problem': problem_name,
                             'true_value': problem.answer,
@@ -316,7 +312,7 @@ def test_integrators(integrators: List[Integrator],
                     error_std = np.std(errors)
                     error_name = 'Signed Absolute error'
 
-                results.append({
+                new_results.append({
                     'integrator': integrator_name,
                     'problem': problem_name,
                     'true_value': problem.answer,
@@ -330,14 +326,17 @@ def test_integrators(integrators: List[Integrator],
                     'time_taken': avg_time_taken, 
                     'errors': errors
                 })
+
+            first_run = not os.path.exists(output_file)
     
             # Save for each integrator and each problem
-            with open(output_file, mode='w', newline='') as file:
+            with open(output_file, mode='a', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=[
                     'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
                     'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
-                writer.writeheader()
-                for result in results:
+                if first_run:
+                    writer.writeheader()
+                for result in new_results:
                     writer.writerow(result)
 
     print(f'Results saved to {output_file}')

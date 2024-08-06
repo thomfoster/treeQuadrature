@@ -8,14 +8,14 @@ from treeQuadrature.integrators import SimpleIntegrator
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.container import Container
 
-Ds = np.arange(2, 15, 2)  # try 2, 5, 8, 10 various dimensions
+Ds = np.arange(2, 15, 3)   # test dimensions
 n_repeats = 5  # Number of times to repeat the experiment
 
 for D in Ds:
     problem = Camel(D)
 
     # Define a range of base_N values to test
-    base_N_values = range(6000, 15000, 1500)
+    base_N_values = range(5000, 35000, 5000)
     P_values = range(20, 81, 15)
 
     # DataFrame to store the results
@@ -75,7 +75,7 @@ for D in Ds:
     plt.xlabel('Base_N (Initial Sample Size)', fontsize=20)
     plt.ylabel('P (Max Samples per Container)', fontsize=20)
     plt.title(f'Average Sample Size per Container for {str(problem)}')
-    plt.savefig(f'figures/sample_size_container_{D}D')
+    plt.savefig(f'figures/base_N_P/sample_size_container_{str(problem)}.png')
     plt.close()
 
     # Plotting std of integrand in small containers as heatmap
@@ -86,11 +86,11 @@ for D in Ds:
     plt.yticks(np.arange(len(P_values)), P_values)
     plt.xlabel('Base_N (Initial Sample Size)', fontsize=20)
     plt.ylabel('P (Max Samples per Container)', fontsize=20)
-    plt.title(f'Std of Integrand in Small Containers (N = 1) \n for {str(problem)} ')
 
     # Mark invalid entries with a specific color 
     for (i, j), val in np.ndenumerate(avg_std_smalls):
         if np.isnan(val):
             plt.text(j, i, 'X', ha='center', va='center', color='red', fontsize=12)
 
-    plt.savefig(f'figures/std_small_container_{D}D')
+    plt.savefig(f'figures/base_N_P/std_small_container_{str(problem)}.png')
+    plt.close()

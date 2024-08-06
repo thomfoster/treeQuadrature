@@ -216,7 +216,7 @@ class Container:
     def y(self):
         return self._y.contents
 
-    def rvs(self, n):
+    def rvs(self, n: int):
         """
         Draw uniformly random samples from the container
         

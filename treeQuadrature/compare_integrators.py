@@ -11,7 +11,7 @@ from traceback import print_exc
 import os
 
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
-                        plot: bool=False, verbose: bool=False, 
+                        plot: bool=False, verbose: int=1, 
                         xlim: Optional[List[float]]=None, 
                         ylim: Optional[List[float]]=None,
                         dimensions: Optional[List[float]]=None,
@@ -43,9 +43,11 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
     plot : bool, optional
         Whether to plot the contributions of the integrators.
         Default is False.
-    verbose : bool, optional
-        If true, print the stages of the test.
-        Default is False.
+    verbose : int, optional
+        If 0, print no message;
+        if 1, print the test runrs;
+        if 2, print the messages within integrators
+        Default is 1.
     xlim, ylim : List[float], optional
         The limits for the plot containers.
         Will not be used when plot=False.
@@ -56,29 +58,36 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         Default is 1.
     """
     print(f'True value: {problem.answer}')
-    D = problem.D
 
     for i, integrator in enumerate(integrators):
         integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
 
-        if verbose:
+        if verbose >= 1:
             print(f'Testing {integrator_name}')
 
         estimates = []
         n_evals_list = []
         times = []
 
-        for _ in range(n_repeat):
+        for i in range(n_repeat):
+            if verbose >= 1:
+                print(f'Run {i}')
             start_time = time.time()
             try:
                 # Perform integration
                 parameters = signature(integrator).parameters
                 if 'verbose' in parameters and 'return_containers' in parameters:
-                    result = integrator(problem, return_N=True, return_containers=True, verbose=verbose)
+                    if verbose >= 2:
+                        result = integrator(problem, return_N=True, return_containers=True, verbose=True)
+                    else:
+                        result = integrator(problem, return_N=True, return_containers=True, verbose=False)
                 elif 'return_containers' in parameters:
                     result = integrator(problem, return_N=True, return_containers=True)
                 elif 'verbose' in parameters:
-                    result = integrator(problem, return_N=True, verbose=verbose)
+                    if verbose >= 2:
+                        result = integrator(problem, return_N=True, verbose=True)
+                    else:
+                        result = integrator(problem, return_N=True, verbose=False)
                 else:
                     result = integrator(problem, return_N=True)
             except Exception as e:

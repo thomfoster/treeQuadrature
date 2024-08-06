@@ -1,8 +1,9 @@
-from typing import Dict, Any, Callable, Optional
+from typing import Dict, Any, Callable, Optional, Union
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.metrics import pairwise_distances
 import numpy as np
 import warnings
+from traceback import print_exc
 
 from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, kernel_integration, GPFit
 from .containerIntegral import ContainerIntegral
@@ -211,9 +212,11 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
     Attributes
     -----------
+    min_n_samples : int
+        number of samples to draw in the smallest container
+        for larger containers, sample size increases
     max_n_samples : int
-        number of samples to draw in the largest container
-        for smaller containers, it decreases linearly 
+        upper cap for samples size to control the fitting time
     gp : GPFit
         default is SklearnGPFit
     iGP : IterativeGPFit
@@ -223,19 +226,57 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     fit_residuals : bool
         if True, GP is fitted to residuals
         instead of samples
+    sample_scaling : str or Callable, optional
+        The way sample size increase with volume
+        should be one of 'linear', 'sqrt', or 'exponential'; 
+        If callable, should take a float (ratio of current volume to smallest volume)
+        and return a float (scaled ratio to be multiplied to min_n_samples)
     """
-    def __init__(self, max_n_samples: int=200,
+    def __init__(self, min_n_samples: int=15, max_n_samples: int=200,
                  fit_residuals: bool=True,
                  return_std: bool=False, 
-                 gp: Optional[GPFit]=None) -> None:
+                 gp: Optional[GPFit]=None, 
+                 sample_scaling: Union[str, Callable]='linear') -> None:
+        if min_n_samples < 1:
+            raise ValueError('min_n_samples must be at least 1')
+        if min_n_samples > max_n_samples:
+            raise ValueError(
+                'max_n_samples must be greater than or equal to min_n_samples')
+        self.min_n_samples = min_n_samples
         self.max_n_samples = max_n_samples
         self.gp = gp
         self.fit_residuals = fit_residuals
         self.return_std = return_std
+        self.sample_scaling = sample_scaling
+
+    def volume_scaling(self, container: Container, min_cont_size: float):
+        if self.sample_scaling == 'linear':
+            n = int(self.min_n_samples * (container.volume / min_cont_size))
+        elif self.sample_scaling == 'sqrt':
+            n = int(self.min_n_samples * np.sqrt(container.volume / min_cont_size))
+        elif self.sample_scaling == 'exponential':
+            n = int(self.min_n_samples * (container.volume / min_cont_size) ** (1/container.D))
+        elif isinstance(self.sample_scaling, Callable):
+            try:
+                n = int(self.min_n_samples * self.sample_scaling(container.volume / min_cont_size))
+            except Exception:
+                print_exc()
+                raise Exception(
+                    'Exception occured when scaling volume ratio, please check sample_scaling function. '
+                    'It should take a float and return a float'
+                    )
+            
+            if n < 1:
+                raise ValueError('n should be at least 1, please check sample_scaling function')
+        else:
+            raise ValueError("sample_scaling must be one of ['linear', 'sqrt', or 'exponential'] "
+                             "or a callable function")
+        
+        return min(self.max_n_samples, n)
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
-                          max_cont_size: float) -> Dict:
+                          min_cont_size: float) -> Dict:
         """
         Arguments
         ---------
@@ -256,18 +297,21 @@ class AdaptiveRbfIntegral(ContainerIntegral):
             - hyper_params (dict): hyper-parameters of the fitted kernel
             - performance (float): GP goodness of fit score
         """
-        n_samples = self.max_n_samples * (container.volume / max_cont_size)
+        
+        n_samples = self.volume_scaling(container, min_cont_size)
 
         xs = container.rvs(n_samples)
         ys = f(xs)
 
         pairwise_dists = pairwise_distances(xs)
-        mean_dist = np.mean(pairwise_dists)
+        # Mask the diagonal
+        mask = np.eye(pairwise_dists.shape[0], dtype=bool)
+        pairwise_dists = np.ma.masked_array(pairwise_dists, mask)
 
+        mean_dist = np.mean(pairwise_dists)
         D = xs.shape[1]
         initial_length = mean_dist / np.sqrt(D)
-        smallest_dist = np.min(pairwise_dists + 
-                               np.eye(len(xs)) * np.inf)  # avoid zero diagonal
+        smallest_dist = np.min(pairwise_dists)  
         largest_dist = np.max(pairwise_dists)
 
         bounds = (smallest_dist / 10, 10 * largest_dist)

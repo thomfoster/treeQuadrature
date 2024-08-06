@@ -20,10 +20,10 @@ default_sampler = UniformSampler()
 
 def parallel_container_integral(integral: ContainerIntegral, 
                                 cont: Container, integrand: callable, 
-                                return_std: bool, max_cont_size: float):
+                                return_std: bool, min_cont_size: float):
     params = {}
-    if isinstance(integral, AdaptiveRbfIntegral) and max_cont_size is not None:
-        params['max_cont_size'] = max_cont_size
+    if isinstance(integral, AdaptiveRbfIntegral) and min_cont_size is not None:
+        params['min_cont_size'] = min_cont_size
     elif hasattr(integral, 'get_additional_params'):
         params.update(integral.get_additional_params())
 
@@ -161,9 +161,9 @@ class TreeIntegrator(Integrator):
             finished_containers = self.construct_tree(root, *args, **kwargs)
 
         if isinstance(self.integral, AdaptiveRbfIntegral):
-            max_cont_size = max(cont.volume for cont in finished_containers)
+            min_cont_size = min(cont.volume for cont in finished_containers)
         else:
-            max_cont_size = None
+            min_cont_size = None
 
         # uncertainty estimates
         compute_std = return_std and hasattr(self.integral, 'return_std')
@@ -184,7 +184,7 @@ class TreeIntegrator(Integrator):
             futures = {
                 executor.submit(parallel_container_integral, 
                                 self.integral, cont, problem.integrand, 
-                                compute_std, max_cont_size): cont
+                                compute_std, min_cont_size): cont
                 for cont in finished_containers
             }
 

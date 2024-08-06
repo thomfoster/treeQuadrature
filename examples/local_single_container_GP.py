@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import time
 
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import RbfIntegral
+from treeQuadrature.containerIntegration import RbfIntegral, AdaptiveRbfIntegral
 from treeQuadrature.integrators import SimpleIntegrator
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.container import Container
@@ -22,13 +22,13 @@ avg_samples = np.zeros((num_runs, len(Ds)))
 min_samples = np.zeros((num_runs, len(Ds)))
 max_samples = np.zeros((num_runs, len(Ds)))
 
-log_base = np.exp(1)
+log_base = 2
 
 for i in range(num_runs):
     for j, D in enumerate(Ds):
         # increase length scale and GP search range with N
         # integ.integral = RbfIntegral(length = np.log(D+log_base-1) / np.log(log_base), range = 500 * np.log(D+1))
-        integ.integral = RbfIntegral(length = D * 3, range = 500 * np.log(D+1))
+        integ.integral = AdaptiveRbfIntegral(sample_scaling='exponential')
 
         base_N = int(N * np.log(D+log_base-1) / np.log(log_base))
         print(f'Run {i+1}, D={D}, base_N={base_N}')
@@ -44,10 +44,12 @@ for i in range(num_runs):
         min_samples[i, j] = np.min(container_samples)
         max_samples[i, j] = np.max(container_samples)
 
+        min_cont_size = min([cont.volume for cont in containers])
+
         largest_container = max(containers, key=lambda container: container.N)
 
         start_time = time.time()
-        integ.integral.containerIntegral(largest_container, problem.integrand)
+        integ.integral.containerIntegral(largest_container, problem.integrand, min_cont_size)
         end_time = time.time()
 
         n_cont = len(containers)

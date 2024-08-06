@@ -226,17 +226,20 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     fit_residuals : bool
         if True, GP is fitted to residuals
         instead of samples
-    sample_scaling : str or Callable, optional
+    sample_scaling : str or Callable,
         The way sample size increase with volume
         should be one of 'linear', 'sqrt', or 'exponential'; 
         If callable, should take a float (ratio of current volume to smallest volume)
         and return a float (scaled ratio to be multiplied to min_n_samples)
+    alpha : float
+        Controls the aggressiveness of exponential sample scaling
     """
     def __init__(self, min_n_samples: int=15, max_n_samples: int=200,
                  fit_residuals: bool=True,
                  return_std: bool=False, 
                  gp: Optional[GPFit]=None, 
-                 sample_scaling: Union[str, Callable]='linear') -> None:
+                 sample_scaling: Union[str, Callable]='linear', 
+                 alpha: float=0.2) -> None:
         if min_n_samples < 1:
             raise ValueError('min_n_samples must be at least 1')
         if min_n_samples > max_n_samples:
@@ -248,6 +251,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.fit_residuals = fit_residuals
         self.return_std = return_std
         self.sample_scaling = sample_scaling
+        self.alpha = alpha
 
     def volume_scaling(self, container: Container, min_cont_size: float):
         if self.sample_scaling == 'linear':
@@ -255,7 +259,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         elif self.sample_scaling == 'sqrt':
             n = int(self.min_n_samples * np.sqrt(container.volume / min_cont_size))
         elif self.sample_scaling == 'exponential':
-            n = int(self.min_n_samples * (container.volume / min_cont_size) ** (1/container.D))
+            n = int(self.min_n_samples * (container.volume / min_cont_size) ** 
+                    (self.alpha * container.D))
         elif isinstance(self.sample_scaling, Callable):
             try:
                 n = int(self.min_n_samples * self.sample_scaling(container.volume / min_cont_size))

@@ -117,8 +117,8 @@ class SimpleIntegrator(TreeIntegrator):
         
         if iteration_count == max_iter:
             warnings.warn(
-                'maximum iterations reached, either '
-                'incresae max_iter or check split and samples', 
+                'maximum iterations reached for constructing the tree, '
+                'either incresae max_iter or check split and samples', 
                 RuntimeWarning)
                 
         return finished_containers

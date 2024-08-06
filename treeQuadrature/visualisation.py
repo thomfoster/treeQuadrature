@@ -210,7 +210,8 @@ def plotContainer(ax: Axes, container: Container, dim1: int, dim2: int,
     )
     ax.add_patch(rect)
 
-def plotIntegrand(integrand, D, xlim, ylim=None, n_points=500, levels=10):
+def plotIntegrand(integrand, D, xlim, ylim=None, n_points=500, levels=10, 
+                  file_path: Optional[str]=None):
     """
     Plot the integrand
     2D problems: Contour lines used
@@ -234,25 +235,33 @@ def plotIntegrand(integrand, D, xlim, ylim=None, n_points=500, levels=10):
         levels of the Contour plot
         ignored when D = 1
         Defaults to 10
+    file_path : str, optional
+        If given, the figure will be saved to 
+        the specified path. 
     """
 
     if D == 1:
-        _plot1D(integrand, xlim, n_points)
+        _plot1D(integrand, xlim, n_points, file_path)
     elif D == 2:
-        _plot2D(integrand, xlim, ylim, levels, n_points)
+        _plot2D(integrand, xlim, ylim, levels, n_points, file_path)
     else:
         raise Exception('only supports 1D and 2D problems')
 
-def _plot1D(f, xlim, n_points):
+def _plot1D(f, xlim, n_points, file_path):
     x = np.linspace(xlim[0], xlim[1], n_points)
     ys = f(x)
 
     plt.plot(x, ys)
     plt.xlabel('x')
     plt.ylabel('Value')
-    plt.show()
+    if file_path:
+        plt.savefig(file_path)
+        plt.close()
+        print(f'figure saved to {file_path}')
+    else:
+        plt.show()
 
-def _plot2D(f, xlim, ylim, levels, n_points):
+def _plot2D(f, xlim, ylim, levels, n_points, file_path):
     """
     plot Contour lines of a 2D distribution 
     Automatically adapts the grid to significant values
@@ -282,7 +291,13 @@ def _plot2D(f, xlim, ylim, levels, n_points):
     plt.xlabel('x')
     plt.ylabel('y')
     plt.colorbar(contour)
-    plt.show()
+
+    if file_path:
+        plt.savefig(file_path)
+        plt.close()
+        print(f'figure saved to {file_path}')
+    else:
+        plt.show()
 
 
 def plot_errors(data: pd.DataFrame, genres: List[str], 

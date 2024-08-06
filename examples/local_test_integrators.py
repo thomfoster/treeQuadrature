@@ -2,7 +2,7 @@ import argparse, os
 
 from controlled_test import test_integrators
 from treeQuadrature.exampleProblems import SimpleGaussian, Camel, QuadCamel
-from treeQuadrature.containerIntegration import SmcIntegral, RbfIntegral
+from treeQuadrature.containerIntegration import SmcIntegral, AdaptiveRbfIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator
 
@@ -13,7 +13,6 @@ parser.add_argument('--threshold', type=float, default=0.5, help='Performance th
 parser.add_argument('--max_redraw', type=int, default=4, help='Max redraw attempts for RbfIntegral (default: 4)')
 parser.add_argument('--n_splits', type=int, default=4, help='number of splits for K-fold CV in fitting GP (default: 4)')
 parser.add_argument('--n_samples', type=int, default=15, help='number of samples drawn from each container (default: 15)')
-parser.add_argument('--gp_range', type=float, default=100.0, help='Range of GP tuning (default: 100.0)')
 parser.add_argument('--base_N', type=int, default=10_000, help='Base sample size for integrators (default: 10_000)')
 parser.add_argument('--lsi_N', type=int, default=2_000, help='Maximum sample size for LimitedSampleIntegrator (default: 2_000)')
 parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleIntegrator (default: 1_000)')
@@ -39,11 +38,12 @@ for D in Ds:
                
 ### container Integrals 
 
-rbfIntegral = RbfIntegral(range=args.gp_range, max_redraw=args.max_redraw, threshold=args.threshold, n_splits=args.n_splits, 
-                          n_samples=args.n_samples)
+rbfIntegral = AdaptiveRbfIntegral(max_redraw=args.max_redraw, threshold=args.threshold, 
+                                  n_splits=args.n_splits, min_n_samples=args.n_samples)
 ranIntegral = SmcIntegral(n=args.n_samples)
-rbfIntegral_2 = RbfIntegral(range=args.gp_range, max_redraw=args.max_redraw, threshold=args.threshold, n_splits=args.n_splits, 
-                            fit_residuals=False)
+rbfIntegral_2 = AdaptiveRbfIntegral(max_redraw=args.max_redraw, threshold=args.threshold, 
+                                    n_splits=args.n_splits, min_n_samples=args.n_samples, 
+                                    fit_residuals=False)
 
 ### Splits
 split = MinSseSplit()
@@ -74,7 +74,7 @@ integ6.name = 'SMC'
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_path = os.path.join(script_dir, 
-                           f"../test_results/results_{'_'.join(map(str, Ds))}D_{args.n_repeat}repeat_{args.base_N}base_N.csv")
+                           f"../test_results/third_run/results_{'_'.join(map(str, Ds))}D_{args.n_repeat}repeat_{args.base_N}base_N.csv")
 
 if __name__ == '__main__':
     test_integrators([integ1, integ2, integ3, integ4, integ5, integ6],

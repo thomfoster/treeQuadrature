@@ -254,20 +254,21 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.alpha = alpha
 
     def volume_scaling(self, container: Container, min_cont_size: float):
+        ratio = (container.volume / min_cont_size) ** (1 / container.D)
         if self.sample_scaling == 'linear':
-            n = int(self.min_n_samples * (container.volume / min_cont_size))
+            n = int(self.min_n_samples * ratio)
         elif self.sample_scaling == 'sqrt':
-            n = int(self.min_n_samples * np.sqrt(container.volume / min_cont_size))
+            n = int(self.min_n_samples * np.sqrt(ratio))
         elif self.sample_scaling == 'exponential':
-            n = int(self.min_n_samples * (container.volume / min_cont_size) ** 
+            n = int(self.min_n_samples * ratio ** 
                     (self.alpha * container.D))
         elif isinstance(self.sample_scaling, Callable):
             try:
-                n = int(self.min_n_samples * self.sample_scaling(container.volume / min_cont_size))
+                n = int(self.min_n_samples * self.sample_scaling(ratio))
             except Exception:
                 print_exc()
                 raise Exception(
-                    'Exception occured when scaling volume ratio, please check sample_scaling function. '
+                    'Exception ocured when scaling volume ratio, please check sample_scaling function. '
                     'It should take a float and return a float'
                     )
             
@@ -277,6 +278,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
             raise ValueError("sample_scaling must be one of ['linear', 'sqrt', or 'exponential'] "
                              "or a callable function")
         
+        if n > self.max_n_samples:
+            print('maximum sample size reached')
         return min(self.max_n_samples, n)
 
     def containerIntegral(self, container: Container, 

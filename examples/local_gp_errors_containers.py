@@ -19,8 +19,8 @@ if __name__ == '__main__':
     # number of containers to plot 
     n_containers = 10
 
-    rbfIntegral = AdaptiveRbfIntegral(max_redraw=0,
-                                      n_splits=5, return_std=True)
+    rbfIntegral = AdaptiveRbfIntegral(max_redraw=0, n_splits=5, 
+                                      return_std=True)
     rmeanIntegral = SmcIntegral(n=20)
 
     split = MinSseSplit()
@@ -47,7 +47,9 @@ if __name__ == '__main__':
         error = estimate - true_value
         return container, gp_results['performance'], error, gp_results['std']
 
-    selected_containers = sorted(containers, key=lambda c : c.volume, 
+    # select the largest containers
+    selected_containers = sorted(containers, 
+                                 key=lambda c: c.volume, 
                                  reverse=True)[:n_containers]
 
     for n in ns:
@@ -66,28 +68,37 @@ if __name__ == '__main__':
                 results[container]['error'].append(error)
                 results[container]['std'].append(std)
 
+    # Plot R^2 score vs Error
     plt.figure()
     for container in selected_containers:
-        data = results[container]
-        plt.plot(data['performance'], data['error'], marker='o', label=f'volume {container.volume:.3f}')
+        container_id = str(id(container))
+        if container_id in results:
+            data = results[container_id]
+            plt.plot(data['performance'], data['error'], marker='o', 
+                     label=f'volume {container.volume:.3f}')
 
     plt.title(f'R^2 score vs Error for {n_containers} Largest Volume Containers')
     plt.xlabel('R^2 score')
     plt.ylabel('Error')
     plt.grid(True)
-    plt.legend()
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1), ncol=1)  # Adjust legend position
+    plt.tight_layout(rect=[0, 0, 0.85, 1])  # Adjust layout to make room for legend
     plt.savefig(f'figures/r2_errors_containers_{str(problem)}.png')
     plt.close()
 
+    # Plot Posterior std vs Error
     plt.figure()
     for container in selected_containers:
-        data = results[container]
-        plt.plot(data['std'], data['error'], marker='o', label=f'volume {container.volume:.3f}')
+        container_id = str(id(container))
+        if container_id in results:
+            data = results[container_id]
+            plt.plot(data['std'], data['error'], marker='o', label=f'volume {container.volume:.3f}')
 
     plt.title(f'Posterior std vs Error for {n_containers} Largest Volume Containers')
     plt.xlabel('Posterior Std')
     plt.ylabel('Error')
     plt.grid(True)
-    plt.legend()
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1), ncol=1)  # Adjust legend position
+    plt.tight_layout(rect=[0, 0, 0.85, 1])  # Adjust layout to make room for legend
     plt.savefig(f'figures/gp_std_errors_containers_{str(problem)}.png')
     plt.close()

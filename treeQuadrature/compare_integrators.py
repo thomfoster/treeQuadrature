@@ -161,6 +161,17 @@ def load_existing_results(output_file: str) -> dict:
     with open(output_file, mode='r', newline='') as file:
         reader = csv.DictReader(file)
         return {(row['integrator'], row['problem']): row for row in reader}
+    
+def write_results(output_file: str, results: List[dict], write_header: bool, 
+                  mode: str='a'):
+    with open(output_file, mode=mode, newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=[
+            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
+        if write_header:
+            writer.writeheader()
+        for result in results:
+            writer.writerow(result)
 
 def test_integrators(integrators: List[Integrator], 
                      problems: List[Problem], 
@@ -206,8 +217,13 @@ def test_integrators(integrators: List[Integrator],
 
     existing_results = load_existing_results(output_file)
 
+    if existing_results:
+        is_first_run = False
+    else:
+        is_first_run = True
+
     results = []
-    new_results = []
+    n_eval = None
 
     for problem in problems:
         problem_name = str(problem)
@@ -256,7 +272,7 @@ def test_integrators(integrators: List[Integrator],
                             f'Time limit exceeded for {integrator_name} on {problem_name}, '
                             'increase max_time or change the problem/integrator'
                             )
-                        new_results.append({
+                        new_result = {
                             'integrator': integrator_name,
                             'problem': problem_name,
                             'true_value': problem.answer,
@@ -269,11 +285,11 @@ def test_integrators(integrators: List[Integrator],
                             'n_evals_std': None,
                             'time_taken': f'Exceeded {max_time}s',
                             'errors': None
-                        })
+                        }
                         break
                     except Exception as e:
                         print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
-                        new_results.append({
+                        new_result = {
                             'integrator': integrator_name,
                             'problem': problem_name,
                             'true_value': problem.answer,
@@ -286,7 +302,7 @@ def test_integrators(integrators: List[Integrator],
                             'n_evals_std': None,
                             'time_taken': None,
                             'errors': None
-                        })
+                        }
                         print_exc()
                         break
 
@@ -312,7 +328,7 @@ def test_integrators(integrators: List[Integrator],
                     error_std = np.std(errors)
                     error_name = 'Signed Absolute error'
 
-                new_results.append({
+                new_result = {
                     'integrator': integrator_name,
                     'problem': problem_name,
                     'true_value': problem.answer,
@@ -325,18 +341,16 @@ def test_integrators(integrators: List[Integrator],
                     'n_evals_std': np.std(n_evals_list),
                     'time_taken': avg_time_taken, 
                     'errors': errors
-                })
-
-            first_run = not os.path.exists(output_file)
+                }
     
-            # Save for each integrator and each problem
-            with open(output_file, mode='a', newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=[
-                    'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
-                if first_run:
-                    writer.writeheader()
-                for result in new_results:
-                    writer.writerow(result)
+            # Update the existing results
+            existing_results[key] = new_result
+
+            # Write results incrementally to ensure recovery
+            write_results(output_file, [new_result], 
+                            is_first_run)
+            is_first_run = False
+
+    write_results(output_file, list(existing_results.values()), True, mode='w')
 
     print(f'Results saved to {output_file}')

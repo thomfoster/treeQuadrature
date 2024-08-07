@@ -156,11 +156,10 @@ class RbfIntegral(ContainerIntegral):
         Return
         ------
         dict
-            - integral (float) : the integral estimate
-            - std (float) : standard deviation of integral, 
-              if self.return_std = True
-            - hyper_params (dict): hyper-parameters of the fitted kernel
-            - performance (float): GP goodness of fit score
+            - integral (float) the integral estimate
+            - std (float) standard deviation of integral, if self.return_std = True
+            - hyper_params (dict) hyper-parameters of the fitted kernel
+            - performance (float) GP goodness of fit score
         """
 
         ### reset options
@@ -312,10 +311,9 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         ------
         dict
             - integral (float) value of the integral of f on the container
-            - std (float) : standard deviation of integral, 
-              if self.return_std = True
-            - hyper_params (dict): hyper-parameters of the fitted kernel
-            - performance (float): GP goodness of fit score
+            - std (float) standard deviation of integral, if self.return_std = True
+            - hyper_params (dict) hyper-parameters of the fitted kernel
+            - performance (float) GP goodness of fit score
         """
         
         if self.volume_scaling:
@@ -339,8 +337,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
         # avoid setting 0 bound
         min_bound = 1e-5
-        lower_bound = np.max(smallest_dist / 10, min_bound)
-        upper_bound = np.max(largest_dist * 10, min_bound)
+        lower_bound = max(smallest_dist / 10, min_bound)
+        upper_bound = max(largest_dist * 10, min_bound)
 
         bounds = (lower_bound, upper_bound)
 

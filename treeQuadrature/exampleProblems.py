@@ -1,5 +1,6 @@
 from . import exampleDistributions as dists
 from .utils import handle_bound
+from .container import Container
 
 import numpy as np
 from abc import ABC, abstractmethod
@@ -102,6 +103,8 @@ class PyramidProblem(Problem):
     def __str__(self) -> str:
         return f'Pyramid(D={self.D})'
 
+    def containerValue(self, container: Container):
+        container.mins 
 
 class BayesProblem(Problem):
     '''

@@ -78,7 +78,6 @@ def test_integrators(integrators: List[Integrator],
         is_first_run = True
 
     results = []
-    new_results = []
     n_eval = None
 
     for problem in problems:
@@ -229,13 +228,13 @@ def test_integrators(integrators: List[Integrator],
                     'time_taken': avg_time_taken,
                     'errors': errors
                 }
-                # Update the existing results
-                existing_results[key] = new_result
+            # Update the existing results
+            existing_results[key] = new_result
 
-                # Write results incrementally to ensure recovery
-                write_results(output_file, [new_result], 
-                              is_first_run)
-                is_first_run = False
+            # Write results incrementally to ensure recovery
+            write_results(output_file, [new_result], 
+                            is_first_run)
+            is_first_run = False
 
     write_results(output_file, list(existing_results.values()), True, mode='w')
 

@@ -339,8 +339,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
         # avoid setting 0 bound
         min_bound = 1e-5
-        lower_bound = np.max(smallest_dist / 10, min_bound)
-        upper_bound = np.max(largest_dist * 10, min_bound)
+        lower_bound = max(smallest_dist / 10, min_bound)
+        upper_bound = max(largest_dist * 10, min_bound)
 
         bounds = (lower_bound, upper_bound)
 

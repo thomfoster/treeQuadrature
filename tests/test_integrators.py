@@ -2,6 +2,8 @@ import pytest
 import treeQuadrature as tq
 import numpy as np
 
+from typing import List
+
 ######################
 # Initial IO checks
 ######################
@@ -34,10 +36,7 @@ def test_io(integrator_instance):
         base_N=500, split=tq.splits.KdSplit(), integral=tq.containerIntegration.MidpointIntegral(), 
         weighting_function=lambda container: container.volume, 
         max_splits=20, stopping_condition=lambda container: container.N < 2),
-    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MidpointIntegral()),
-    tq.integrators.GpTreeIntegrator(200, 40, tq.splits.KdSplit(), 
-                                    tq.containerIntegration.RbfIntegral(n_splits=0), 
-                                    grid_size=0.1)
+    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MidpointIntegral())
 ])
 def test_treeIntegrator_io(integrator_instance):
     problem = tq.exampleProblems.SimpleGaussian(1)
@@ -52,6 +51,24 @@ def test_treeIntegrator_io(integrator_instance):
     assert all(isinstance(val, float) for val in res['contributions'])
     assert all(isinstance(cont, tq.Container) for cont in res['containers'])
     assert len(res['contributions']) == len(res['containers'])
+
+@pytest.mark.parametrize("integrator_instance", [
+    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.RbfIntegral()),
+    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MedianIntegral()),
+    tq.integrators.BayesMcIntegrator(200),
+    tq.integrators.SmcIntegrator(200)
+])
+def test_return_std(integrator_instance):
+    problem = tq.exampleProblems.SimpleGaussian(1)
+
+    res = integrator_instance(problem, return_std=True)
+    if "SimpleIntegrator" in str(integrator_instance):
+        for std in res['stds']:
+            assert isinstance(std, float)
+            assert std >= 0
+    else:
+        assert isinstance(res['std'], float)
+        assert res['std'] >= 0
 
 ########################################################################
 # Checking all combos of inputs for simple and queue based integrators

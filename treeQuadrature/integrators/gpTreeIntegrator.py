@@ -144,14 +144,6 @@ class GpTreeIntegrator(Integrator):
         self.base_N = base_N
         self.split = split
         self.integral = integral
-        if 'return_hyper_params' not in signature(
-            integral.containerIntegral).parameters:
-            raise AssertionError(
-                'integral.containerIntegral must have'
-                ' return_hyper_params option'
-                ' and return the hyper-parameters as a dictionary'
-                ' following integral estimate'
-                )
         self.sampler = sampler
         self.P = P
         self.integral_results = {}
@@ -215,7 +207,7 @@ class GpTreeIntegrator(Integrator):
                 threshold = self.integral.threshold
                 threshold_direction = self.integral.threshold_direction
             except AttributeError:
-                print('containerIntegral must have attributes `kernel`, '
+                print('self.integral must have attributes `kernel`, '
                       '`iGP`, `threshold`, `threshold_direction`') 
                 
             representative_hyper_params = None
@@ -239,7 +231,7 @@ class GpTreeIntegrator(Integrator):
                 print(f"Fitting a batch of containers with {total_n} data points")
 
             try:
-                performance = iGP.fit(integrand, containers, kernel, add_samples=True)
+                gp_results = iGP.fit(integrand, containers, kernel, add_samples=True)
                 gp = iGP.gp
             except Exception as e:
                 print(f"GP fitting failed for batch: {e}")
@@ -251,13 +243,14 @@ class GpTreeIntegrator(Integrator):
             for node in batch:
                 container = node.container
                 try:
-                    integral_result = kernel_integration(gp, container, 
-                                                                    return_std, performance, 
-                                                                    threshold, threshold_direction)
+                    integral_result = kernel_integration(iGP, container, gp_results,
+                                                         return_std)
                     self.integral_results[node] = integral_result
                     node.hyper_params = hyper_params
                 except Exception as e:
-                    raise Exception(f"Failed to process node {node}: {e}")
+                    print(f"Failed to process node {node}: {e}")
+                    traceback.print_exc()
+                    return
 
                 # Pass hyper-parameters to neighbors
                 neighbors = find_neighbors_grid(grid, node, self.grid_size)
@@ -305,22 +298,22 @@ class GpTreeIntegrator(Integrator):
 
         if return_std:
             if hasattr(self.integral, 'return_std'):
-                contributions = [self.integral_results[node][0] for node in leaf_nodes]
-                stds = [self.integral_results[node][1] for node in leaf_nodes]
+                contributions = [self.integral_results[node]['integral'] for node in leaf_nodes]
+                stds = [self.integral_results[node]['std'] for node in leaf_nodes]
             else:
                 warnings.warn(
                     f'{str(self.integral)} does not '
                      'have parameter return_std, will be ignored', 
                      UserWarning)
                 return_std = False
-                contributions = [self.integral_results[node] for node in leaf_nodes]
+                contributions = [self.integral_results[node]['integral'] for node in leaf_nodes]
         else: 
             # Collect contributions from integral results
             contributions = []
             missing_nodes = []
             for node in leaf_nodes:
                 try:
-                    contributions.append(self.integral_results[node])
+                    contributions.append(self.integral_results[node]['integral'])
                 except KeyError:
                     missing_nodes.append(node)
 
@@ -328,7 +321,6 @@ class GpTreeIntegrator(Integrator):
                 raise RuntimeError(
                     f"Missing integral results for {len(missing_nodes)} of {len(leaf_nodes)} containers."
                     )
-            contributions = [self.integral_results[node] for node in leaf_nodes]
 
         G = np.sum(contributions)
         N = sum([node.container.N for node in leaf_nodes])

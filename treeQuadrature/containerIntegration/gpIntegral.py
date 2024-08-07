@@ -44,6 +44,9 @@ class RbfIntegral(ContainerIntegral):
     return_std : bool
         if True, returns the 
         Defaults to False
+    fit_residuals : bool
+        if True, GP is fitted to residuals
+        instead of samples
     """
     def __init__(self, gp: Optional[GPFit]=None, **kwargs) -> None:
         """
@@ -65,7 +68,8 @@ class RbfIntegral(ContainerIntegral):
             'threshold' : 0.8,
             'threshold_direction' : 'up',
             'check_GP': False,
-            'return_std': False
+            'return_std': False, 
+            'fit_residuals' : True
         }
         self.options.update(kwargs)
 
@@ -117,9 +121,10 @@ class RbfIntegral(ContainerIntegral):
             raise TypeError('check_GP must be a bool')
         if not isinstance(options['return_std'], bool):
             raise TypeError('return_std must be a bool')
+        if not isinstance(options['fit_residuals'], bool):
+            raise TypeError('fit_residuals must be a bool')
 
-    def containerIntegral(self, container: Container, f: Callable, 
-                          return_hyper_params: bool = False, 
+    def containerIntegral(self, container: Container, f: Callable,
                           **kwargs: Any):
         """
         Gaussian Process is fitted iteratively 
@@ -131,17 +136,17 @@ class RbfIntegral(ContainerIntegral):
         f : function
             takes X : np.ndarray and return np.ndarray, 
             see pdf method of Distribution class in exampleDistributions.py
-        return_hyper_params : bool
-            if True, 
         kwargs : Any
             other arguments allowed (see RbfIntegral attributes)
         
         Return
         ------
-        float or tuple
-            value of the integral of f on the container, 
-            and std if return_std = True, 
-            and hyper_parameters of GP fitting if 
+        dict
+            - integral (float) : the integral estimate
+            - std (float) : standard deviation of integral, 
+              if self.return_std = True
+            - hyper_params (dict): hyper-parameters of the fitted kernel
+            - performance (float): GP goodness of fit score
         """
 
         ### reset options
@@ -162,29 +167,24 @@ class RbfIntegral(ContainerIntegral):
         ### fit GP using RBF kernel
         self.kernel = RBF(self.length, (self.length*(1/self.range), 
                                    self.length*self.range))
+        # set up iterative fitting scheme
         self.iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                  max_redraw=self.max_redraw, 
                                  performance_threshold=self.threshold, 
                                  threshold_direction=self.threshold_direction,
-                                 gp=self.gp)
-        performance = self.iGP.fit(f, container, self.kernel)
+                                 gp=self.gp, fit_residuals=self.fit_residuals)
+        gp_results = self.iGP.fit(f, container, self.kernel)
         gp = self.iGP.gp
-        
-        # Track number of function evaluations
-
-        container.add(gp.X_train_, gp.y_train_)  
 
         ### GP diagnosis
         if self.check_GP:
             # TODO - decide where to plot
-            GP_diagnosis(gp, container)
+            GP_diagnosis(self.iGP, container)
         
-        integral_result = kernel_integration(gp, container, self.return_std, 
-                                          performance, self.threshold, 
-                                          self.threshold_direction)
+        ret = kernel_integration(self.iGP, container, gp_results, 
+                                             self.return_std)
         
-        if return_hyper_params:
-            hyper_params = {'length' : gp.hyper_params['length_scale']}
-            return integral_result, hyper_params
-        else:
-            return integral_result
+        ret['hyper_params'] = {'length' : gp.hyper_params['length_scale']}
+        ret['performance'] = gp_results['performance']
+        
+        return ret

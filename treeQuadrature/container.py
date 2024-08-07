@@ -56,8 +56,6 @@ class Container:
         indicator of whether the container has finite volume
     midpoint : numpy.ndarray of shape (D,)
         the midpoint of container
-    D : int
-        the dimension 
 
     Properties
     ----------

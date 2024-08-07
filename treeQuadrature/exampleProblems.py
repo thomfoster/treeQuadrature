@@ -1,8 +1,10 @@
 from . import exampleDistributions as dists
 from .utils import handle_bound
+from .container import Container
 
 import numpy as np
 from abc import ABC, abstractmethod
+from scipy.stats import qmc
 
 """
 Defines the specific problems we want results for.
@@ -83,7 +85,7 @@ class PyramidProblem(Problem):
         super().__init__(D, lows=-1.0, highs=1.0)
         self.answer = (2 ** self.D) / (self.D + 1)
 
-    def integrand(self, X, *args, **kwargs) -> np.ndarray:
+    def integrand(self, X) -> np.ndarray:
         """
         Pyramid integrand function.
 
@@ -97,10 +99,112 @@ class PyramidProblem(Problem):
         numpy.ndarray
             1-dimensional array of the same length as X.
         """
-        return 1 - np.max(np.abs(X), axis=1)
+
+        ys = 1 - np.max(np.abs(X), axis=1)
+        return ys.reshape(-1, 1)
     
     def __str__(self) -> str:
         return f'Pyramid(D={self.D})'
+
+    def containerValue(self, container: Container):
+        container.mins 
+
+class QuadraticProblem(Problem):
+    def __init__(self, D):
+        super().__init__(D, lows=-1.0, highs=1.0)
+        self.answer = self.exact_integral(self.lows, self.highs)
+
+    def integrand(self, X) -> np.ndarray:
+        """
+        Quadratic integrand function for the sum of squares.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Each row is an input vector.
+
+        Returns
+        -------
+        numpy.ndarray of shape (N, 1)
+            the function value evaluated at X
+        """
+        ys = np.sum(X**2, axis=1)
+        return ys.reshape(-1, 1)
+
+    def exact_integral(self, mins, maxs):
+        """
+        Calculate the exact integral from mins to maxs for the sum of squares polynomial.
+
+        Parameters
+        ----------
+        mins : numpy.ndarray
+            Lower bounds of the integration.
+
+        maxs : numpy.ndarray
+            Upper bounds of the integration.
+
+        Returns
+        -------
+        float
+            The value of the integral.
+        """
+        D = len(mins)
+        integral_sum = 0
+        
+        for i in range(D):
+            term = (maxs[i]**3 - mins[i]**3) / 3
+            product = np.prod([maxs[j] - mins[j] for j in range(D) if j != i])
+            integral_sum += term * product
+        
+        return integral_sum
+
+    def __str__(self) -> str:
+        return f'QuadraticProblem(D={self.D})'
+
+
+class ExponentialProductProblem(Problem):
+    def __init__(self, D):
+        super().__init__(D, lows=-1.0, highs=1.0)
+        self.answer = self.exact_integral(self.lows, self.highs)
+
+    def integrand(self, X) -> np.ndarray:
+        """
+        Exponential product integrand function.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Each row is an input vector.
+
+        Returns
+        -------
+        numpy.ndarray
+            1-dimensional array of the same length as X.
+        """
+        ys = np.prod(np.exp(X), axis=1)
+        return ys.reshape(-1, 1)
+
+    def exact_integral(self, mins, maxs):
+        """
+        Calculate the exact integral from mins to maxs for the product of exponentials.
+
+        Parameters
+        ----------
+        mins : numpy.ndarray
+            Lower bounds of the integration.
+
+        maxs : numpy.ndarray
+            Upper bounds of the integration.
+
+        Returns
+        -------
+        float
+            The value of the integral.
+        """
+        return np.prod([np.exp(maxs[i]) - np.exp(mins[i]) for i in range(len(mins))])
+
+    def __str__(self) -> str:
+        return f'ExponentialProductProblem(D={self.D})'
 
 
 class BayesProblem(Problem):
@@ -264,7 +368,7 @@ class Gaussian(BayesProblem):
             D=D, mean=self.mu, cov=self.Sigma), 
             lows=lows, highs=highs)
 
-        self.answer = self._integrate()
+        self.answer = self._integrate(self.lows, self.highs)
         
     @staticmethod
     def _handle_Sigma(value, D):
@@ -280,9 +384,10 @@ class Gaussian(BayesProblem):
                 f"with shape ({D}, {D}) when given as a list or numpy.ndarray"
             )
 
-    def _integrate(self):
+    def _integrate(self, lows, highs, num_samples=8192):
         """
-        Calculate the integral of the Gaussian pdf over the hyper-rectangular bounds defined by lows and highs.
+        Calculate the integral of the Gaussian pdf over the 
+        hyper-rectangular bounds defined by lows and highs.
         
         Returns
         -------
@@ -292,12 +397,24 @@ class Gaussian(BayesProblem):
         # fetch to multivariate Gaussian object
         rv = self.d.d
         
-        # Calculate the CDF values at the bounds
-        lower_cdf = rv.cdf(self.lows)
-        upper_cdf = rv.cdf(self.highs)
+        # Number of dimensions
+        dim = len(lows)
         
-        # The integral over the hyper-rectangle is the difference of the CDFs
-        integral_value = upper_cdf - lower_cdf
+        # Generate QMC samples within the unit hypercube
+        sampler = qmc.Sobol(d=dim, scramble=True)
+        unit_samples = sampler.random(num_samples)
+        
+        # Scale samples to fit within the specified bounds
+        samples = qmc.scale(unit_samples, lows, highs)
+        
+        # Evaluate the Gaussian PDF at the QMC sample points
+        pdf_values = rv.pdf(samples)
+        
+        # Calculate the volume of the hyper-rectangle
+        volume = np.prod(highs - lows)
+        
+        # Estimate the integral using the average of the PDF values scaled by the volume
+        integral_value = np.mean(pdf_values) * volume
         
         return integral_value
     

@@ -14,7 +14,8 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
                         plot: bool=False, verbose: bool=False, 
                         xlim: Optional[List[float]]=None, 
                         ylim: Optional[List[float]]=None,
-                        dimensions: Optional[List[float]]=None) -> None:
+                        dimensions: Optional[List[float]]=None,
+                        n_repeat: int=1) -> None:
     """
     Compare different integrators on a given problem.
     Give integrators attribute `name` 
@@ -39,73 +40,86 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         A list of integrator instances to be compared.
     problem : Problem
         The problem instance containing the integrand and true answer.
-    verbose : bool, optional
-        if true, print the stages of the test
-        Default: False
     plot : bool, optional
         Whether to plot the contributions of the integrators.
-        Default is False
+        Default is False.
+    verbose : bool, optional
+        If true, print the stages of the test.
+        Default is False.
     xlim, ylim : List[float], optional
         The limits for the plot containers.
-        will not be used when plot=False
+        Will not be used when plot=False.
     dimensions : List[Float], optional
-        which dimensions to plot for higher dimensional problems
+        Which dimensions to plot for higher dimensional problems.
+    n_repeat : int, optional
+        Number of times to repeat the integration and average the results.
+        Default is 1.
     """
-    print(f'true value: {problem.answer}')
+    print(f'True value: {problem.answer}')
     D = problem.D
 
     for i, integrator in enumerate(integrators):
         integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
 
         if verbose:
-            print(f'testing {integrator_name}')
+            print(f'Testing {integrator_name}')
 
-        start_time = time.time()
-        # perform integration
-        parameters = signature(integrator).parameters
-        try:
-            # Perform integration
-            if 'verbose' in parameters and 'return_containers' in parameters:
-                result = integrator(problem, return_N=True, 
-                                return_containers=True, 
-                                verbose=verbose) 
-            elif 'return_containers' in parameters:
-                result = integrator(problem, return_N=True, 
-                                return_containers=True)
-            elif 'verbose' in parameters:
-                result = integrator(problem, return_N=True, 
-                                verbose=verbose)
-            else:
-                result = integrator(problem, return_N=True)
+        estimates = []
+        n_evals_list = []
+        times = []
 
-        except Exception as e:
-            print(f'Error during integration with {integrator_name}: {e}')
-            print_exc()
-            continue
+        for _ in range(n_repeat):
+            start_time = time.time()
+            try:
+                # Perform integration
+                parameters = signature(integrator).parameters
+                if 'verbose' in parameters and 'return_containers' in parameters:
+                    result = integrator(problem, return_N=True, return_containers=True, verbose=verbose)
+                elif 'return_containers' in parameters:
+                    result = integrator(problem, return_N=True, return_containers=True)
+                elif 'verbose' in parameters:
+                    result = integrator(problem, return_N=True, verbose=verbose)
+                else:
+                    result = integrator(problem, return_N=True)
+            except Exception as e:
+                print(f'Error during integration with {integrator_name}: {e}')
+                print_exc()
+                continue
 
-        end_time = time.time()
-        estimate = result['estimate']
-        n_evals = result['n_evals']
+            end_time = time.time()
+            estimate = result['estimate']
+            n_evals = result['n_evals']
+
+            estimates.append(estimate)
+            n_evals_list.append(n_evals)
+            times.append(end_time - start_time)
+
+        if len(estimates) == 0:
+            raise Exception('no run succeeded')
+
+        avg_estimate = np.mean(estimates)
+        std_estimate = np.std(estimates)
+        avg_n_evals = np.mean(n_evals_list)
+        std_n_evals = np.std(n_evals_list)
+        avg_time = np.mean(times)
+        std_time = np.std(times)
+
         if problem.answer != 0:
-            error = 100 * (estimate - problem.answer) / problem.answer
+            errors = 100 * (np.array(estimates) - problem.answer) / problem.answer
+            avg_error = np.mean(errors)
+            std_error = np.std(errors)
             error_name = 'Signed Relative error'
-        else: 
-            error = estimate - problem.answer
+        else:
+            errors = np.array(estimates) - problem.answer
+            avg_error = np.mean(errors)
+            std_error = np.std(errors)
             error_name = 'Signed Absolute error'
 
         print(f'-------- {integrator_name} --------')
-        print(f'Estimated value: {estimate}')
-        print(f'{error_name}: {error:.2f} %')
-        print(f'Number of evaluations: {n_evals}')
-        print(f'Time taken: {end_time - start_time:.2f} s')
-
-
-        # plot contributions
-        if plot:
-            if xlim is None or ylim is None:
-                raise ValueError(
-                    'xlim and ylim must be provided for plotting'
-                    )
+        print(f'Estimated value: {avg_estimate:.4f} ± {std_estimate:.4f}')
+        print(f'{error_name}: {avg_error:.2f} % ± {std_error:.2f} %')
+        print(f'Number of evaluations: {avg_n_evals:.2f} ± {std_n_evals:.2f}')
+        print(f'Time taken: {avg_time:.2f} s ± {std_time:.2f} s')
 
         if 'containers' in result and 'contributions' in result:
             title = 'Integral estimate using ' + integrator_name
@@ -117,23 +131,16 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
             print(f'Maximum samples in containers: {np.max(n_samples)}')
             contributions = result['contributions']
             if plot:
-                if xlim is None:
-                    raise ValueError(
-                        'xlim must be provided for plotting'
-                        )
-                if ylim is None and D > 1:
-                    raise ValueError(
-                        'ylim must be provided for plotting' 
-                        'higher dimensional problems (D>1)'
-                        )
+                if xlim is None or ylim is None:
+                    raise ValueError('xlim and ylim must be provided for plotting')
                 plotContainers(containers, contributions, 
-                            xlim=xlim, ylim=ylim,
-                            integrand=problem.integrand, 
-                            title=title, plot_samples=True, 
-                            dimensions=dimensions)
+                               xlim=xlim, ylim=ylim,
+                               integrand=problem.integrand, 
+                               title=title, plot_samples=True, 
+                               dimensions=dimensions)
         elif plot: 
-            warnings.warn('result of integrator has no containers to plot', 
-                        UserWarning)
+            warnings.warn('Result of integrator has no containers to plot', 
+                          UserWarning)
         
         print(f'----------------------------------')
 
@@ -208,7 +215,7 @@ def test_integrators(integrators: List[Integrator],
 
             # Check if the result already exists and is valid
             key = (integrator_name, problem_name)
-            if key in existing_results and existing_results[key]['estimate'] != 'None':
+            if key in existing_results and existing_results[key]['estimate'] != '':
                 if verbose >= 1:
                     print(f'Skipping {integrator_name} for {problem_name}: already completed.')
                 results.append(existing_results[key])
@@ -255,7 +262,8 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': 'Exceeded max_time'
+                            'time_taken': f'Exceeded {max_time}s',
+                            'errors': None
                         })
                         break
                     except Exception as e:
@@ -271,7 +279,8 @@ def test_integrators(integrators: List[Integrator],
                             'error_std': None,
                             'n_evals': None,
                             'n_evals_std': None,
-                            'time_taken': None
+                            'time_taken': None,
+                            'errors': None
                         })
                         print_exc()
                         break
@@ -288,15 +297,15 @@ def test_integrators(integrators: List[Integrator],
                 avg_time_taken = total_time_taken / n_repeat
 
                 if problem.answer != 0:
-                    errors = 100 * np.abs(estimates - problem.answer) / problem.answer
+                    errors = 100 * (estimates - problem.answer) / problem.answer
                     avg_error = f'{np.mean(errors):.4f} %'
                     error_std = f'{np.std(errors):.4f} %'
-                    error_name = 'Relative error'
+                    error_name = 'Signed Relative error'
                 else: 
-                    errors = np.abs(estimates - problem.answer)
+                    errors = estimates - problem.answer
                     avg_error = np.mean(errors)
                     error_std = np.std(errors)
-                    error_name = 'Absolute error'
+                    error_name = 'Signed Absolute error'
 
                 results.append({
                     'integrator': integrator_name,
@@ -309,14 +318,15 @@ def test_integrators(integrators: List[Integrator],
                     'error_std': error_std,
                     'n_evals': avg_n_evals,
                     'n_evals_std': np.std(n_evals_list),
-                    'time_taken': avg_time_taken
+                    'time_taken': avg_time_taken, 
+                    'errors': errors
                 })
     
             # Save for each integrator and each problem
             with open(output_file, mode='w', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=[
                     'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken'])
+                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
                 writer.writeheader()
                 for result in results:
                     writer.writerow(result)

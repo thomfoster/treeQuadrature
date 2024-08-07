@@ -334,10 +334,15 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         mean_dist = np.mean(pairwise_dists)
         D = xs.shape[1]
         initial_length = mean_dist / np.sqrt(D)
-        smallest_dist = np.min(pairwise_dists)  
+        smallest_dist = np.min(pairwise_dists)
         largest_dist = np.max(pairwise_dists)
 
-        bounds = (smallest_dist / 10, 10 * largest_dist)
+        # avoid setting 0 bound
+        min_bound = 1e-5
+        lower_bound = np.max(smallest_dist / 10, min_bound)
+        upper_bound = np.max(largest_dist * 10, min_bound)
+
+        bounds = (lower_bound, upper_bound)
 
         self.kernel = RBF(initial_length, bounds)
 

@@ -12,14 +12,14 @@ from treeQuadrature.integrators import TreeIntegrator
 
 ### Set problem
 # problem = PyramidProblem(D=5)
-problem = Camel(D=2)
+problem = Camel(D=8)
 # problem = SimpleGaussian(D=1)
 
 ### set basic parameters
 n_samples = 20
-max_redraw = 6
+max_redraw = 4
 
-N = 8_000
+N = 13_000
 P = 50
 
 ### Set ContainerIntegral
@@ -29,7 +29,9 @@ rbfIntegral = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3,
                             fit_residuals=False, 
                             n_samples=n_samples, 
                             range=1e3)
-aRbf = AdaptiveRbfIntegral(max_n_samples= int(max_redraw * n_samples))
+aRbf = AdaptiveRbfIntegral(min_n_samples= int(n_samples / 2), 
+                           max_n_samples=int(n_samples * max_redraw), 
+                           sample_scaling='exponential')
 rmeanIntegral = SmcIntegral(n=n_samples)
 
 split = MinSseSplit()
@@ -37,14 +39,14 @@ split = MinSseSplit()
 integ1 = SimpleIntegrator(N, P, split, rbfIntegral_mean)
 integ1.name = 'TQ with RBF, fitting to mean'
 
-integ2 = LimitedSampleIntegrator(1000, 500, 10, split, rmeanIntegral, 
+integ2 = LimitedSampleIntegrator(2000, 500, 10, split, rmeanIntegral, 
                                  lambda container: container.volume)
 integ2.name = 'LimitedSampleIntegrator'
 
 integ3 = SimpleIntegrator(N, P, split, rbfIntegral)
 integ3.name = 'TQ with RBF'
 
-integ4 = SimpleIntegrator(N, P, split, rbfIntegral)
+integ4 = SimpleIntegrator(N, P, split, aRbf)
 integ4.name = 'TQ with Adaptive RBF'
 
 integ5 = GpTreeIntegrator(N, P, split, rbfIntegral, grid_size=0.01)
@@ -63,9 +65,9 @@ if __name__ == '__main__':
 
 
     # profiler.enable_by_count()
-    compare_integrators([integ1, integ4], plot=False, 
+    compare_integrators([integ4, integ2], plot=False, 
                         xlim=[0.0, 1.0], ylim=[0.0, 1.0], 
-                        problem=problem, verbose=False, dimensions=[0, 1], 
-                        n_repeat=10)
+                        problem=problem, dimensions=[0, 1], 
+                        n_repeat=5)
     # profiler.disable_by_count()
     # profiler.print_stats()

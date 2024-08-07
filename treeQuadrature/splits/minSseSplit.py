@@ -110,10 +110,10 @@ class MinSseSplit(Split):
         best_score = np.inf
 
         n = ys.shape[0]
-        sum_left = 0.0
-        sum_right = np.sum(ys)
-        sum_sq_left = 0.0
-        sum_sq_right = np.sum(ys ** 2)
+        sum_left = np.sum(ys[:(min_samples_leaf-1)])
+        sum_right = np.sum(ys) - sum_left
+        sum_sq_left = np.sum(ys[:(min_samples_leaf-1)] ** 2)
+        sum_sq_right = np.sum(ys ** 2) - sum_sq_left
 
         # Iterate through all possible splits
         for i in range(min_samples_leaf, n - min_samples_leaf + 1):

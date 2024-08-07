@@ -72,7 +72,6 @@ def test_integrators(integrators: List[Integrator],
     existing_results = load_existing_results(output_file)
 
     results = []
-    new_results = []
     n_eval = None
     existing_keys = set(existing_results.keys())
 
@@ -110,7 +109,7 @@ def test_integrators(integrators: List[Integrator],
                     n = int(n_eval / n_iter)
                     integrator.N = n
                 elif isinstance(integrator, SmcIntegrator):
-                    integrator.N = n_eval
+                    integrator.N = int(n_eval)
                 elif isinstance(integrator, LimitedSampleIntegrator):
                     integrator.N = int(n_eval / (integrator.integral.n + 1))
             elif i > 0:
@@ -212,7 +211,7 @@ def test_integrators(integrators: List[Integrator],
                 if problem.answer != 0:
                     errors = 100 * (estimates - problem.answer) / problem.answer
                     avg_error = f'{np.median(errors):.4f} %'
-                    error_std = f'{np.std(errors)::.4f} %'
+                    error_std = f'{np.std(errors):.4f} %'
                     error_name = 'Signed Relative error'
                 else: 
                     errors = estimates - problem.answer

@@ -40,13 +40,11 @@ class RbfIntegral(ContainerIntegral):
         maximum number of times to increase the 
         number of samples in GP fitting. 
         Should NOT be too large. 
-        Default = 5
     check_GP : bool
         if true, print diagnostics of GP
         prediction variance, mean squared error and r^2 score
     return_std : bool
-        if True, returns the 
-        Defaults to False
+        if True, returns the posterior std of integral estimate
     fit_residuals : bool
         if True, GP is fitted to residuals
         instead of samples
@@ -187,7 +185,7 @@ class RbfIntegral(ContainerIntegral):
                                  threshold_direction=self.threshold_direction,
                                  gp=self.gp, fit_residuals=self.fit_residuals)
         gp_results = self.iGP.fit(f, container, self.kernel)
-        gp = self.iGP.gp
+        self.gp = self.iGP.gp
 
         ### GP diagnosis
         if self.check_GP:
@@ -197,7 +195,7 @@ class RbfIntegral(ContainerIntegral):
         ret = kernel_integration(self.iGP, container, gp_results, 
                                              self.return_std)
         
-        ret['hyper_params'] = {'length' : gp.hyper_params['length_scale']}
+        ret['hyper_params'] = {'length' : self.gp.hyper_params['length_scale']}
         ret['performance'] = gp_results['performance']
         
         return ret
@@ -219,6 +217,13 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     n_splits : int
         number of K-fold cross-validation splits
         if n_splits = 0, K-Fold CV will not be performed. 
+    max_redraw : int
+        maximum number of times to increase the 
+        number of samples in GP fitting. 
+        Should NOT be too large. 
+    thershold : float
+        minimum score that must be achieved by 
+        Gaussian Process. 
     gp : GPFit
         default is SklearnGPFit
     iGP : IterativeGPFit
@@ -228,6 +233,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     fit_residuals : bool
         if True, GP is fitted to residuals
         instead of samples
+    return_std : bool
+        if True, returns the posterior std of integral estimate
     scaling method : str or Callable,
         The way sample size increase with volume. (ignored if volume_scaling = False)
         should be one of 'linear', 'sqrt', or 'exponential'; 
@@ -351,12 +358,12 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         # only fit using the samples drawn here
         gp_results = self.iGP.fit(f, container, self.kernel, 
                                   initial_samples=(xs, ys))
-        gp = self.iGP.gp
+        self.gp = self.iGP.gp
 
         ret = kernel_integration(self.iGP, container, gp_results, 
                                              self.return_std)
         
-        ret['hyper_params'] = {'length' : gp.hyper_params['length_scale']}
+        ret['hyper_params'] = {'length' : self.gp.hyper_params['length_scale']}
         ret['performance'] = gp_results['performance']
         
         return ret

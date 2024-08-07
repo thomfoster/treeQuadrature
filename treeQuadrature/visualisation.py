@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from matplotlib.patches import Rectangle
 from matplotlib import colormaps
 from matplotlib.axes import Axes
-from sklearn.gaussian_process import GaussianProcessRegressor
 
 import pandas as pd
 
@@ -497,7 +497,8 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
 
 
 def plot_times(data: pd.DataFrame, genres: List[str], 
-               font_size: int = 10, filename_prefix: Optional[str] = None) -> None:
+               font_size: int = 10, filename_prefix: Optional[str] = None, 
+               integrators: Optional[list]=None, title: bool=True) -> None:
     """
     Plot the time taken for each genre and integrator, 
     and save it to a file 
@@ -515,6 +516,11 @@ def plot_times(data: pd.DataFrame, genres: List[str],
     filename_prefix : str, Optional
         The prefix for the filenames where plots will be saved.
         If not given, no prefix
+    integrators : List[str], optional
+        List of integrators to include in the plots. 
+        If not specified, all integrators will be plotted
+    title : bool, optional
+        If true, plot the title
 
     Notes
     -----
@@ -528,6 +534,16 @@ def plot_times(data: pd.DataFrame, genres: List[str],
     """
     plt.rcParams.update({'font.size': font_size})
 
+    all_integrators = data['integrator'].unique()
+
+    # use all integrators if not specified
+    if integrators is None:
+        integrators = all_integrators
+    else:
+        for integrator in integrators:
+            if integrator not in all_integrators:
+                raise ValueError(f"Integrator {integrator} not found in data")
+
     data['Dimension'] = data['problem'].str.extract(r'D=(\d+)').astype(int)
 
     for genre in genres:
@@ -537,7 +553,7 @@ def plot_times(data: pd.DataFrame, genres: List[str],
 
         plt.figure(figsize=(14, 10))
     
-        for integrator in genre_data['integrator'].unique():
+        for integrator in integrators:
             genre_integrator_data = genre_data[genre_data['integrator'] == integrator]
             times = []
             
@@ -552,14 +568,16 @@ def plot_times(data: pd.DataFrame, genres: List[str],
                         times.append(float('nan'))
                 else:
                     times.append(float('nan'))
-                    
-            plt.plot(dimensions, times, label=integrator, marker='o')
-
-            plt.title(f'Time Taken for {genre} - {integrator}')
+            
+            plt.gca().xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+            plt.plot(dimensions, times, marker='o')
+            if title:
+                plt.title(f'Time Taken for {genre} \n {integrator}')
+            plt.xlim(min(dimensions)-1, max(dimensions)+1)
             plt.xlabel('Dimension')
             plt.ylabel('Time Taken (seconds)')
-            plt.legend()
             plt.grid(True)
+            plt.tight_layout()
             if filename_prefix:
                 plt.savefig(f'figures/{filename_prefix}_{genre}_time_plot_{integrator}.png')
                 plt.close()

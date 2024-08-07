@@ -14,10 +14,10 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
 
     # Monte Carlo sample size in each container
-    ns = np.arange(15, 45, 15)
+    ns = np.arange(15, 205, 15)
 
-    # number of containers to plot 
-    n_containers = 10
+    # number of containes to plot 
+    n_containers = 6
 
     rbfIntegral = AdaptiveRbfIntegral(max_redraw=0, n_splits=5, 
                                       return_std=True)
@@ -25,13 +25,13 @@ if __name__ == '__main__':
 
     split = MinSseSplit()
 
-    integ = SimpleIntegrator(8_000, 80, split, rbfIntegral)
+    integ = SimpleIntegrator(10_000, 40, split, rbfIntegral)
     integ.name = 'TQ with RBF, fitting to mean'
 
     results = {}
 
-    # problem = QuadraticProblem(D=2)
-    problem = ExponentialProductProblem(D=2)
+    # problem = QuadraticProblem(D=12)
+    problem = ExponentialProductProblem(D=12)
 
     X = integ.sampler.rvs(integ.base_N, problem)
     y = problem.integrand(X)
@@ -71,34 +71,25 @@ if __name__ == '__main__':
     # Plot R^2 score vs Error
     plt.figure()
     for container in selected_containers:
-        container_id = str(id(container))
-        if container_id in results:
-            data = results[container_id]
-            plt.plot(data['performance'], data['error'], marker='o', 
-                     label=f'volume {container.volume:.3f}')
+        plt.plot(results[container]['performance'], results[container]['error'], marker='o')
 
     plt.title(f'R^2 score vs Error for {n_containers} Largest Volume Containers')
-    plt.xlabel('R^2 score')
-    plt.ylabel('Error')
+    plt.xlabel('R^2 score', fontsize=17)
+    plt.ylabel('Error', fontsize=17)
     plt.grid(True)
-    plt.legend(loc='upper left', bbox_to_anchor=(1, 1), ncol=1)  # Adjust legend position
-    plt.tight_layout(rect=[0, 0, 0.85, 1])  # Adjust layout to make room for legend
+    plt.tight_layout() 
     plt.savefig(f'figures/r2_errors_containers_{str(problem)}.png')
     plt.close()
 
     # Plot Posterior std vs Error
     plt.figure()
     for container in selected_containers:
-        container_id = str(id(container))
-        if container_id in results:
-            data = results[container_id]
-            plt.plot(data['std'], data['error'], marker='o', label=f'volume {container.volume:.3f}')
+        plt.plot(results[container]['std'], results[container]['error'], marker='o')
 
     plt.title(f'Posterior std vs Error for {n_containers} Largest Volume Containers')
-    plt.xlabel('Posterior Std')
-    plt.ylabel('Error')
+    plt.xlabel('Posterior Std', fontsize=17)
+    plt.ylabel('Error', fontsize=17)
     plt.grid(True)
-    plt.legend(loc='upper left', bbox_to_anchor=(1, 1), ncol=1)  # Adjust legend position
-    plt.tight_layout(rect=[0, 0, 0.85, 1])  # Adjust layout to make room for legend
+    plt.tight_layout()  
     plt.savefig(f'figures/gp_std_errors_containers_{str(problem)}.png')
     plt.close()

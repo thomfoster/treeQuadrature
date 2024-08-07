@@ -18,7 +18,7 @@ def load_existing_results(output_file: str) -> dict:
         return {(row['integrator'], row['problem']): row for row in reader}
 
 def write_results(output_file: str, results: List[dict], write_header: bool):
-    with open(output_file, mode='a', newline='') as file:
+    with open(output_file, mode='w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=[
             'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
             'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
@@ -72,10 +72,8 @@ def test_integrators(integrators: List[Integrator],
     existing_results = load_existing_results(output_file)
 
     results = []
+    new_results = []
     n_eval = None
-    existing_keys = set(existing_results.keys())
-
-    is_first_run = not os.path.exists(output_file)
 
     for problem in problems:
         problem_name = str(problem)
@@ -83,7 +81,7 @@ def test_integrators(integrators: List[Integrator],
         # extract n_eval from existing results
         if existing_results:
             for key, value in existing_results.items():
-                if value['integrator'] == integrators[0].name and value['n_evals'] is not None and (
+                if value['integrator'] == integrators[0].name and value['n_evals'] != '' and (
                     value['problem'] == problem_name
                 ):
                     n_eval = int(float(value['n_evals']))
@@ -109,7 +107,7 @@ def test_integrators(integrators: List[Integrator],
                     n = int(n_eval / n_iter)
                     integrator.N = n
                 elif isinstance(integrator, SmcIntegrator):
-                    integrator.N = int(n_eval)
+                    integrator.N = n_eval
                 elif isinstance(integrator, LimitedSampleIntegrator):
                     integrator.N = int(n_eval / (integrator.integral.n + 1))
             elif i > 0:
@@ -146,7 +144,7 @@ def test_integrators(integrators: List[Integrator],
                             f'Time limit exceeded for {integrator_name} on {problem_name}, '
                             'increase max_time or change the problem/integrator'
                             )
-                        new_result = {
+                        new_results.append({
                             'integrator': integrator_name,
                             'problem': problem_name,
                             'true_value': problem.answer,
@@ -159,16 +157,12 @@ def test_integrators(integrators: List[Integrator],
                             'n_evals_std': None,
                             'time_taken': f'Exceeded max_time {max_time}',
                             'errors': None
-                        }
-                        if key not in existing_keys:
-                            write_results(output_file, [new_result], is_first_run)
-                            is_first_run = False
-                            existing_keys.add(key)
+                        })
                         break_integrator = True
                         break
                     except Exception as e:
                         print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
-                        new_result = {
+                        new_results.append({
                             'integrator': integrator_name,
                             'problem': problem_name,
                             'true_value': problem.answer,
@@ -181,11 +175,7 @@ def test_integrators(integrators: List[Integrator],
                             'n_evals_std': None,
                             'time_taken': None,
                             'errors': None
-                        }
-                        if key not in existing_keys:
-                            write_results(output_file, [new_result], is_first_run)
-                            is_first_run = False
-                            existing_keys.add(key)
+                        })
                         print_exc()
                         break_integrator = True
                         break
@@ -219,7 +209,7 @@ def test_integrators(integrators: List[Integrator],
                     error_std = np.std(errors)
                     error_name = 'Signed Absolute error'
 
-                new_result = {
+                new_results.append({
                     'integrator': integrator_name,
                     'problem': problem_name,
                     'true_value': problem.answer,
@@ -232,10 +222,13 @@ def test_integrators(integrators: List[Integrator],
                     'n_evals_std': np.std(n_evals_list),
                     'time_taken': avg_time_taken,
                     'errors': errors
-                }
-                if key not in existing_keys:
-                    write_results(output_file, [new_result], is_first_run)
-                    is_first_run = False
-                    existing_keys.add(key)
+                })
+                # Update existing results to avoid duplication
+                existing_results[key] = new_results[-1]
+
+                # Write results incrementally to ensure recovery
+                write_results(output_file, new_results, is_first_run)
+                is_first_run = False
+                new_results.clear()  # Clear new_results after writing to avoid duplicates
 
     print(f'Results saved to {output_file}')

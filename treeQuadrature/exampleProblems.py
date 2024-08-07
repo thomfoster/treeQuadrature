@@ -10,7 +10,6 @@ from scipy.stats import qmc
 Defines the specific problems we want results for.
 """
 
-
 class Problem(ABC):
     '''
     base class for integration problems
@@ -79,6 +78,33 @@ class Problem(ABC):
     def __str__(self) -> str:
         return f'Problem(D={self.D}, lows={self.lows}, highs={self.highs})'
 
+    def handle_input(self, xs) -> np.ndarray:
+        """
+        Check the shape of xs and 
+        change xs to the correct shape (N, D)
+
+        Parameter
+        --------
+        xs : numpy.ndarray
+            the array to be handled
+
+        Return
+        numpy.ndarray
+            the handled array
+        """
+        if isinstance(xs, list):
+            xs = np.array(xs)
+        elif not isinstance(xs, np.ndarray):
+            raise TypeError('xs must be either a list or numpy.ndarray')
+        
+        if xs.ndim == 2 and xs.shape[1] == self.D:
+            return xs
+        elif xs.ndim == 1 and xs.shape[0] == self.D: # array with one sample
+            return xs.reshape(1, -1)
+        else:
+            raise ValueError('xs must be either two dimensional array of shape (N, D)'
+                             'or one dimensional array of shape (D,)')
+
 
 class PyramidProblem(Problem):
     def __init__(self, D):
@@ -106,8 +132,6 @@ class PyramidProblem(Problem):
     def __str__(self) -> str:
         return f'Pyramid(D={self.D})'
 
-    def containerValue(self, container: Container):
-        container.mins 
 
 class QuadraticProblem(Problem):
     def __init__(self, D):
@@ -128,7 +152,8 @@ class QuadraticProblem(Problem):
         numpy.ndarray of shape (N, 1)
             the function value evaluated at X
         """
-        ys = np.sum(X**2, axis=1)
+        xs = self.handle_input(X)
+        ys = np.sum(xs**2, axis=1)
         return ys.reshape(-1, 1)
 
     def exact_integral(self, mins, maxs):
@@ -181,7 +206,8 @@ class ExponentialProductProblem(Problem):
         numpy.ndarray
             1-dimensional array of the same length as X.
         """
-        ys = np.prod(np.exp(X), axis=1)
+        xs = self.handle_input(X)
+        ys = np.prod(np.exp(xs), axis=1)
         return ys.reshape(-1, 1)
 
     def exact_integral(self, mins, maxs):
@@ -255,21 +281,12 @@ class BayesProblem(Problem):
 
     def integrand(self, X):
         # check dimensions of X
-        flag = True
-        if X.ndim == 1 and self.D != 1 and X.shape[0] != self.D:
-            flag = False
-        elif X.ndim == 2 and X.shape[1] != self.D:
-            flag = False
-
-        assert flag, 'the dimension of X should match the dimension of the problem'
-
-        if X.ndim == 1:
-            X = X.reshape(-1, 1)
+        xs = self.handle_input(X)
 
         if self.p: # Combined pdf ie d(x) * p(x)
-            return self.d.pdf(X) * self.p.pdf(X)
+            return self.d.pdf(xs) * self.p.pdf(xs)
         else: # when p is not defined, simply use d
-            return self.d.pdf(X)
+            return self.d.pdf(xs)
 
     def rvs(self, n):
         """

@@ -4,8 +4,16 @@ from abc import ABC, abstractmethod
 from ..container import Container
 from typing import Any, Callable
 
-# abstract class for any integrator
+# If using TreeIntegrator 
+# and containerIntegral 
+# requires additional parameters other than container, f, return_std,
+# please define a class fuction get_additional_params(self) that returns
+# a dictionary of parameter names and values
+
 class ContainerIntegral(ABC):
+    """
+    Abstract Base class for integrating a function on a container
+    """
     @abstractmethod
     def containerIntegral(self, container: Container, f: Callable[..., np.ndarray], 
                           **kwargs: Any) -> dict:

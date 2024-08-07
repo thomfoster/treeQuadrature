@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Union
+from typing import List
 from inspect import signature
 
 import warnings
@@ -12,7 +12,7 @@ from .integrator import Integrator
 from ..container import Container
 from ..exampleProblems import Problem
 from ..splits import Split
-from ..containerIntegration import ContainerIntegral
+from ..containerIntegration import ContainerIntegral, AdaptiveRbfIntegral
 from ..samplers import Sampler, UniformSampler
 
 
@@ -20,12 +20,20 @@ default_sampler = UniformSampler()
 
 def parallel_container_integral(integral: ContainerIntegral, 
                                 cont: Container, integrand: callable, 
-                                return_std: bool):
+                                return_std: bool, min_cont_size: float):
+    params = {}
+    if isinstance(integral, AdaptiveRbfIntegral) and min_cont_size is not None:
+        params['min_cont_size'] = min_cont_size
+    elif hasattr(integral, 'get_additional_params'):
+        params.update(integral.get_additional_params())
+
     if return_std:
+        params['return_std'] = True
         integral_results = integral.containerIntegral(cont, integrand, 
-                                                      return_std=return_std)
+                                                      **params)
     else: 
-        integral_results = integral.containerIntegral(cont, integrand)
+        integral_results = integral.containerIntegral(cont, integrand,
+                                                      **params)
     return integral_results, cont
 
 class TreeIntegrator(Integrator):
@@ -152,6 +160,11 @@ class TreeIntegrator(Integrator):
         else:
             finished_containers = self.construct_tree(root, *args, **kwargs)
 
+        if isinstance(self.integral, AdaptiveRbfIntegral):
+            min_cont_size = min(cont.volume for cont in finished_containers)
+        else:
+            min_cont_size = None
+
         # uncertainty estimates
         compute_std = return_std and hasattr(self.integral, 'return_std')
         if not hasattr(self.integral, 'return_std') and return_std:
@@ -171,7 +184,7 @@ class TreeIntegrator(Integrator):
             futures = {
                 executor.submit(parallel_container_integral, 
                                 self.integral, cont, problem.integrand, 
-                                compute_std): cont
+                                compute_std, min_cont_size): cont
                 for cont in finished_containers
             }
 

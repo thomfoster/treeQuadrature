@@ -156,11 +156,10 @@ class RbfIntegral(ContainerIntegral):
         Return
         ------
         dict
-            - integral (float) : the integral estimate
-            - std (float) : standard deviation of integral, 
-              if self.return_std = True
-            - hyper_params (dict): hyper-parameters of the fitted kernel
-            - performance (float): GP goodness of fit score
+            - integral (float) the integral estimate
+            - std (float) standard deviation of integral, if self.return_std = True
+            - hyper_params (dict) hyper-parameters of the fitted kernel
+            - performance (float) GP goodness of fit score
         """
 
         ### reset options

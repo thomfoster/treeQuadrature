@@ -306,11 +306,11 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
                 fill: bool = False,
                 y_lim: Optional[List]=None, 
                 font_size: int = 10,
-                offset: float=0.1,
-                plot_title: bool=True, 
-                grid: bool=True, 
-                filename_prefix: Optional[str]=None, 
-                integrators: Optional[List[str]]=None) -> None:
+                offset: float = 0.1,
+                plot_title: bool = True, 
+                grid: bool = True, 
+                filename_prefix: Optional[str] = None, 
+                integrators: Optional[List[str]] = None) -> None:
     """
     Plot errors and error_std for each genre and integrator
     and save it to a file figures/filename_prefix_genre_error_plot.csv. 
@@ -341,7 +341,7 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
     font_size : int, optional
         Font size for all text elements in the plot (default is 10).
     offset: float, optional
-        off set of points to avoid visual clutter.
+        offset of points to avoid visual clutter.
         Default is 0.1. 
         Set to 0 for no offset
     plot_title : bool, optional
@@ -366,7 +366,7 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
     -----
     >>> all_data = pd.read_csv('your_data.csv')  # Load your data into a DataFrame
     >>> genres = ["SimpleGaussian", "Camel", "QuadCamel"]
-    >>> plot_errors(all_data, 'figures/error', genres)
+    >>> plot_errors(all_data, genres)
     """
 
     all_integrators = data['integrator'].unique()
@@ -447,7 +447,7 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
 
             
             color = color_dict[integrator]
-            x_offset = used_dimensions + offsets[idx]
+            x_offset = np.array(used_dimensions) + offsets[idx]
             if plot_all_errors:
                 first_label = True
                 for dim, all_errors in zip(used_dimensions, all_errors_list):
@@ -462,7 +462,8 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
                     plt.fill_between(x_offset, lower_bound, upper_bound, 
                                     alpha=0.2, label=f'{integrator} Std')
                 else:
-                    plt.errorbar(x_offset, errors, yerr=error_stds, fmt='o', capsize=5)    
+                    plt.errorbar(x_offset, errors, yerr=error_stds,
+                                 fmt='o', capsize=5)    
 
             plt.plot(x_offset, errors, label=integrator, marker='o', color=color)
         

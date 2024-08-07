@@ -17,8 +17,9 @@ def load_existing_results(output_file: str) -> dict:
         reader = csv.DictReader(file)
         return {(row['integrator'], row['problem']): row for row in reader}
 
-def write_results(output_file: str, results: List[dict], write_header: bool):
-    with open(output_file, mode='a', newline='') as file:
+def write_results(output_file: str, results: List[dict], write_header: bool, 
+                  mode: str='a'):
+    with open(output_file, mode=mode, newline='') as file:
         writer = csv.DictWriter(file, fieldnames=[
             'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
             'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
@@ -234,7 +235,8 @@ def test_integrators(integrators: List[Integrator],
                 # Write results incrementally to ensure recovery
                 write_results(output_file, [new_result], 
                               is_first_run)
+                is_first_run = False
 
-    write_results(output_file, existing_results, True)
+    write_results(output_file, list(existing_results.values()), True, mode='w')
 
     print(f'Results saved to {output_file}')

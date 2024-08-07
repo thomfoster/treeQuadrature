@@ -312,10 +312,9 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         ------
         dict
             - integral (float) value of the integral of f on the container
-            - std (float) : standard deviation of integral, 
-              if self.return_std = True
-            - hyper_params (dict): hyper-parameters of the fitted kernel
-            - performance (float): GP goodness of fit score
+            - std (float) standard deviation of integral, if self.return_std = True
+            - hyper_params (dict) hyper-parameters of the fitted kernel
+            - performance (float) GP goodness of fit score
         """
         
         if self.volume_scaling:

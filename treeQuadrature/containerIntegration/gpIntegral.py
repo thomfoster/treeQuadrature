@@ -124,8 +124,7 @@ class RbfIntegral(ContainerIntegral):
         if not isinstance(options['fit_residuals'], bool):
             raise TypeError('fit_residuals must be a bool')
 
-    def containerIntegral(self, container: Container, f: Callable, 
-                          return_hyper_params: bool = False, 
+    def containerIntegral(self, container: Container, f: Callable,
                           **kwargs: Any):
         """
         Gaussian Process is fitted iteratively 
@@ -137,17 +136,17 @@ class RbfIntegral(ContainerIntegral):
         f : function
             takes X : np.ndarray and return np.ndarray, 
             see pdf method of Distribution class in exampleDistributions.py
-        return_hyper_params : bool
-            if True, 
         kwargs : Any
             other arguments allowed (see RbfIntegral attributes)
         
         Return
         ------
-        float or tuple
-            value of the integral of f on the container, 
-            and std if return_std = True, 
-            and hyper_parameters of GP fitting if 
+        dict
+            - integral (float) : the integral estimate
+            - std (float) : standard deviation of integral, 
+              if self.return_std = True
+            - hyper_params (dict): hyper-parameters of the fitted kernel
+            - performance (float): GP goodness of fit score
         """
 
         ### reset options
@@ -182,11 +181,10 @@ class RbfIntegral(ContainerIntegral):
             # TODO - decide where to plot
             GP_diagnosis(self.iGP, container)
         
-        integral_result = kernel_integration(self.iGP, container, gp_results, 
+        ret = kernel_integration(self.iGP, container, gp_results, 
                                              self.return_std)
         
-        if return_hyper_params:
-            hyper_params = {'length' : gp.hyper_params['length_scale']}
-            return integral_result, hyper_params
-        else:
-            return integral_result
+        ret['hyper_params'] = {'length' : gp.hyper_params['length_scale']}
+        ret['performance'] = gp_results['performance']
+        
+        return ret

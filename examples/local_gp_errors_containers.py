@@ -1,6 +1,6 @@
 from treeQuadrature.exampleProblems import QuadraticProblem, ExponentialProductProblem, Problem
 from treeQuadrature.integrators import SimpleIntegrator
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, SmcIntegral
+from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RandomIntegral
 from treeQuadrature.splits import MinSseSplit
 
 from treeQuadrature import Container
@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     rbfIntegral = AdaptiveRbfIntegral(max_redraw=0, n_splits=5, 
                                       return_std=True)
-    rmeanIntegral = SmcIntegral(n=20)
+    rmeanIntegral = RandomIntegral(n=20)
 
     split = MinSseSplit()
 

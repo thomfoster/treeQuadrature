@@ -1,6 +1,6 @@
 from treeQuadrature.exampleProblems import QuadraticProblem, ExponentialProductProblem, Gaussian
 from treeQuadrature.integrators import SimpleIntegrator
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, SmcIntegral
+from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RandomIntegral
 from treeQuadrature.splits import MinSseSplit
 
 from treeQuadrature.visualisation import plotContainers, plotIntegrand
@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
 
     rbfIntegral = AdaptiveRbfIntegral(max_redraw=4, threshold=0.5, n_splits=5)
-    rmeanIntegral = SmcIntegral(n=20)
+    rmeanIntegral = RandomIntegral(n=20)
 
     split = MinSseSplit()
 

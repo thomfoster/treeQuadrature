@@ -2,7 +2,7 @@ import argparse, os
 
 from controlled_test import test_integrators
 from treeQuadrature.exampleProblems import SimpleGaussian, Camel, QuadCamel
-from treeQuadrature.containerIntegration import SmcIntegral, AdaptiveRbfIntegral
+from treeQuadrature.containerIntegration import RandomIntegral, AdaptiveRbfIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator
 
@@ -40,7 +40,7 @@ for D in Ds:
 
 rbfIntegral = AdaptiveRbfIntegral(max_redraw=args.max_redraw, threshold=args.threshold, 
                                   n_splits=args.n_splits, min_n_samples=args.n_samples)
-ranIntegral = SmcIntegral(n=args.n_samples)
+ranIntegral = RandomIntegral(n=args.n_samples)
 rbfIntegral_2 = AdaptiveRbfIntegral(max_redraw=args.max_redraw, threshold=args.threshold, 
                                     n_splits=args.n_splits, min_n_samples=args.n_samples, 
                                     fit_residuals=False)

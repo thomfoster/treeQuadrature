@@ -1,7 +1,8 @@
 from treeQuadrature.exampleProblems import PyramidProblem, SimpleGaussian, Camel
 from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator
-from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, SmcIntegral, AdaptiveRbfIntegral
+from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral
 from treeQuadrature.splits import MinSseSplit
+from treeQuadrature.samplers import ImportanceSampler, UniformSampler, McmcSampler
 from treeQuadrature import compare_integrators
 
 ## profiling
@@ -12,7 +13,7 @@ from treeQuadrature.integrators import TreeIntegrator
 
 ### Set problem
 # problem = PyramidProblem(D=5)
-problem = Camel(D=8)
+problem = Camel(D=2)
 # problem = SimpleGaussian(D=1)
 
 ### set basic parameters
@@ -23,21 +24,31 @@ N = 13_000
 P = 50
 
 ### Set ContainerIntegral
-rbfIntegral_mean = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, n_samples=n_samples, 
-                          range=1e3)
+rbfIntegral_mean = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, 
+                               n_samples=n_samples)
 rbfIntegral = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, 
                             fit_residuals=False, 
-                            n_samples=n_samples, 
-                            range=1e3)
+                            n_samples=n_samples)
 aRbf = AdaptiveRbfIntegral(min_n_samples= int(n_samples / 2), 
-                           max_n_samples=int(n_samples * max_redraw), 
-                           sample_scaling='exponential')
-rmeanIntegral = SmcIntegral(n=n_samples)
+                           max_n_samples=int(n_samples * max_redraw))
+rmeanIntegral = RandomIntegral(n=n_samples)
 
+### set Sampler
+iSampler = ImportanceSampler()
+uSampler = UniformSampler()    
+mcmcSampler = McmcSampler()
+
+### set split
 split = MinSseSplit()
 
 integ1 = SimpleIntegrator(N, P, split, rbfIntegral_mean)
 integ1.name = 'TQ with RBF, fitting to mean'
+
+integ_is = SimpleIntegrator(N, P, split, aRbf, sampler=iSampler)
+integ_is.name = 'Importance sampler'
+
+integ_unif = SimpleIntegrator(N, P, split, aRbf, sampler=mcmcSampler)
+integ_unif.name = 'MCMC sampler'
 
 integ2 = LimitedSampleIntegrator(2000, 500, 10, split, rmeanIntegral, 
                                  lambda container: container.volume)
@@ -65,9 +76,9 @@ if __name__ == '__main__':
 
 
     # profiler.enable_by_count()
-    compare_integrators([integ4, integ2], plot=False, 
+    compare_integrators([integ_is, integ_unif], plot=True, 
                         xlim=[0.0, 1.0], ylim=[0.0, 1.0], 
                         problem=problem, dimensions=[0, 1], 
-                        n_repeat=5)
+                        n_repeat=3)
     # profiler.disable_by_count()
     # profiler.print_stats()

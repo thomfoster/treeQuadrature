@@ -1,5 +1,5 @@
 from treeQuadrature.exampleProblems import Camel
-from treeQuadrature.containerIntegration import SmcIntegral, RandomIntegral
+from treeQuadrature.containerIntegration import RandomIntegral, RandomIntegral
 from treeQuadrature.splits import MinSseSplit, KdSplit
 from treeQuadrature.integrators import LimitedSampleIntegrator
 from treeQuadrature.compare_integrators import test_integrators
@@ -11,7 +11,7 @@ Ds = range(1, 8)
 problems = [Camel(D) for D in Ds]
 
 medianIntegral = RandomIntegral()
-meanIntegral = SmcIntegral()
+meanIntegral = RandomIntegral()
 split = KdSplit()
 
 integ_median = LimitedSampleIntegrator(N=2000, base_N=1000, 

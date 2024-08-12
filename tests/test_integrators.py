@@ -36,7 +36,10 @@ def test_io(integrator_instance):
         base_N=500, split=tq.splits.KdSplit(), integral=tq.containerIntegration.MidpointIntegral(), 
         weighting_function=lambda container: container.volume, 
         max_splits=20, stopping_condition=lambda container: container.N < 2),
-    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MidpointIntegral())
+    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MidpointIntegral()),
+    tq.integrators.GpTreeIntegrator(200, 40, tq.splits.KdSplit(), 
+                                    tq.containerIntegration.RbfIntegral(n_splits=0), 
+                                    grid_size=0.1)
 ])
 def test_treeIntegrator_io(integrator_instance):
     problem = tq.exampleProblems.SimpleGaussian(1)
@@ -84,7 +87,7 @@ integrals = [
     tq.containerIntegration.MedianIntegral(),
     tq.containerIntegration.MidpointIntegral(),
     tq.containerIntegration.RandomIntegral(),
-    tq.containerIntegration.SmcIntegral(),
+    tq.containerIntegration.RandomIntegral(eval=np.median),
     tq.containerIntegration.RbfIntegral(n_samples=5, n_tuning=1, max_iter=100,
                                         max_redraw=1, n_splits=0)
 ]
@@ -148,7 +151,7 @@ def test_QueueIntegrator(
     else:
         n_sub_splits = 2
 
-    if "RandomIntegral" in str(integral) or "SmcIntegral" in str(integral): 
+    if "RandomIntegral" in str(integral): 
         # accounts for random samples used in container integration
         assert base_N + ns*n_sub_splits*active_N + len(fcs)*integral.n == N
     else:

@@ -687,28 +687,7 @@ def kernel_integration(igp: IterativeGPFitting, container: Container,
         integral, k_tilde = rbf_mean_post(gp, container, gp_results)
 
         if return_std:
-            try:
-                performance = gp_results['performance']
-            except KeyError:
-                raise KeyError('cannot find performance in gp_results')
-            
-            # filter out GP with poor fits
-            if igp.performance_threshold is not None and (
-                performance is not None) and (
-                igp.threshold_direction is not None):
-                if is_poor_fit(performance, igp.performance_threshold, 
-                               igp.threshold_direction):
-                    warnings.warn(
-                        'Warning: GP fitness is poor'
-                        f' score = {performance}'
-                        '. std will be set to zero.', 
-                        UserWarning)
-                    var_post = 0
-                else: 
-                    var_post = rbf_var_post(container, gp, k_tilde)
-            else:
-                # mean of kernel on the container
-                var_post = rbf_var_post(container, gp, k_tilde)
+            var_post = rbf_var_post(container, gp, k_tilde)
     elif kernel_mean_post is not None and (
         kernel_var_post is not None):  
         integral = kernel_mean_post(gp, container, gp_results)
@@ -733,9 +712,6 @@ def kernel_integration(igp: IterativeGPFitting, container: Container,
                 f' with value : {var_post}'
                 '. Will be set to zero.', 
                 UserWarning)
-            print('------ GP diagnosis --------')
-            GP_diagnosis(igp, container)
-            print('----------------------------')
         var_post = 0
 
     if return_std:

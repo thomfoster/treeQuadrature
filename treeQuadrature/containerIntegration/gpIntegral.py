@@ -23,7 +23,7 @@ class RbfIntegral(ContainerIntegral):
     range : int or float
         GPRegressor will search hyper-parameter
         among (length * 1/range, length * range)
-        Default 1e2
+        Default 1e3
     thershold : float
         minimum score that must be achieved by 
         Gaussian Process. 
@@ -40,13 +40,9 @@ class RbfIntegral(ContainerIntegral):
         maximum number of times to increase the 
         number of samples in GP fitting. 
         Should NOT be too large. 
-        Default = 5
     check_GP : bool
         if true, print diagnostics of GP
         prediction variance, mean squared error and r^2 score
-    return_std : bool
-        if True, returns the 
-        Defaults to False
     fit_residuals : bool
         if True, GP is fitted to residuals
         instead of samples
@@ -75,14 +71,13 @@ class RbfIntegral(ContainerIntegral):
         
         self.options : Dict[str, Any] = {
             'length': 10,
-            'range': 1e2,
+            'range': 1e3,
             'n_samples': 15,
             'n_splits' : 5,
             'max_redraw': 5,
             'threshold' : 0.8,
             'threshold_direction' : 'up',
             'check_GP': False,
-            'return_std': False, 
             'fit_residuals' : True
         }
         self.options.update(kwargs)
@@ -133,12 +128,11 @@ class RbfIntegral(ContainerIntegral):
                 )    
         if not isinstance(options['check_GP'], bool):
             raise TypeError('check_GP must be a bool')
-        if not isinstance(options['return_std'], bool):
-            raise TypeError('return_std must be a bool')
         if not isinstance(options['fit_residuals'], bool):
             raise TypeError('fit_residuals must be a bool')
 
     def containerIntegral(self, container: Container, f: Callable,
+                          return_std: bool=False,
                           **kwargs: Any):
         """
         Gaussian Process is fitted iteratively 
@@ -150,6 +144,8 @@ class RbfIntegral(ContainerIntegral):
         f : function
             takes X : np.ndarray and return np.ndarray, 
             see pdf method of Distribution class in exampleDistributions.py
+        return_std : bool
+            if True, returns the posterior std of integral estimate
         kwargs : Any
             other arguments allowed (see RbfIntegral attributes)
         
@@ -157,7 +153,7 @@ class RbfIntegral(ContainerIntegral):
         ------
         dict
             - integral (float) the integral estimate
-            - std (float) standard deviation of integral, if self.return_std = True
+            - std (float) standard deviation of integral, if return_std = True
             - hyper_params (dict) hyper-parameters of the fitted kernel
             - performance (float) GP goodness of fit score
         """
@@ -187,7 +183,7 @@ class RbfIntegral(ContainerIntegral):
                                  threshold_direction=self.threshold_direction,
                                  gp=self.gp, fit_residuals=self.fit_residuals)
         gp_results = self.iGP.fit(f, container, self.kernel)
-        gp = self.iGP.gp
+        self.gp = self.iGP.gp
 
         ### GP diagnosis
         if self.check_GP:
@@ -195,9 +191,9 @@ class RbfIntegral(ContainerIntegral):
             GP_diagnosis(self.iGP, container)
         
         ret = kernel_integration(self.iGP, container, gp_results, 
-                                             self.return_std)
+                                            return_std)
         
-        ret['hyper_params'] = {'length' : gp.hyper_params['length_scale']}
+        ret['hyper_params'] = {'length' : self.gp.hyper_params['length_scale']}
         ret['performance'] = gp_results['performance']
         
         return ret
@@ -219,6 +215,13 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     n_splits : int
         number of K-fold cross-validation splits
         if n_splits = 0, K-Fold CV will not be performed. 
+    max_redraw : int
+        maximum number of times to increase the 
+        number of samples in GP fitting. 
+        Should NOT be too large. 
+    thershold : float
+        minimum score that must be achieved by 
+        Gaussian Process. 
     gp : GPFit
         default is SklearnGPFit
     iGP : IterativeGPFit
@@ -228,6 +231,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     fit_residuals : bool
         if True, GP is fitted to residuals
         instead of samples
+    return_std : bool
+        if True, returns the posterior std of integral estimate
     scaling method : str or Callable,
         The way sample size increase with volume. (ignored if volume_scaling = False)
         should be one of 'linear', 'sqrt', or 'exponential'; 
@@ -242,7 +247,6 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     def __init__(self, min_n_samples: int=15, max_n_samples: int=200,
                  n_splits: int=4, max_redraw: int=4, threshold: float=0.7,
                  fit_residuals: bool=True,
-                 return_std: bool=False, 
                  gp: Optional[GPFit]=None, 
                  volume_scaling: bool=False,
                  scaling_method: Union[str, Callable]='linear', 
@@ -259,7 +263,6 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.threshold = threshold
         self.gp = gp
         self.fit_residuals = fit_residuals
-        self.return_std = return_std
         self.volume_scaling = volume_scaling
         self.scaling_method = scaling_method
         self.alpha = alpha
@@ -295,7 +298,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
-                          min_cont_size: int) -> Dict:
+                          min_cont_size: int, return_std: bool=False) -> Dict:
         """
         Arguments
         ---------
@@ -304,14 +307,16 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         f : function
             takes X : np.ndarray and return np.ndarray, 
             see pdf method of Distribution class in exampleDistributions.py
-        max_cont_size : float
-            size of the largest container
+        min_cont_size : float
+            volume of the smalelst container
+        return_std : bool
+            if True, returns the posterior std of integral estimate
         
         Return
         ------
         dict
             - integral (float) value of the integral of f on the container
-            - std (float) standard deviation of integral, if self.return_std = True
+            - std (float) standard deviation of integral, if .return_std = True
             - hyper_params (dict) hyper-parameters of the fitted kernel
             - performance (float) GP goodness of fit score
         """
@@ -351,12 +356,12 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         # only fit using the samples drawn here
         gp_results = self.iGP.fit(f, container, self.kernel, 
                                   initial_samples=(xs, ys))
-        gp = self.iGP.gp
+        self.gp = self.iGP.gp
 
         ret = kernel_integration(self.iGP, container, gp_results, 
-                                             self.return_std)
+                                             return_std)
         
-        ret['hyper_params'] = {'length' : gp.hyper_params['length_scale']}
+        ret['hyper_params'] = {'length' : self.gp.hyper_params['length_scale']}
         ret['performance'] = gp_results['performance']
         
         return ret

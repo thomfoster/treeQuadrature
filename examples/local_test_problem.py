@@ -1,8 +1,9 @@
-from treeQuadrature.exampleProblems import PyramidProblem, SimpleGaussian, Camel
+from treeQuadrature.exampleProblems import PyramidProblem, SimpleGaussian, Camel, QuadraticProblem
 from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator
-from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral
+from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral, PolyIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.samplers import ImportanceSampler, UniformSampler, McmcSampler
+from treeQuadrature.gaussianProcess import SklearnGPFit
 from treeQuadrature import compare_integrators
 
 ## profiling
@@ -13,15 +14,19 @@ from treeQuadrature.integrators import TreeIntegrator
 
 ### Set problem
 # problem = PyramidProblem(D=5)
-problem = Camel(D=2)
+# problem = Camel(D=2)
 # problem = SimpleGaussian(D=1)
+problem = QuadraticProblem(D=2)
 
 ### set basic parameters
 n_samples = 20
 max_redraw = 4
 
-N = 13_000
+N = 8_000
 P = 50
+
+### set GP fitter
+# gp = SklearnGPFit(alpha=1e-5)
 
 ### Set ContainerIntegral
 rbfIntegral_mean = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, 
@@ -32,6 +37,7 @@ rbfIntegral = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3,
 aRbf = AdaptiveRbfIntegral(min_n_samples= int(n_samples / 2), 
                            max_n_samples=int(n_samples * max_redraw))
 rmeanIntegral = RandomIntegral(n=n_samples)
+polyIntegral = PolyIntegral(n_samples=n_samples, degrees=[2, 3], max_redraw=0)
 
 ### set Sampler
 iSampler = ImportanceSampler()
@@ -49,6 +55,9 @@ integ_is.name = 'Importance sampler'
 
 integ_unif = SimpleIntegrator(N, P, split, aRbf, sampler=mcmcSampler)
 integ_unif.name = 'MCMC sampler'
+
+integ_poly = SimpleIntegrator(N, P, split, polyIntegral, sampler=iSampler)
+integ_poly.name = 'TQ with polynomial'
 
 integ2 = LimitedSampleIntegrator(2000, 500, 10, split, rmeanIntegral, 
                                  lambda container: container.volume)
@@ -76,9 +85,9 @@ if __name__ == '__main__':
 
 
     # profiler.enable_by_count()
-    compare_integrators([integ_is, integ_unif], plot=True, 
+    compare_integrators([integ_poly, integ_is], plot=True, 
                         xlim=[0.0, 1.0], ylim=[0.0, 1.0], 
                         problem=problem, dimensions=[0, 1], 
-                        n_repeat=3)
+                        n_repeat=1)
     # profiler.disable_by_count()
     # profiler.print_stats()

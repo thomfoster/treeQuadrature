@@ -7,7 +7,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.model_selection import KFold
 from sklearn.gaussian_process.kernels import Kernel, RBF, Sum, Product
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.metrics import mean_squared_error
 from scipy.special import erf
 from scipy.optimize import fmin_l_bfgs_b
 from scipy.integrate import quad
@@ -16,6 +16,10 @@ from abc import ABC, abstractmethod
 
 from .container import Container
 
+
+# default scoring
+def mse(ys_true, ys_pred, sigma):
+    return mean_squared_error(ys_true, ys_pred)
 
 class GPFit(ABC):
     """
@@ -232,7 +236,7 @@ class SklearnGPFit(GPFit):
 
 
 def gp_kfoldCV(xs, ys, kernel, gp: GPFit, 
-               n_splits: int=5, scoring: Callable = r2_score):
+               n_splits: int=5, scoring: Callable = mse):
     """
     Perform k-fold Cross-Validation (CV) to evaluate the 
     performance of a Gaussian Process model.
@@ -250,8 +254,8 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
     n_splits : int, optional (default=5)
         Number of folds for cross-validation.
     scoring : Callable, optional (default=r2_score)
-        A scoring function to evaluate the predictions. It must accept two 
-        arguments: the true values and the predicted values.
+        A scoring function to evaluate the predictions. It must accept three 
+        arguments: the true values, the predicted values, posterior std
 
     Returns
     -------
@@ -268,8 +272,7 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
     ys = np.ravel(ys)
     
     kf = KFold(n_splits=n_splits)
-    y_true = []
-    y_pred = []
+    scores = []
 
     for train_index, test_index in kf.split(xs):
         xs_train, xs_test = xs[train_index], xs[test_index]
@@ -277,15 +280,15 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
 
         gp.fit(xs_train, ys_train, kernel)
 
-        y_pred.extend(gp.predict(xs_test))
-        y_true.extend(ys_test)
+        y_pred, sigma = gp.predict(xs_test, return_std=True)
+        try: 
+            score = scoring(ys_test, y_pred, sigma)
+        except TypeError:
+            raise TypeError(f'scoring should be a function, got {scoring}')
+        
+        scores.append(score)
 
-    y_true = np.array(y_true)
-    y_pred = np.array(y_pred)
-    performance = scoring(y_true, y_pred)
-
-    return performance
-
+    return np.mean(scores)
 
 
 def is_poor_fit(performance: float, threshold: float, 
@@ -316,8 +319,8 @@ class IterativeGPFitting:
         number of K-fold cross-validation splits
         if n_splits = 0, K-Fold CV will not be performed. 
     scoring : Callable, optional (default=r2_score)
-        A scoring function to evaluate the predictions. It must accept two 
-        arguments: the true values and the predicted values.
+        A scoring function to evaluate the predictions. It must accept three  
+        arguments: the true values, the predicted values, and posterior std
     max_redraw : int
         Maximum number of iterations for the iterative process.
         To control number of samples, 
@@ -334,7 +337,7 @@ class IterativeGPFitting:
     """
     def __init__(self, n_samples: int, max_redraw: int, n_splits: int,
                  performance_threshold: float, threshold_direction: str='up', 
-                 gp: Optional[GPFit]=None, scoring: Callable = r2_score, 
+                 gp: Optional[GPFit]=None, scoring: Optional[Callable] = None, 
                  fit_residuals: bool=True) -> None:
         self.n_samples = n_samples
 
@@ -352,7 +355,10 @@ class IterativeGPFitting:
             gp = SklearnGPFit()
         self.gp = gp
         self.n_splits = n_splits
-        self.scoring = scoring
+        if scoring:
+            self.scoring = scoring
+        else:
+            self.scoring = mse
         self.fit_residuals = fit_residuals
 
     def fit(self, f: Callable, container: Union[Container, List[Container]], 
@@ -429,8 +435,8 @@ class IterativeGPFitting:
 
             if self.n_splits == 0: # no cross validation
                 self.gp.fit(all_xs, residuals, kernel)
-                ys_pred = self.gp.predict(all_xs)
-                performance = self.scoring(residuals, ys_pred)
+                ys_pred, sigma = self.gp.predict(all_xs, return_std=True)
+                performance = self.scoring(residuals, ys_pred, sigma)
             elif self.n_splits > 0:
                 performance = gp_kfoldCV(all_xs, residuals, kernel, self.gp, 
                                          scoring=self.scoring, n_splits=self.n_splits)
@@ -527,10 +533,10 @@ def GP_diagnosis(igp: IterativeGPFitting, container: Container,
     n = xs.shape[0]
 
     # Make predictions
-    y_pred = igp.gp.predict(xs)
+    y_pred, sigma = igp.gp.predict(xs, return_std=True)
 
     # Check R-squared and MSE
-    score = igp.scoring(ys, y_pred)
+    score = igp.scoring(ys, y_pred, sigma)
     mse = mean_squared_error(ys, y_pred)
 
     if is_poor_fit(score, igp.performance_threshold, 

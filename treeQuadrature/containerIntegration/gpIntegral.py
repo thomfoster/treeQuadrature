@@ -219,6 +219,10 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         maximum number of times to increase the 
         number of samples in GP fitting. 
         Should NOT be too large. 
+    scoring : Callable
+        A scoring function to evaluate the GP predictions. 
+        It must accept three arguments: 
+        the true values, the predicted values, posterior std
     thershold : float
         minimum score that must be achieved by 
         Gaussian Process. 
@@ -246,7 +250,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     """
     def __init__(self, min_n_samples: int=15, max_n_samples: int=200,
                  n_splits: int=4, max_redraw: int=4, threshold: float=0.7,
-                 fit_residuals: bool=True,
+                 fit_residuals: bool=True, scoring: Optional[Callable]=None,
                  gp: Optional[GPFit]=None, 
                  volume_scaling: bool=False,
                  scaling_method: Union[str, Callable]='linear', 
@@ -260,6 +264,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.max_n_samples = max_n_samples
         self.n_splits = n_splits
         self.max_redraw = max_redraw
+        self.scoring = scoring
         self.threshold = threshold
         self.gp = gp
         self.fit_residuals = fit_residuals
@@ -350,7 +355,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.kernel = RBF(initial_length, bounds)
 
         self.iGP = IterativeGPFitting(n_samples=n_samples, n_splits=self.n_splits, 
-                                 max_redraw=self.max_redraw, 
+                                 max_redraw=self.max_redraw, scoring=self.scoring,
                                  performance_threshold=self.threshold, 
                                  gp=self.gp, fit_residuals=self.fit_residuals)
         # only fit using the samples drawn here

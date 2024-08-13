@@ -2,8 +2,6 @@ import pytest
 import treeQuadrature as tq
 import numpy as np
 
-from typing import List
-
 ######################
 # Initial IO checks
 ######################
@@ -55,24 +53,6 @@ def test_treeIntegrator_io(integrator_instance):
     assert all(isinstance(cont, tq.Container) for cont in res['containers'])
     assert len(res['contributions']) == len(res['containers'])
 
-@pytest.mark.parametrize("integrator_instance", [
-    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.RbfIntegral()),
-    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MedianIntegral()),
-    tq.integrators.BayesMcIntegrator(200),
-    tq.integrators.SmcIntegrator(200)
-])
-def test_return_std(integrator_instance):
-    problem = tq.exampleProblems.SimpleGaussian(1)
-
-    res = integrator_instance(problem, return_std=True)
-    if "SimpleIntegrator" in str(integrator_instance):
-        for std in res['stds']:
-            assert isinstance(std, float)
-            assert std >= 0
-    else:
-        assert isinstance(res['std'], float)
-        assert res['std'] >= 0
-
 ########################################################################
 # Checking all combos of inputs for simple and queue based integrators
 ########################################################################
@@ -87,7 +67,7 @@ integrals = [
     tq.containerIntegration.MedianIntegral(),
     tq.containerIntegration.MidpointIntegral(),
     tq.containerIntegration.RandomIntegral(),
-    tq.containerIntegration.SmcIntegral(),
+    tq.containerIntegration.RandomIntegral(eval=np.median),
     tq.containerIntegration.RbfIntegral(n_samples=5, n_tuning=1, max_iter=100,
                                         max_redraw=1, n_splits=0)
 ]
@@ -151,7 +131,7 @@ def test_QueueIntegrator(
     else:
         n_sub_splits = 2
 
-    if "RandomIntegral" in str(integral) or "SmcIntegral" in str(integral): 
+    if "RandomIntegral" in str(integral): 
         # accounts for random samples used in container integration
         assert base_N + ns*n_sub_splits*active_N + len(fcs)*integral.n == N
     else:

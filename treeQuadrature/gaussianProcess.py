@@ -437,14 +437,14 @@ class IterativeGPFitting:
             else:
                 raise ValueError('n_splits cannot be negative')
 
-            if not is_poor_fit(performance, self.performance_threshold, 
-                               self.threshold_direction):
-                break
-
             if add_samples:
                 # Add samples to respective containers
                 for (xs, ys, c) in samples:
                     c.add(xs, ys)
+
+            if not is_poor_fit(performance, self.performance_threshold, 
+                               self.threshold_direction):
+                break
 
             iteration += 1
 

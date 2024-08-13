@@ -6,7 +6,7 @@ import warnings, time, csv, concurrent.futures
 
 from inspect import signature
 import numpy as np
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Any
 from traceback import print_exc
 import os
 
@@ -15,7 +15,7 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
                         xlim: Optional[List[float]]=None, 
                         ylim: Optional[List[float]]=None,
                         dimensions: Optional[List[float]]=None,
-                        n_repeat: int=1) -> None:
+                        n_repeat: int=1, **kwargs: Any) -> None:
     """
     Compare different integrators on a given problem.
     Give integrators attribute `name` 
@@ -78,18 +78,21 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
                 parameters = signature(integrator).parameters
                 if 'verbose' in parameters and 'return_containers' in parameters:
                     if verbose >= 2:
-                        result = integrator(problem, return_N=True, return_containers=True, verbose=True)
+                        result = integrator(problem, return_N=True, return_containers=True, verbose=True, 
+                                            **kwargs)
                     else:
-                        result = integrator(problem, return_N=True, return_containers=True, verbose=False)
+                        result = integrator(problem, return_N=True, return_containers=True, verbose=False,
+                                            **kwargs)
                 elif 'return_containers' in parameters:
-                    result = integrator(problem, return_N=True, return_containers=True)
+                    result = integrator(problem, return_N=True, return_containers=True,
+                                        **kwargs)
                 elif 'verbose' in parameters:
                     if verbose >= 2:
-                        result = integrator(problem, return_N=True, verbose=True)
+                        result = integrator(problem, return_N=True, verbose=True, **kwargs)
                     else:
-                        result = integrator(problem, return_N=True, verbose=False)
+                        result = integrator(problem, return_N=True, verbose=False, **kwargs)
                 else:
-                    result = integrator(problem, return_N=True)
+                    result = integrator(problem, return_N=True, **kwargs)
             except Exception as e:
                 print(f'Error during integration with {integrator_name}: {e}')
                 print_exc()

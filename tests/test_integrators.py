@@ -2,8 +2,6 @@ import pytest
 import treeQuadrature as tq
 import numpy as np
 
-from typing import List
-
 ######################
 # Initial IO checks
 ######################
@@ -58,6 +56,7 @@ def test_treeIntegrator_io(integrator_instance):
 @pytest.mark.parametrize("integrator_instance", [
     tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.RbfIntegral()),
     tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MedianIntegral()),
+    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.RandomIntegral()),
     tq.integrators.BayesMcIntegrator(200),
     tq.integrators.SmcIntegrator(200)
 ])

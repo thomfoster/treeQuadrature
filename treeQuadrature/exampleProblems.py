@@ -135,6 +135,15 @@ class PyramidProblem(Problem):
 
 class QuadraticProblem(Problem):
     def __init__(self, D):
+        """
+        Quadratic function sum x_i^2 
+        on [-1.0, 1.0]^D 
+
+        Parameters 
+        ----------
+        D : int
+            dimension 
+        """
         super().__init__(D, lows=-1.0, highs=1.0)
         self.answer = self.exact_integral(self.lows, self.highs)
 
@@ -189,6 +198,15 @@ class QuadraticProblem(Problem):
 
 class ExponentialProductProblem(Problem):
     def __init__(self, D):
+        """
+        Exponential product 
+        on [-1.0, 1.0]^D 
+
+        Parameters 
+        ----------
+        D : int
+            dimension 
+        """
         super().__init__(D, lows=-1.0, highs=1.0)
         self.answer = self.exact_integral(self.lows, self.highs)
 

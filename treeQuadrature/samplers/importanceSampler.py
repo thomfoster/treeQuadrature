@@ -33,19 +33,27 @@ class ImportanceSampler(Sampler):
         np.ndarray
             Samples from the importance sampling distribution.
         """
-        # Initial uniform sampling (to find weights)
+        # Determine the number of initial samples
+        n_init_used = min(self.n_init, n)
+        n_remaining = n - n_init_used
+
+        # Step 1: Initial uniform sampling
         initial_samples = np.random.uniform(low=problem.lows, high=problem.highs, 
-                                            size=(self.n_init, problem.D))
+                                            size=(n_init_used, problem.D))
         integrand_values = problem.integrand(initial_samples).reshape(-1)
         weights = np.abs(integrand_values)
         probabilities = weights / weights.sum()
 
-        # Importance sampling
-        num_additional_samples = n - self.n_init
-        indices = np.random.choice(np.arange(self.n_init), size=num_additional_samples, p=probabilities)
-        importance_samples = initial_samples[indices]
+        # Step 2: Importance sampling
+        if n_remaining > 0:
+            indices = np.random.choice(np.arange(n_init_used), size=n_remaining, p=probabilities)
+            importance_samples = initial_samples[indices]
+            combined_samples = np.vstack((initial_samples, importance_samples))
+        else:
+            # If no remaining evaluations are allowed, 
+            # just perform importance sampling within initial samples
+            indices = np.random.choice(np.arange(n_init_used), size=n, p=probabilities)
+            combined_samples = initial_samples[indices]
 
-        # Step 3: Combine initial samples with importance samples
-        combined_samples = np.vstack((initial_samples, importance_samples))
-
-        return combined_samples
+        # Ensure exactly n samples are returned
+        return combined_samples[:n]

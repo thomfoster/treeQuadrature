@@ -13,7 +13,8 @@ from ..container import Container
 from ..exampleProblems import Problem
 from ..splits import Split
 from ..containerIntegration import ContainerIntegral, AdaptiveRbfIntegral
-from ..samplers import Sampler, UniformSampler
+from ..samplers import Sampler
+from ..visualisation import plotContainers
 
 
 
@@ -163,6 +164,13 @@ class TreeIntegrator(Integrator):
                                                           *args, **kwargs)
         else:
             finished_containers = self.construct_tree(root, *args, **kwargs)
+
+        if len(finished_containers) == 0:
+            raise RuntimeError('No container obtained from construct_tree')
+        
+        if verbose:
+            n_samples = np.sum([cont.N for cont in finished_containers])
+            print(f'got {len(finished_containers)} containers with {n_samples} samples')
 
         if isinstance(self.integral, AdaptiveRbfIntegral):
             min_cont_size = min(cont.volume for cont in finished_containers)

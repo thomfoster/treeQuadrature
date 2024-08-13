@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 import numpy as np
 
+from ..exampleProblems import Problem
+
 class Sampler(ABC):
     @abstractmethod
-    def rvs(self, n: int, *args, **kwargs) -> np.ndarray:
+    def rvs(self, n: int, problem: Problem,
+            *args, **kwargs) -> np.ndarray:
         """
         A method to generate random samples 
 
@@ -11,6 +14,8 @@ class Sampler(ABC):
         --------
         n : int 
             number of samples
+        problem: Problem
+            the integration problem being solved
         *args, **kwargs
             other necessary arguments and keyward arguments
 

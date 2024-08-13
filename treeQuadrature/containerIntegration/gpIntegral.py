@@ -483,6 +483,8 @@ class PolyIntegral(ContainerIntegral):
                                       gp=self.gp, fit_residuals=self.fit_residuals)
         gp_results = self.iGP.fit(f, container, self.kernel, initial_samples=(xs, ys))
         self.gp = self.iGP.gp
+        if self.gp.gp is None:
+            raise RuntimeError('no GP fitted')
 
         # Perform kernel integration with polynomial kernel
         ret = kernel_integration(self.iGP, container, gp_results, 

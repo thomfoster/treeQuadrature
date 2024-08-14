@@ -12,7 +12,8 @@ class StratifiedSampler(Sampler):
         Parameters
         ----------
         strata_per_dim : int, optional
-            The number of strata (subdivisions) per dimension. If None, the number of strata will be
+            The number of strata (subdivisions) per dimension. 
+            If None, the number of strata will be
             automatically determined based on the number of samples.
         sampling_method : str, optional
             The method to use for sampling within each stratum. Options include:
@@ -22,7 +23,7 @@ class StratifiedSampler(Sampler):
         self.strata_per_dim = strata_per_dim
         self.sampling_method = sampling_method
 
-    def rvs(self, n: int, problem: Problem, *args, **kwargs) -> np.ndarray:
+    def rvs(self, n: int, problem: Problem) -> np.ndarray:
         """
         Stratified sampling to ensure coverage of the entire domain.
 
@@ -40,7 +41,8 @@ class StratifiedSampler(Sampler):
         """
         # Determine the number of strata per dimension if not provided
         if self.strata_per_dim is None:
-            strata_per_dim = int(np.ceil(n ** (1/problem.D)))
+            max_strata_per_dim = int(np.floor(n ** (1/problem.D)))
+            strata_per_dim = max(1, max_strata_per_dim)
         else:
             strata_per_dim = self.strata_per_dim
         

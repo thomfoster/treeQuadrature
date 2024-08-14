@@ -1,19 +1,20 @@
 import numpy as np
 import warnings
 from numpy.typing import ArrayLike
+import matplotlib.pyplot as plt
 from typing import Callable, Union, Optional, List, Tuple
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.model_selection import KFold
-from sklearn.gaussian_process.kernels import Kernel
-from scipy.stats import norm
-
+from sklearn.gaussian_process.kernels import Kernel, RBF, Sum, Product
+from sklearn.metrics import r2_score, mean_squared_error
+from scipy.special import erf
 from scipy.optimize import fmin_l_bfgs_b
+from scipy.integrate import quad
 
 from abc import ABC, abstractmethod
 
-from ..container import Container
-from .scorings import r2
+from .container import Container
 
 
 class GPFit(ABC):
@@ -128,8 +129,7 @@ class SklearnGPFit(GPFit):
     >>> ys_pred = gp_fitter.predict(xs_train)
     """
 
-    def __init__(self, n_tuning: int=10, max_iter: float=1e4, factr: float=1e7, 
-                 alpha: float=1e-10,
+    def __init__(self, n_tuning: int=10, max_iter: int=1e4, factr: float=1e7, 
                  ignore_warning: bool=True) -> None:
         """
         Arguments
@@ -145,33 +145,20 @@ class SklearnGPFit(GPFit):
         max_iter : int
             maximum number of iterations for fmin_l_bfgs_b optimiser
             Default : 1e4
-        alpha : float, optional (default=1e-10)
-            small jitter added to the diagonal of kernel matrix
-            in GaussianProcessRegressor for numerical
-            stability
         ignore_warning : bool, optional (default=True)
             If True, Convergence Warning of GP Regressor will be ignored.
         """
         super().__init__()
 
         self.ignore_warning = ignore_warning
-        if not isinstance(n_tuning, int):
-            raise ValueError("n_tuning must be an integer")
         self.n_tuning = n_tuning
-        if not isinstance(max_iter, Union[float, int]):
-            raise ValueError("max_iter must be an float or integer")
         self.max_iter = max_iter
-        if not isinstance(alpha, float):
-            raise ValueError("alpha must be an float")
-        self.alpha = alpha
-        if not isinstance(factr, Union[float, int]):
-            raise ValueError("factr must be an float or integer")
         self.factr = factr
     
     def fit(self, xs, ys, kernel: Kernel) -> GaussianProcessRegressor:
         # Define a constant mean function with the mean of ys
         gp = GaussianProcessRegressor(
-            kernel=kernel, alpha=self.alpha,
+            kernel=kernel, 
             n_restarts_optimizer=self.n_tuning, 
             optimizer=self._optimizer
         )
@@ -245,7 +232,7 @@ class SklearnGPFit(GPFit):
 
 
 def gp_kfoldCV(xs, ys, kernel, gp: GPFit, 
-               n_splits: int=5, scoring: Callable = r2):
+               n_splits: int=5, scoring: Callable = r2_score):
     """
     Perform k-fold Cross-Validation (CV) to evaluate the 
     performance of a Gaussian Process model.
@@ -262,9 +249,9 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
         An instance of a GPFitBase subclass for fitting the GP. 
     n_splits : int, optional (default=5)
         Number of folds for cross-validation.
-    scoring : Callable, optional (default=predictive_ll)
-        A scoring function to evaluate the predictions. It must accept three 
-        arguments: the true values, the predicted values and predicted variance
+    scoring : Callable, optional (default=r2_score)
+        A scoring function to evaluate the predictions. It must accept two 
+        arguments: the true values and the predicted values.
 
     Returns
     -------
@@ -281,7 +268,8 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
     ys = np.ravel(ys)
     
     kf = KFold(n_splits=n_splits)
-    scores = []
+    y_true = []
+    y_pred = []
 
     for train_index, test_index in kf.split(xs):
         xs_train, xs_test = xs[train_index], xs[test_index]
@@ -289,11 +277,14 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
 
         gp.fit(xs_train, ys_train, kernel)
 
-        ys_pred, sigma = gp.predict(xs_test, return_std=True)
-        score = scoring(ys_test, ys_pred, sigma)
-        scores.append(score)
+        y_pred.extend(gp.predict(xs_test))
+        y_true.extend(ys_test)
 
-    return np.mean(scores)
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+    performance = scoring(y_true, y_pred)
+
+    return performance
 
 
 
@@ -324,7 +315,7 @@ class IterativeGPFitting:
     n_splits : int, optional
         number of K-fold cross-validation splits
         if n_splits = 0, K-Fold CV will not be performed. 
-    scoring : Callable, optional (default=predictive_ll)
+    scoring : Callable, optional (default=r2_score)
         A scoring function to evaluate the predictions. It must accept two 
         arguments: the true values and the predicted values.
     max_redraw : int
@@ -332,7 +323,7 @@ class IterativeGPFitting:
         To control number of samples, 
         recommended not exceed 10
     performance_threshold : float
-        Performance threshold for scoring to 
+        Performance threshold for the r2 score to 
         stop the iterative process.
     threshold_direction : str
         one of 'up' and 'down'. 
@@ -343,7 +334,7 @@ class IterativeGPFitting:
     """
     def __init__(self, n_samples: int, max_redraw: int, n_splits: int,
                  performance_threshold: float, threshold_direction: str='up', 
-                 gp: Optional[GPFit]=None, scoring: Optional[Callable]=None, 
+                 gp: Optional[GPFit]=None, scoring: Callable = r2_score, 
                  fit_residuals: bool=True) -> None:
         self.n_samples = n_samples
 
@@ -361,10 +352,7 @@ class IterativeGPFitting:
             gp = SklearnGPFit()
         self.gp = gp
         self.n_splits = n_splits
-        if scoring:
-            self.scoring = scoring
-        else:
-            self.scoring = r2
+        self.scoring = scoring
         self.fit_residuals = fit_residuals
 
     def fit(self, f: Callable, container: Union[Container, List[Container]], 
@@ -441,10 +429,10 @@ class IterativeGPFitting:
 
             if self.n_splits == 0: # no cross validation
                 self.gp.fit(all_xs, residuals, kernel)
-                ys_pred, sigma = self.gp.predict(all_xs, return_std=True)
-                performance = self.scoring(residuals, ys_pred, sigma)
+                ys_pred = self.gp.predict(all_xs)
+                performance = self.scoring(residuals, ys_pred)
             elif self.n_splits > 0:
-                performance = gp_kfoldCV(xs=all_xs, ys=residuals, kernel=kernel, gp=self.gp, 
+                performance = gp_kfoldCV(all_xs, residuals, kernel, self.gp, 
                                          scoring=self.scoring, n_splits=self.n_splits)
             else:
                 raise ValueError('n_splits cannot be negative')
@@ -505,3 +493,368 @@ class IterativeGPFitting:
             samples.append((x, y, c))
 
         return samples
+
+def default_criterion(container: Container) -> bool:
+    return True
+
+def GP_diagnosis(igp: IterativeGPFitting, container: Container, 
+                 criterion: Callable[[Container], 
+                                     bool]=default_criterion, 
+                                     plot: bool=False) -> None:
+    """
+    Check the performance of a Gaussian Process (GP) model.
+    
+    Parameters
+    ----------
+    igp : IterativeGPFitting
+        The fitted Gaussian Process model.
+    container : Container
+        Container object that holds the samples and boundaries.
+    criterion : function, Optional
+        A function that takes a container and returns a boolean indicating 
+        whether to plot the posterior mean.
+        Default criterion: always True
+    plot : bool, optional
+        if true, 1D problems will be plotted
+        Default: False
+    
+    Returns
+    -------
+    None
+    """
+    xs = igp.gp.X_train_
+    ys = igp.gp.y_train_
+    n = xs.shape[0]
+
+    # Make predictions
+    y_pred = igp.gp.predict(xs)
+
+    # Check R-squared and MSE
+    score = igp.scoring(ys, y_pred)
+    mse = mean_squared_error(ys, y_pred)
+
+    if is_poor_fit(score, igp.performance_threshold, 
+                   igp.threshold_direction):
+        print(f'number of training samples : {n}')
+        print(f'volume of container : {container.volume}')
+        print(f"GP Score: {score:.3f}")
+        print(f"Mean Squared Error: {mse:.3f}") 
+
+    # posterior mean plot
+    if xs.shape[1] == 1 and criterion(container) and plot:
+        plotGP(igp.gp, xs, ys, 
+               mins=container.mins, maxs=container.maxs)
+
+    
+def get_length_scale(kernel):
+    """Recursively find the length scale in a composite kernel."""
+    if isinstance(kernel, RBF):
+        return kernel.length_scale
+    if hasattr(kernel, 'k1'):
+        return get_length_scale(kernel.k1)
+    if hasattr(kernel, 'k2'):
+        return get_length_scale(kernel.k2)
+    raise ValueError("No RBF kernel found in the composite kernel.")
+
+def rbf_mean_post(gp: GPFit, container: Container, gp_results: dict):
+    """
+    calculate the posterior mean of integral using RBF kernel
+
+    Returns
+    -------
+    float, numpy.ndarray
+        the posterior mean fo integral and partial mean of kernel
+    """
+
+    ### Extract necessary information
+    l = get_length_scale(gp.kernel_)
+    
+    xs = gp.X_train_
+
+    # Container boundaries
+    b = container.maxs   # right boarder
+    a = container.mins   # left boarder
+
+    K_inv_y = gp.alpha_.reshape(-1)
+
+    ### apply the formulae using scipy.erf
+    erf_b = erf((b - xs) / (np.sqrt(2) * l))
+    erf_a = erf((a - xs) / (np.sqrt(2) * l))
+    k_tilde = (erf_b - erf_a).prod(axis=1) * (
+        (l * np.sqrt(np.pi / 2)) ** container.D)
+
+    try:
+        y_mean = gp_results['y_mean']
+    except KeyError:
+        raise KeyError('cannot find y_mean in gp_results')
+    
+    return np.dot(K_inv_y, k_tilde) + y_mean * container.volume, k_tilde
+
+
+def rbf_var_post(container: Container, gp: GPFit, k_tilde: np.ndarray, 
+                 jitter: float = 1e-8, threshold: float = 1e10):
+    """calculate the posterior variance of integral estimate obtained using RBF kernel"""
+    b = container.maxs   # right boarder
+    a = container.mins   # left boarder
+
+    xs = gp.X_train_
+
+    l = get_length_scale(gp.kernel_)
+
+    def integrand(x_j_prime, a_j, b_j):
+                return erf((b_j - x_j_prime) / (np.sqrt(2) * l)
+                        ) - erf(
+                            (a_j - x_j_prime) / (np.sqrt(2) * l)
+                            )
+    result = 1
+    for j in range(container.D):
+        integ_j, _ = quad(integrand, a[j], b[j], args=(a[j], b[j]))
+        result *= integ_j
+    k_mean = l * np.sqrt(np.pi / 2) * result
+
+    K = gp.kernel_(xs)
+    if np.linalg.cond(K) > threshold:
+        K += np.eye(K.shape[0]) * jitter
+    K_inv = np.linalg.inv(K)
+    # posterior variance
+    var_post = k_mean - np.dot(k_tilde.T, np.dot(K_inv, k_tilde))
+
+    return var_post
+
+
+def contains_rbf(kernel: Kernel) -> bool:
+    """
+    Check if the given kernel or any of its components is an RBF kernel.
+
+    Parameters
+    ----------
+    kernel : Kernel
+        The kernel to check.
+
+    Returns
+    -------
+    bool
+        True if the kernel or any of its components is an RBF kernel, False otherwise.
+    """
+    if isinstance(kernel, RBF):
+        return True
+    elif isinstance(kernel, (Sum, Product)):
+        return contains_rbf(kernel.k1) or contains_rbf(kernel.k2)
+    return False
+
+def kernel_integration(igp: IterativeGPFitting, container: Container, 
+                       gp_results: dict, return_std: bool, 
+                    kernel_mean_post: Optional[Callable]=None,
+                    kernel_var_post: Optional[Callable]=None,
+                    kernel_post: Optional[Callable]=None) -> dict:
+    """
+    Estimate the integral of the RBF kernel over 
+    a given container and set of points.
+
+    Parameters
+    ----------
+    igp : IterativeGPFitting
+        The fitted Gaussian Process model.
+    container : Container
+        The container object that holds the boundaries.
+    gp_results : dict
+        results from gp.fit() necessary for performing the 
+        kernel integral
+    return_std : bool
+        When True, return the standard deviation of GP estimation
+    kernel_mean_post, kernel_var_post : functions, optional
+        must be provided if not using RBF kernel
+        kernel_mean_post : takes a GPFit, Container, 
+          and dictionary (gp fitting results)
+          and returns a float (integral estimate)
+        kernel_var_post : takes a GPFit, Container, 
+          and returns a float (posterior variance)
+    kernel_post : function, optional
+        alternative to kernel_mean_post, kernel_var_post
+        must take GPFit, Container, dict (gp fitting results) 
+          and return_std : bool
+          and return estiamte and var_post simulaneously 
+
+    Returns
+    -------
+    dict
+        - integral (float) the integral estimate
+        - std (float) standard deviation of integral
+    """
+    gp = igp.gp
+
+    if contains_rbf(gp.kernel_):   # RBF kernel        
+        integral, k_tilde = rbf_mean_post(gp, container, gp_results)
+
+        if return_std:
+            var_post = rbf_var_post(container, gp, k_tilde)
+    elif kernel_mean_post is not None and (
+        kernel_var_post is not None):  
+        integral = kernel_mean_post(gp, container, gp_results)
+        if return_std:
+            var_post = kernel_var_post(gp, container)
+    elif kernel_post is not None:
+        integral, var_post = kernel_post(gp, container, gp_results, return_std)
+    else:
+        raise Exception(
+            'kernel not RBF, '
+            'either kernel_mean_post, kernel_var_post '
+            'or kernel_post must be provided'
+            )
+    
+    ret = {'integral' : integral}
+            
+    # value check
+    if return_std and var_post < 0:
+        if var_post < -1e-2:
+            warnings.warn(
+                'Warning: variance estimate in a container is negative'
+                f' with value : {var_post}'
+                '. Will be set to zero.', 
+                UserWarning)
+        var_post = 0
+
+    if return_std:
+        ret['std'] = np.sqrt(var_post)
+
+    return ret
+
+
+def plotGP(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
+           mins: np.ndarray, maxs: np.ndarray, plot_ci: Optional[bool]=True):
+    """
+    Plot the Gaussian Process posterior mean and the data points.
+
+    Parameters
+    ----------
+    gp : GPFit
+        The trained GP model.
+    xs, ys : numpy.ndarray
+        The data points.
+    mins : np.ndarray
+        The lower bounds for plotting.
+    maxs : np.ndarray
+        The upper bounds for plotting.
+    plot_ci : bool, optional
+        If True, the confidence interval will be plotted. Default is True.
+    """
+    if xs.shape[1] == 1:
+        _plotGP1D(gp, xs, ys, mins[0], maxs[0], plot_ci)
+    elif xs.shape[1] == 2:
+        assert len(mins) == 2 and len(maxs) == 2, (
+            'mins and maxs must have two elements for 2-dimensional problems'
+            )
+        _plotGP2D(gp, xs, ys, mins[0], maxs[0], mins[1], maxs[1], plot_ci)
+    else:
+        raise ValueError(
+            'This function only supports 1-dimensional and 2-dimensional problems'
+            )
+
+def _plotGP1D(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
+           x_min: float, x_max: float, plot_ci: Optional[bool]=True):
+    """
+    Plot the Gaussian Process posterior mean
+    and the data points
+
+    Parameters
+    ----------
+    gp : GPFit
+        the trained GP model
+    xs, ys : numpy.ndarray
+        the data points
+    x_min, x_max : float
+        the lower and upper bounds for plotting
+    plot_ci : bool
+        if True, the confidence interval will be plotted.
+        Default True
+    """
+    assert xs.shape[1] == 1, 'only supports 1-dimensional problems'
+
+    x_plot = np.linspace(x_min, x_max, 1000).reshape(-1, 1)
+
+    # Predict the mean and standard deviation of the GP model
+    y_mean, y_std = gp.predict(x_plot, return_std=True)
+
+    # Plot the original points
+    plt.scatter(xs, ys, c='r', marker='x', label='Data points')
+
+    # Plot the GP mean function
+    plt.plot(x_plot, y_mean, 'b-', label='GP mean')
+
+    # Plot the confidence interval
+    if plot_ci:
+        plt.fill_between(x_plot.ravel(),
+                        y_mean - 1.96 * y_std,
+                        y_mean + 1.96 * y_std,
+                        alpha=0.2,
+                        color='b',
+                        label='95% confidence interval')
+
+    # Add labels and legend
+    plt.xlabel('Input')
+    plt.ylabel('Output')
+    plt.title('Gaussian Process Regression')
+    plt.legend()
+    plt.show()
+
+
+def _plotGP2D(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
+           x_min: float, x_max: float, y_min: float, y_max: float, 
+           plot_ci: Optional[bool]=True):
+    """
+    Plot the Gaussian Process posterior mean and the data points for a 2D problem.
+
+    Parameters
+    ----------
+    gp : GPFit
+        The trained GP model.
+    xs, ys : numpy.ndarray
+        The data points.
+    x_min, x_max : float
+        The lower and upper bounds for the first axis (x-axis) for plotting.
+    y_min, y_max : float
+        The lower and upper bounds for the second axis (y-axis) for plotting.
+    plot_ci : bool, optional
+        If True, the confidence interval will be plotted. Default is True.
+    """
+    assert xs.shape[1] == 2, 'This function only supports 2-dimensional problems'
+
+    # Create a grid over the input space
+    x1_plot = np.linspace(x_min, x_max, 100)
+    x2_plot = np.linspace(y_min, y_max, 100)
+    x1_grid, x2_grid = np.meshgrid(x1_plot, x2_plot)
+    x_plot = np.vstack([x1_grid.ravel(), x2_grid.ravel()]).T
+
+    # Predict the mean and standard deviation of the GP model
+    y_mean, y_std = gp.predict(x_plot, return_std=True)
+    y_mean = y_mean.reshape(x1_grid.shape)
+    y_std = y_std.reshape(x1_grid.shape)
+
+    # Plot the GP mean function
+    plt.figure(figsize=(12, 6))
+    plt.contourf(x1_grid, x2_grid, y_mean, cmap='viridis', alpha=0.8)
+    plt.colorbar(label='GP mean')
+
+    # Plot the original points
+    scatter = plt.scatter(xs[:, 0], xs[:, 1], c=ys, cmap='viridis', edgecolors='k', 
+                          marker='o', label='Data points')
+
+    # Plot the confidence interval
+    if plot_ci:
+        ci_lower = y_mean - 1.96 * y_std
+        ci_upper = y_mean + 1.96 * y_std
+        plt.contour(x1_grid, x2_grid, ci_lower, levels=1, colors='blue', linestyles='dashed', alpha=0.5)
+        plt.contour(x1_grid, x2_grid, ci_upper, levels=1, colors='red', linestyles='dashed', alpha=0.5)
+
+        # Add dummy plots for the legend
+        lower_dummy_line = plt.Line2D([0], [0], linestyle='dashed', color='blue', alpha=0.5)
+        upper_dummy_line = plt.Line2D([0], [0], linestyle='dashed', color='red', alpha=0.5)
+        plt.legend([scatter, lower_dummy_line, upper_dummy_line], ['Data points', 
+                                                                   '95% CI Lower Bound', 
+                                                                   '95% CI Upper Bound'])
+
+    # Add labels and legend
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.title('Gaussian Process Regression for 2D Problems')
+    plt.show()

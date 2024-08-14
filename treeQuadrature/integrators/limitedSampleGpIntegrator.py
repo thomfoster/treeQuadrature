@@ -121,11 +121,8 @@ class LimitedSamplesGpIntegrator(Integrator):
                 tree_containers.append(c)
             else:
                 children = self.split.split(c)
-                if len(children) == 1:
-                    tree_containers.append(c)
-                else:
-                    for child in children:
-                        q.put(child)
+                for child in children:
+                    q.put(child)
             
             if iteration_count % 100 == 0 and verbose:
                 elapsed_time = time.time() - start_time

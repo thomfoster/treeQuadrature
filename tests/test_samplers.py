@@ -4,7 +4,8 @@ import treeQuadrature as tq
 
 samplers = [tq.samplers.UniformSampler(), 
             tq.samplers.ImportanceSampler(),
-            tq.samplers.McmcSampler()]
+            tq.samplers.McmcSampler(), 
+            tq.samplers.StratifiedSampler(strata_per_dim=2)]
 
 @pytest.mark.parametrize('sampler', samplers)
 @pytest.mark.parametrize('D', [1, 2, 5])

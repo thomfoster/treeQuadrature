@@ -1,4 +1,4 @@
-from typing import Dict, Any, Callable, Optional, Union, List
+from typing import Dict, Any, Callable, Optional, Union, List, Type
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.metrics import pairwise_distances
 import numpy as np
@@ -77,7 +77,7 @@ class RbfIntegral(ContainerIntegral):
             'n_samples': 15,
             'n_splits' : 5,
             'max_redraw': 5,
-            'threshold' : 0.8,
+            'threshold' : 10,
             'threshold_direction' : 'up',
             'check_GP': False,
             'fit_residuals' : True
@@ -224,12 +224,21 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     scoring : Callable
         A scoring function to evaluate the GP predictions. 
         It must accept three arguments: 
-        the true values, the predicted values, posterior std
+        the true values, the predicted values, posterior std. 
+        If not provided, default is predictive log likelihood
     thershold : float
         minimum score that must be achieved by 
         Gaussian Process. 
-    gp : GPFit
-        default is SklearnGPFit
+    threshold_direction : str
+        one of 'up' and 'down'. for iterative GP fitting
+        if 'up', accept the model if score >= performance_threshold; 
+        if 'down', accept the model if score >= performance_threshold
+    GPFit : Type[GPFit]
+        any subclass of GPFit
+        for fitting gaussian process
+    gp_params : dict
+        The parameters for initialising
+        GPFit object
     iGP : IterativeGPFit
         the iterative fitter used by this instance
         though max_redraw = 0 in this case
@@ -251,9 +260,10 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         Controls the aggressiveness of exponential sample scaling
     """
     def __init__(self, min_n_samples: int=15, max_n_samples: int=200,
-                 n_splits: int=4, max_redraw: int=4, threshold: float=0.7,
+                 n_splits: int=4, max_redraw: int=4, threshold: float=10, 
+                 threshold_direction: str='up',
                  fit_residuals: bool=True, scoring: Optional[Callable]=None,
-                 gp: Optional[GPFit]=None, 
+                 GPFit: Type[GPFit]=SklearnGPFit, gp_params: dict={},
                  volume_scaling: bool=False,
                  scaling_method: Union[str, Callable]='linear', 
                  alpha: float=0.2) -> None:
@@ -268,7 +278,9 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.max_redraw = max_redraw
         self.scoring = scoring
         self.threshold = threshold
-        self.gp = gp
+        self.threshold_direction = threshold_direction
+        self.GPFit = GPFit
+        self.gp_params = gp_params
         self.fit_residuals = fit_residuals
         self.volume_scaling = volume_scaling
         self.scaling_method = scaling_method
@@ -305,7 +317,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
-                          min_cont_size: int, return_std: bool=False) -> Dict:
+                          min_cont_size: int=0, return_std: bool=False) -> Dict:
         """
         Arguments
         ---------
@@ -356,19 +368,21 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
         self.kernel = RBF(initial_length, bounds)
 
-        self.iGP = IterativeGPFitting(n_samples=n_samples, n_splits=self.n_splits, 
+        gp = self.GPFit(**self.gp_params)
+        iGP = IterativeGPFitting(n_samples=n_samples, n_splits=self.n_splits, 
                                  max_redraw=self.max_redraw, scoring=self.scoring,
                                  performance_threshold=self.threshold, 
-                                 gp=self.gp, fit_residuals=self.fit_residuals)
+                                 threshold_direction=self.threshold_direction,
+                                 gp=gp, fit_residuals=self.fit_residuals)
         # only fit using the samples drawn here
-        gp_results = self.iGP.fit(f, container, self.kernel, 
+        gp_results = iGP.fit(f, container, self.kernel, 
                                   initial_samples=(xs, ys))
-        self.gp = self.iGP.gp
 
-        ret = kernel_integration(self.iGP, container, gp_results, 
+        ret = kernel_integration(iGP, container, gp_results, 
                                              return_std)
+        gp = iGP.gp
         
-        ret['hyper_params'] = {'length' : self.gp.hyper_params['length_scale']}
+        ret['hyper_params'] = {'length' : gp.hyper_params['length_scale']}
         ret['performance'] = gp_results['performance']
         
         return ret
@@ -399,8 +413,12 @@ class PolyIntegral(ContainerIntegral):
     threshold : float
         Minimum score that must be achieved by 
         Gaussian Process. 
-    gp : GPFit
-        Default is SklearnGPFit.
+    GPFit : Type[GPFit]
+        any subclass of GPFit
+        for fitting gaussian process
+    gp_params : dict
+        The parameters for initialising
+        GPFit object
     iGP : IterativeGPFit
         The iterative fitter used by this instance.
         Though max_redraw = 0 in this case,
@@ -414,13 +432,15 @@ class PolyIntegral(ContainerIntegral):
     
     def __init__(self, degrees: List[int], coeffs=None, n_samples: int=20, 
                  n_splits: int = 4, max_redraw: int = 4, 
-                 threshold: float = 0.7, fit_residuals: bool = True, 
-                 gp: Optional[GPFit] = None) -> None:
+                 threshold: float = 10, fit_residuals: bool = True, 
+                 GPFit: Type[GPFit]=SklearnGPFit,
+                 gp_params: dict = {}) -> None:
         self.n_samples = n_samples
         self.n_splits = n_splits
         self.max_redraw = max_redraw
         self.threshold = threshold
-        self.gp = gp
+        self.GPFit = GPFit
+        self.gp_params = gp_params
         self.fit_residuals = fit_residuals
         self.degrees = degrees
         if coeffs:
@@ -456,7 +476,7 @@ class PolyIntegral(ContainerIntegral):
         def optimize_kernel_hyperparams(d, c):
             # Here, we return a "negative" score because we will minimize this function
             kernel = Polynomial(degree=d, coef0=c)
-            gp = SklearnGPFit()
+            gp = self.GPFit(**self.gp_params)
             iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                      max_redraw=self.max_redraw, 
                                      performance_threshold=self.threshold, 
@@ -476,18 +496,16 @@ class PolyIntegral(ContainerIntegral):
                     best_d, best_c = d, c
 
         # Fit GP with the best-found hyperparameters
+        gp = self.GPFit(self.gp_params)
         self.kernel = Polynomial(degree=best_d, coef0=best_c)
-        self.iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
+        iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                       max_redraw=self.max_redraw, 
                                       performance_threshold=self.threshold, 
-                                      gp=self.gp, fit_residuals=self.fit_residuals)
-        gp_results = self.iGP.fit(f, container, self.kernel, initial_samples=(xs, ys))
-        self.gp = self.iGP.gp
-        if self.gp.gp is None:
-            raise RuntimeError('no GP fitted')
+                                      gp=gp, fit_residuals=self.fit_residuals)
+        gp_results = iGP.fit(f, container, self.kernel, initial_samples=(xs, ys))
 
         # Perform kernel integration with polynomial kernel
-        ret = kernel_integration(self.iGP, container, gp_results, 
+        ret = kernel_integration(iGP, container, gp_results, 
                                  return_std, kernel_post=poly_post, d=best_d, c=best_c)
         
         ret['hyper_params'] = {'degree': best_d, 'coef0': best_c}

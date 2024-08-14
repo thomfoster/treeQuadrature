@@ -6,7 +6,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.model_selection import KFold
 from sklearn.gaussian_process.kernels import Kernel
-from sklearn.metrics import r2_score
+from scipy.stats import norm
 
 from scipy.optimize import fmin_l_bfgs_b
 
@@ -94,6 +94,10 @@ class GPFit(ABC):
         pass
 
 
+## default scoring
+def predictive_ll(y_true, y_pred, sigma):
+    return np.sum(norm.logpdf(y_true, loc=y_pred, scale=sigma))
+
 class SklearnGPFit(GPFit):
     """
     Default implementation of GP fitting using 
@@ -127,7 +131,7 @@ class SklearnGPFit(GPFit):
     >>> ys_pred = gp_fitter.predict(xs_train)
     """
 
-    def __init__(self, n_tuning: int=10, max_iter: int=1e4, factr: float=1e7, 
+    def __init__(self, n_tuning: int=10, max_iter: float=1e4, factr: float=1e7, 
                  alpha: float=1e-10,
                  ignore_warning: bool=True) -> None:
         """
@@ -154,9 +158,17 @@ class SklearnGPFit(GPFit):
         super().__init__()
 
         self.ignore_warning = ignore_warning
+        if not isinstance(n_tuning, int):
+            raise ValueError("n_tuning must be an integer")
         self.n_tuning = n_tuning
+        if not isinstance(max_iter, Union[float, int]):
+            raise ValueError("max_iter must be an float or integer")
         self.max_iter = max_iter
+        if not isinstance(alpha, float):
+            raise ValueError("alpha must be an float")
         self.alpha = alpha
+        if not isinstance(factr, Union[float, int]):
+            raise ValueError("factr must be an float or integer")
         self.factr = factr
     
     def fit(self, xs, ys, kernel: Kernel) -> GaussianProcessRegressor:
@@ -236,7 +248,7 @@ class SklearnGPFit(GPFit):
 
 
 def gp_kfoldCV(xs, ys, kernel, gp: GPFit, 
-               n_splits: int=5, scoring: Callable = r2_score):
+               n_splits: int=5, scoring: Callable = predictive_ll):
     """
     Perform k-fold Cross-Validation (CV) to evaluate the 
     performance of a Gaussian Process model.
@@ -253,9 +265,9 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
         An instance of a GPFitBase subclass for fitting the GP. 
     n_splits : int, optional (default=5)
         Number of folds for cross-validation.
-    scoring : Callable, optional (default=r2_score)
-        A scoring function to evaluate the predictions. It must accept two 
-        arguments: the true values and the predicted values.
+    scoring : Callable, optional (default=predictive_ll)
+        A scoring function to evaluate the predictions. It must accept three 
+        arguments: the true values, the predicted values and predicted variance
 
     Returns
     -------
@@ -272,8 +284,7 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
     ys = np.ravel(ys)
     
     kf = KFold(n_splits=n_splits)
-    y_true = []
-    y_pred = []
+    scores = []
 
     for train_index, test_index in kf.split(xs):
         xs_train, xs_test = xs[train_index], xs[test_index]
@@ -281,14 +292,11 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
 
         gp.fit(xs_train, ys_train, kernel)
 
-        y_pred.extend(gp.predict(xs_test))
-        y_true.extend(ys_test)
+        ys_pred, sigma = gp.predict(xs_test, return_std=True)
+        score = scoring(ys_test, ys_pred, sigma)
+        scores.append(score)
 
-    y_true = np.array(y_true)
-    y_pred = np.array(y_pred)
-    performance = scoring(y_true, y_pred)
-
-    return performance
+    return np.mean(scores)
 
 
 
@@ -319,7 +327,7 @@ class IterativeGPFitting:
     n_splits : int, optional
         number of K-fold cross-validation splits
         if n_splits = 0, K-Fold CV will not be performed. 
-    scoring : Callable, optional (default=r2_score)
+    scoring : Callable, optional (default=predictive_ll)
         A scoring function to evaluate the predictions. It must accept two 
         arguments: the true values and the predicted values.
     max_redraw : int
@@ -327,7 +335,7 @@ class IterativeGPFitting:
         To control number of samples, 
         recommended not exceed 10
     performance_threshold : float
-        Performance threshold for the r2 score to 
+        Performance threshold for scoring to 
         stop the iterative process.
     threshold_direction : str
         one of 'up' and 'down'. 
@@ -338,7 +346,7 @@ class IterativeGPFitting:
     """
     def __init__(self, n_samples: int, max_redraw: int, n_splits: int,
                  performance_threshold: float, threshold_direction: str='up', 
-                 gp: Optional[GPFit]=None, scoring: Callable = r2_score, 
+                 gp: Optional[GPFit]=None, scoring: Optional[Callable]=None, 
                  fit_residuals: bool=True) -> None:
         self.n_samples = n_samples
 
@@ -356,7 +364,10 @@ class IterativeGPFitting:
             gp = SklearnGPFit()
         self.gp = gp
         self.n_splits = n_splits
-        self.scoring = scoring
+        if scoring:
+            self.scoring = scoring
+        else:
+            self.scoring = predictive_ll
         self.fit_residuals = fit_residuals
 
     def fit(self, f: Callable, container: Union[Container, List[Container]], 
@@ -433,8 +444,8 @@ class IterativeGPFitting:
 
             if self.n_splits == 0: # no cross validation
                 self.gp.fit(all_xs, residuals, kernel)
-                ys_pred = self.gp.predict(all_xs)
-                performance = self.scoring(residuals, ys_pred)
+                ys_pred, sigma = self.gp.predict(all_xs, return_std=True)
+                performance = self.scoring(residuals, ys_pred, sigma)
             elif self.n_splits > 0:
                 performance = gp_kfoldCV(xs=all_xs, ys=residuals, kernel=kernel, gp=self.gp, 
                                          scoring=self.scoring, n_splits=self.n_splits)

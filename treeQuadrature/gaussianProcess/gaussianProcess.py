@@ -158,13 +158,13 @@ class SklearnGPFit(GPFit):
         if not isinstance(n_tuning, int):
             raise ValueError("n_tuning must be an integer")
         self.n_tuning = n_tuning
-        if not isinstance(max_iter, Union[float, int]):
+        if not isinstance(max_iter, (float, int)):
             raise ValueError("max_iter must be an float or integer")
         self.max_iter = max_iter
         if not isinstance(alpha, float):
             raise ValueError("alpha must be an float")
         self.alpha = alpha
-        if not isinstance(factr, Union[float, int]):
+        if not isinstance(factr, (float, int)):
             raise ValueError("factr must be an float or integer")
         self.factr = factr
     

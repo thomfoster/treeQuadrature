@@ -34,6 +34,12 @@ def parallel_container_integral(integral: ContainerIntegral,
     else: 
         integral_results = integral.containerIntegral(cont, integrand,
                                                       **params)
+    # check types
+    if 'integral' not in integral_results:
+        raise KeyError("results of containerIntegral does not have key 'integral'")
+    elif return_std and 'std' not in integral_results:
+        raise KeyError("results of containerIntegral does not have key 'std'")
+        
     return integral_results, cont
 
 class TreeIntegrator(Integrator):

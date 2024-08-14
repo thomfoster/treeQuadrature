@@ -1,13 +1,15 @@
-from typing import Dict, Any, Callable, Optional, Union
+from typing import Dict, Any, Callable, Optional, Union, List, Type
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.metrics import pairwise_distances
 import numpy as np
 import warnings
 from traceback import print_exc
 
-from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, kernel_integration, GPFit
+from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, kernel_integration, GPFit, SklearnGPFit
+from ..gaussianProcess.kernelIntegration import poly_post
 from .containerIntegral import ContainerIntegral
 from ..container import Container
+from ..gaussianProcess.kernels import Polynomial
 
 class RbfIntegral(ContainerIntegral):
     """
@@ -75,7 +77,7 @@ class RbfIntegral(ContainerIntegral):
             'n_samples': 15,
             'n_splits' : 5,
             'max_redraw': 5,
-            'threshold' : 0.8,
+            'threshold' : 10,
             'threshold_direction' : 'up',
             'check_GP': False,
             'fit_residuals' : True
@@ -219,11 +221,24 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         maximum number of times to increase the 
         number of samples in GP fitting. 
         Should NOT be too large. 
+    scoring : Callable
+        A scoring function to evaluate the GP predictions. 
+        It must accept three arguments: 
+        the true values, the predicted values, posterior std. 
+        If not provided, default is predictive log likelihood
     thershold : float
         minimum score that must be achieved by 
         Gaussian Process. 
-    gp : GPFit
-        default is SklearnGPFit
+    threshold_direction : str
+        one of 'up' and 'down'. for iterative GP fitting
+        if 'up', accept the model if score >= performance_threshold; 
+        if 'down', accept the model if score >= performance_threshold
+    GPFit : Type[GPFit]
+        any subclass of GPFit
+        for fitting gaussian process
+    gp_params : dict
+        The parameters for initialising
+        GPFit object
     iGP : IterativeGPFit
         the iterative fitter used by this instance
         though max_redraw = 0 in this case
@@ -245,9 +260,10 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         Controls the aggressiveness of exponential sample scaling
     """
     def __init__(self, min_n_samples: int=15, max_n_samples: int=200,
-                 n_splits: int=4, max_redraw: int=4, threshold: float=0.7,
-                 fit_residuals: bool=True,
-                 gp: Optional[GPFit]=None, 
+                 n_splits: int=4, max_redraw: int=4, threshold: float=10, 
+                 threshold_direction: str='up',
+                 fit_residuals: bool=True, scoring: Optional[Callable]=None,
+                 GPFit: Type[GPFit]=SklearnGPFit, gp_params: dict={},
                  volume_scaling: bool=False,
                  scaling_method: Union[str, Callable]='linear', 
                  alpha: float=0.2) -> None:
@@ -260,8 +276,11 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.max_n_samples = max_n_samples
         self.n_splits = n_splits
         self.max_redraw = max_redraw
+        self.scoring = scoring
         self.threshold = threshold
-        self.gp = gp
+        self.threshold_direction = threshold_direction
+        self.GPFit = GPFit
+        self.gp_params = gp_params
         self.fit_residuals = fit_residuals
         self.volume_scaling = volume_scaling
         self.scaling_method = scaling_method
@@ -298,7 +317,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
-                          min_cont_size: int, return_std: bool=False) -> Dict:
+                          min_cont_size: int=0, return_std: bool=False) -> Dict:
         """
         Arguments
         ---------
@@ -349,19 +368,147 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
         self.kernel = RBF(initial_length, bounds)
 
-        self.iGP = IterativeGPFitting(n_samples=n_samples, n_splits=self.n_splits, 
-                                 max_redraw=self.max_redraw, 
+        gp = self.GPFit(**self.gp_params)
+        iGP = IterativeGPFitting(n_samples=n_samples, n_splits=self.n_splits, 
+                                 max_redraw=self.max_redraw, scoring=self.scoring,
                                  performance_threshold=self.threshold, 
-                                 gp=self.gp, fit_residuals=self.fit_residuals)
+                                 threshold_direction=self.threshold_direction,
+                                 gp=gp, fit_residuals=self.fit_residuals)
         # only fit using the samples drawn here
-        gp_results = self.iGP.fit(f, container, self.kernel, 
+        gp_results = iGP.fit(f, container, self.kernel, 
                                   initial_samples=(xs, ys))
-        self.gp = self.iGP.gp
 
-        ret = kernel_integration(self.iGP, container, gp_results, 
+        ret = kernel_integration(iGP, container, gp_results, 
                                              return_std)
+        gp = iGP.gp
         
-        ret['hyper_params'] = {'length' : self.gp.hyper_params['length_scale']}
+        ret['hyper_params'] = {'length' : gp.hyper_params['length_scale']}
+        ret['performance'] = gp_results['performance']
+        
+        return ret
+    
+
+class PolyIntegral(ContainerIntegral):
+    """
+    Use Gaussian Process with a Polynomial kernel, 
+    with degree and coefficient determined by  
+    grid search. 
+
+    Attributes
+    -----------
+    degrees : List[int]
+        degrees of polynomials to search through
+    coeffs : ArrayLike
+        range of coefficients to search from 
+        for polynomial kernel
+    n_samples : int
+        number of samples drawn in each iteration
+    n_splits : int
+        Number of K-fold cross-validation splits.
+        If n_splits = 0, K-Fold CV will not be performed.
+    max_redraw : int
+        Maximum number of times to increase the 
+        number of samples in GP fitting. 
+        Should NOT be too large.
+    threshold : float
+        Minimum score that must be achieved by 
+        Gaussian Process. 
+    GPFit : Type[GPFit]
+        any subclass of GPFit
+        for fitting gaussian process
+    gp_params : dict
+        The parameters for initialising
+        GPFit object
+    iGP : IterativeGPFit
+        The iterative fitter used by this instance.
+        Though max_redraw = 0 in this case,
+        as number of samples scale with volume of container instead.
+    fit_residuals : bool
+        If True, GP is fitted to residuals
+        instead of samples.
+    return_std : bool
+        If True, returns the posterior std of integral estimate.
+    """
+    
+    def __init__(self, degrees: List[int], coeffs=None, n_samples: int=20, 
+                 n_splits: int = 4, max_redraw: int = 4, 
+                 threshold: float = 10, fit_residuals: bool = True, 
+                 GPFit: Type[GPFit]=SklearnGPFit,
+                 gp_params: dict = {}) -> None:
+        self.n_samples = n_samples
+        self.n_splits = n_splits
+        self.max_redraw = max_redraw
+        self.threshold = threshold
+        self.GPFit = GPFit
+        self.gp_params = gp_params
+        self.fit_residuals = fit_residuals
+        self.degrees = degrees
+        if coeffs:
+            self.coeffs = coeffs
+        else:
+            self.coeffs = np.logspace(-2, 1, 5)  # default coeffs between 0.01 and 10
+
+    def containerIntegral(self, container: Container, 
+                          f: Callable[..., np.ndarray], 
+                          return_std: bool = False) -> Dict:
+        """
+        Arguments
+        ---------
+        container: Container
+            The container on which the integral of f should be evaluated.
+        f : function
+            Takes X : np.ndarray and returns np.ndarray.
+        return_std : bool
+            If True, returns the posterior std of integral estimate.
+        
+        Return
+        ------
+        dict
+            - integral (float) value of the integral of f on the container.
+            - std (float) standard deviation of integral, if return_std = True.
+            - hyper_params (dict) hyper-parameters of the fitted kernel.
+            - performance (float) GP goodness of fit score.
+        """
+        xs = container.rvs(self.n_samples)
+        ys = f(xs)
+
+        # Define a function to optimize the hyper-parameters (degree and coefficient)
+        def optimize_kernel_hyperparams(d, c):
+            # Here, we return a "negative" score because we will minimize this function
+            kernel = Polynomial(degree=d, coef0=c)
+            gp = self.GPFit(**self.gp_params)
+            iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
+                                     max_redraw=self.max_redraw, 
+                                     performance_threshold=self.threshold, 
+                                     gp=gp, fit_residuals=self.fit_residuals)
+            gp_results = iGP.fit(f, container, kernel, initial_samples=(xs, ys))
+            return -gp_results['performance']
+
+        # Perform grid search over the hyper-parameters
+        best_score = float('inf')
+        best_d, best_c = None, None
+
+        for d in self.degrees:
+            for c in self.coeffs:
+                score = optimize_kernel_hyperparams(d, c)
+                if score < best_score:
+                    best_score = score
+                    best_d, best_c = d, c
+
+        # Fit GP with the best-found hyperparameters
+        gp = self.GPFit(**self.gp_params)
+        self.kernel = Polynomial(degree=best_d, coef0=best_c)
+        iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
+                                      max_redraw=self.max_redraw, 
+                                      performance_threshold=self.threshold, 
+                                      gp=gp, fit_residuals=self.fit_residuals)
+        gp_results = iGP.fit(f, container, self.kernel, initial_samples=(xs, ys))
+
+        # Perform kernel integration with polynomial kernel
+        ret = kernel_integration(iGP, container, gp_results, 
+                                 return_std, kernel_post=poly_post, d=best_d, c=best_c)
+        
+        ret['hyper_params'] = {'degree': best_d, 'coef0': best_c}
         ret['performance'] = gp_results['performance']
         
         return ret

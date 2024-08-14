@@ -79,6 +79,243 @@ class Problem(ABC):
     def __str__(self) -> str:
         return f'Problem(D={self.D}, lows={self.lows}, highs={self.highs})'
 
+class RippleProblem(Problem):
+    def __init__(self, D, a=3):
+        super().__init__(D, lows=-10., highs=10.)
+        self.a = a 
+        temp = (1/(1 + 16 * self.a**2))**(self.D/4) * np.cos(self.D*np.arccos(np.sqrt((1/(1 + 16 * self.a**2))))/2)
+        self.answer = np.sqrt(2*np.pi)**self.D * (1 + temp)/2
+
+    
+    def integrand(self, X) -> np.ndarray:
+        """
+        Ripple integrand function.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Each row is an input vector.
+
+        Returns
+        -------
+        numpy.ndarray of shape (N, 1)
+            the function value evaluated at X
+        """
+        norms = np.linalg.norm(X, axis=1)
+        f = np.exp(-norms**2/2)*np.cos(self.a*norms**2)**2
+        return np.array(f).reshape(-1,1)
+    
+    
+    def __str__(self) -> str:
+        return f'Ripple(D={self.D})'
+
+
+class OscillatoryProblem(Problem):
+    def __init__(self, D, u=0, a=None):
+        super().__init__(D, lows=0., highs=1.)
+        if a == None:
+            self.a = 5/np.linspace(1,D,D)
+        else:
+            self.a = a
+        self.u = u
+        self.answer = self.compute_answer(a=self.a, u=self.u)
+
+    def compute_answer(self, a, u):
+        if len(a) > 1:
+            term1 = self.compute_answer(a[:-1], u - 1/4 + a[-1]/(2*np.pi))
+            term2 = self.compute_answer(a[:-1], u - 1/4)
+            return (term1 - term2)/a[-1]
+        else:
+            return (np.sin(2*np.pi*u + a[0]) - np.sin(2*np.pi*u))/a[0]
+
+
+    def integrand(self, X) -> np.ndarray:
+        """
+        Oscillatory integrand function.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Each row is an input vector.
+
+        Returns
+        -------
+        numpy.ndarray of shape (N, 1)
+            the function value evaluated at X
+        """
+        dotprods = np.array([np.dot(x,self.a) for x in X])
+        f = np.cos(2*np.pi*self.u + dotprods)
+        return np.array(f).reshape(-1,1)
+    
+    
+    def __str__(self) -> str:
+        return f'Oscillatory(D={self.D})'
+
+
+
+class ProductPeakProblem(Problem):
+    def __init__(self, D, u=None, a=None):
+        super().__init__(D, lows=0., highs=1.)
+        if a == None:
+            self.a = np.array([1.]*D)
+        else:
+            self.a = a
+        
+        if u == None:
+            self.u = np.linspace(0.2,0.8,D)
+        else:
+            self.u = u
+
+        self.answer = np.prod(self.a * (np.arctan(self.a*(1-self.u)) + np.arctan(self.a*self.u)))
+
+
+    def integrand(self, X) -> np.ndarray:
+        """
+        Product Peak integrand function.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Each row is an input vector.
+
+        Returns
+        -------
+        numpy.ndarray of shape (N, 1)
+            the function value evaluated at X
+        """
+        f = [1/np.prod(self.a**(-2) + (x - self.u)**2) for x in X]
+        return np.array(f).reshape(-1,1)
+    
+    
+    def __str__(self) -> str:
+        return f'ProductPeak(D={self.D})'
+
+
+class CornerPeakProblem(Problem):
+    def __init__(self, D, a=None):
+        super().__init__(D, lows=0., highs=1.)
+        if a == None:
+            self.a = np.array([1.]*D)
+        else:
+            self.a = a
+        
+        self.answer = self.compute_answer(a0 = 1, a = self.a)
+
+    def compute_answer(self, a0, a):
+        if len(a) == 1:
+            return 1/(a0*(a0 + a[0]))
+        else:
+            term1 = self.compute_answer(a0 = a0, a = a[:-1])
+            term2 = self.compute_answer(a0 = a0 + a[-1], a = a[:-1])
+            return (term1 - term2)/(a[-1]*len(a))
+
+
+    def integrand(self, X) -> np.ndarray:
+        """
+        Corner Peak integrand function.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Each row is an input vector.
+
+        Returns
+        -------
+        numpy.ndarray of shape (N, 1)
+            the function value evaluated at X
+        """
+        dotprods = np.array([np.dot(x,self.a) for x in X])
+        f =(1 + dotprods)**(-self.D-1)
+        return np.array(f).reshape(-1,1)
+    
+    
+    def __str__(self) -> str:
+        return f'CornerPeak(D={self.D})'
+
+
+class C0Problem(Problem):
+    def __init__(self, D, u=None, a=None):
+        super().__init__(D, lows=0., highs=1.)
+        if a == None:
+            self.a = np.array([1.]*D)
+        else:
+            self.a = a
+        
+        if u == None:
+            self.u = np.linspace(0.2,0.8,D)
+        else:
+            self.u = u
+
+        self.answer = np.prod((2 - np.exp(-self.a * self.u) - np.exp(-self.a * (1 - self.u)))/self.a)
+
+
+    def integrand(self, X) -> np.ndarray:
+        """
+        C0 integrand function.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Each row is an input vector.
+
+        Returns
+        -------
+        numpy.ndarray of shape (N, 1)
+            the function value evaluated at X
+        """
+        f = [np.exp(-np.sum(self.a * np.abs(x - self.u))) for x in X]
+        return np.array(f).reshape(-1,1)
+    
+    
+    def __str__(self) -> str:
+        return f'C0function(D={self.D})'
+
+
+class DiscontinuousProblem(Problem):
+    def __init__(self, D, a=None):
+        super().__init__(D, lows=0., highs=1.)
+
+        if a == None:
+            self.a = np.array([1.]*D)
+        else:
+            self.a = a
+
+        self.u1 = 0.3
+        self.u2 = 0.5
+
+        if D == 1:
+            self.answer = (np.exp(self.a[0] * self.u1) - 1)/self.a[0]
+        else:
+            term1 = (np.exp(self.a[0] * self.u1) - 1)/self.a[0]
+            term2 = (np.exp(self.a[0] * self.u2) - 1)/self.a[1]
+            term3 = np.prod((np.exp(self.a[2:]) - 1)/self.a[2:])
+            self.answer = term1 * term2 * term3
+
+    def integrand(self, X) -> np.ndarray:
+        """
+        Discontinuous integrand function.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Each row is an input vector.
+
+        Returns
+        -------
+        numpy.ndarray of shape (N, 1)
+            the function value evaluated at X
+        """
+        dotprods = np.array([np.dot(x,self.a) for x in X])
+        if self.D == 1:
+            f = np.array([np.where(x[0] > self.u1, 0, 1) for x in X]) * np.exp(dotprods)
+        else:
+            f = np.array([np.where((x[0] > self.u1 or x[1] > self.u2), 0, 1) for x in X]) * np.exp(dotprods)
+
+        return f.reshape(-1,1)
+    
+    def __str__(self) -> str:
+        return f'Discontinuous(D={self.D})'
+
 
 class PyramidProblem(Problem):
     def __init__(self, D):

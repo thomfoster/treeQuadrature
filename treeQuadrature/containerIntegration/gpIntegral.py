@@ -1,15 +1,17 @@
-from typing import Dict, Any, Callable, Optional, Union, List, Type
+from typing import Dict, Any, Callable, Optional, Union, List, Type, Tuple
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.metrics import pairwise_distances
 import numpy as np
 import warnings
 from traceback import print_exc
+from abc import abstractmethod
 
 from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, kernel_integration, GPFit, SklearnGPFit
 from ..gaussianProcess.kernelIntegration import poly_post
 from .containerIntegral import ContainerIntegral
 from ..container import Container
 from ..gaussianProcess.kernels import Polynomial
+from ..gaussianProcess.scorings import r2
 
 class RbfIntegral(ContainerIntegral):
     """
@@ -239,10 +241,6 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     gp_params : dict
         The parameters for initialising
         GPFit object
-    iGP : IterativeGPFit
-        the iterative fitter used by this instance
-        though max_redraw = 0 in this case
-        as number of samples scale with volume of container instead
     fit_residuals : bool
         if True, GP is fitted to residuals
         instead of samples
@@ -512,3 +510,147 @@ class PolyIntegral(ContainerIntegral):
         ret['performance'] = gp_results['performance']
         
         return ret
+    
+
+class IterativeGpIntegral(ContainerIntegral):
+    def __init__(self, n_samples: int,
+                 n_splits: int, fit_residuals: bool, 
+                 scoring: Callable, score_direction: str,
+                 GPFit: Type[GPFit], gp_params: dict) -> None:
+        if n_samples < 1:
+            raise ValueError('n_samples must be at least 1')
+        self.n_samples = n_samples
+        self.n_splits = n_splits
+        self.scoring = scoring
+        self.score_direction = score_direction
+        self.GPFit = GPFit
+        self.gp_params = gp_params
+        self.fit_residuals = fit_residuals
+
+    @abstractmethod
+    def containerIntegral(self, container: Container, f: Callable, return_std: bool,
+                          previous_samples: Tuple[np.ndarray, 
+                                                  np.ndarray]):
+        """
+        Takes previous samples and draw new samples to perform fitting again.
+
+        Arguments 
+        --------
+        container: Container
+            the container on which the integral of f should be evaluated
+        f : function
+            takes X : np.ndarray and return np.ndarray, 
+            see pdf method of Distribution class in exampleDistributions.py
+        return_std : bool
+            if True, returns the posterior std of integral estimate
+        previous_samples : tuple, optional
+            if provided, it contains (xs, ys) from the previous iteration
+
+        Return
+        ------
+        dict
+            - integral (float) value of the integral of f on the container
+            - std (float) standard deviation of integral, if .return_std = True
+            - hyper_params (dict) hyper-parameters of the fitted kernel
+            - performance (float) GP goodness of fit score
+        tuple(np.ndarray, np.ndarray)
+            samples xs, ys used by this iteration
+        """
+        pass
+
+class IterativeRbfIntegral(IterativeGpIntegral):
+    """
+    A modified version of AdaptiveRbfIntegral that allows iterative
+    sample drawing and fitting of the Gaussian Process model.
+    This is specifically used for integrators where 
+    containers should be coordinating together.
+    e.g. LimitedSampleGpIntegrator
+
+    Attributes
+    -----------
+    n_samples : int
+        number of samples to draw in each container
+    n_splits : int
+        number of K-fold cross-validation splits
+        if n_splits = 0, K-Fold CV will not be performed. 
+    scoring : Callable
+        A scoring function to evaluate the GP predictions. 
+        It must accept three arguments: 
+        the true values, the predicted values, posterior std. 
+        If not provided, default is predictive log likelihood
+    score_direction : str
+        one of 'up' and 'down'
+        if up, higher score is better
+        if down, lower score is better
+    GPFit : Type[GPFit]
+        any subclass of GPFit
+        for fitting gaussian process
+    gp_params : dict
+        The parameters for initialising
+        GPFit object
+    fit_residuals : bool
+        if True, GP is fitted to residuals
+        instead of samples
+    return_std : bool
+        if True, returns the posterior std of integral estimate
+    """
+    def __init__(self, n_samples: int=20,
+                 n_splits: int=4, fit_residuals: bool=True, 
+                 scoring: Optional[Callable]=r2, score_direction='up',
+                 GPFit: Type[GPFit]=SklearnGPFit, gp_params: dict={}) -> None:
+        super().__init__(n_samples, n_splits, fit_residuals, scoring, score_direction,
+                         GPFit, gp_params)
+
+    def containerIntegral(self, container: Container, 
+                          f: Callable[..., np.ndarray], return_std: bool=False,
+                          previous_samples: Optional[Tuple[np.ndarray, 
+                                                           np.ndarray]] = None):
+        # Draw new samples
+        new_xs = container.rvs(self.n_samples)
+        new_ys = f(new_xs)
+
+        if previous_samples:
+            # Combine previous samples with the new ones
+            xs = np.vstack([previous_samples[0], new_xs])
+            ys = np.vstack([previous_samples[1], new_ys])
+        else:
+            xs = new_xs
+            ys = new_ys
+
+        # Compute pairwise distances and determine bounds
+        pairwise_dists = pairwise_distances(xs)
+        mask = np.eye(pairwise_dists.shape[0], dtype=bool)
+        pairwise_dists = np.ma.masked_array(pairwise_dists, mask)
+
+        mean_dist = np.mean(pairwise_dists)
+        D = xs.shape[1]
+        initial_length = mean_dist / np.sqrt(D)
+        smallest_dist = np.min(pairwise_dists)
+        largest_dist = np.max(pairwise_dists)
+
+        min_bound = 1e-5
+        lower_bound = max(smallest_dist / 10, min_bound)
+        upper_bound = max(largest_dist * 10, min_bound)
+        bounds = (lower_bound, upper_bound)
+
+        self.kernel = RBF(initial_length, bounds)
+
+        gp = self.GPFit(**self.gp_params)
+        iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
+                                 threshold_direction='up', performance_threshold=0.0,
+                                 max_redraw=0, scoring=self.scoring,
+                                 gp=gp, fit_residuals=self.fit_residuals)
+
+        # Fit the GP with all accumulated samples
+        gp_results = iGP.fit(f, container, self.kernel, 
+                             initial_samples=(xs, ys))
+
+        # Perform integration using the fitted GP model
+        ret = kernel_integration(iGP, container, gp_results, 
+                                 return_std)
+        gp = iGP.gp
+
+        ret['hyper_params'] = {'length': gp.hyper_params['length_scale']}
+        ret['performance'] = gp_results['performance']
+
+        return ret, (xs, ys)

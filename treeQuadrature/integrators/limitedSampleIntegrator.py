@@ -41,8 +41,8 @@ class LimitedSampleIntegrator(TreeIntegrator):
             sampler: Optional[Sampler]=None,
             queue: ReservoirQueue=default_queue):
         """
-        Integrator that builds on from queueIntegrator with more friendly
-        controls - just keeps sampling until all samples used up.
+        Integrator that builds on from queueIntegrator 
+        which controls the maximum number of samples ued. 
         User does not need to specify the stopping condition
 
         Parameters

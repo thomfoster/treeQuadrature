@@ -496,7 +496,7 @@ class PolyIntegral(ContainerIntegral):
                     best_d, best_c = d, c
 
         # Fit GP with the best-found hyperparameters
-        gp = self.GPFit(self.gp_params)
+        gp = self.GPFit(**self.gp_params)
         self.kernel = Polynomial(degree=best_d, coef0=best_c)
         iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                       max_redraw=self.max_redraw, 

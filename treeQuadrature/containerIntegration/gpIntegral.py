@@ -124,7 +124,7 @@ class RbfIntegral(ContainerIntegral):
                 f'max_redraw must be an int, got {max_redraw}'
                 )
         threshold = options['threshold']
-        if not isinstance(threshold, Union[int, float]):
+        if not isinstance(threshold, (int, float)):
             raise TypeError(
                 f'threshold must be an integer or float, got {threshold}'
                 )    

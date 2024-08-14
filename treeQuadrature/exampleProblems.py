@@ -103,7 +103,8 @@ class Problem(ABC):
             return xs.reshape(1, -1)
         else:
             raise ValueError('xs must be either two dimensional array of shape (N, D)'
-                             'or one dimensional array of shape (D,)')
+                             'or one dimensional array of shape (D,)'
+                             f'got shape {xs.shape}')
 
 class RippleProblem(Problem):
     def __init__(self, D, a=3):
@@ -127,6 +128,7 @@ class RippleProblem(Problem):
         numpy.ndarray of shape (N, 1)
             the function value evaluated at X
         """
+        X = self.handle_input(X)
         norms = np.linalg.norm(X, axis=1)
         f = np.exp(-norms**2/2)*np.cos(self.a*norms**2)**2
         return np.array(f).reshape(-1,1)
@@ -169,6 +171,7 @@ class OscillatoryProblem(Problem):
         numpy.ndarray of shape (N, 1)
             the function value evaluated at X
         """
+        X = self.handle_input(X)
         dotprods = np.array([np.dot(x,self.a) for x in X])
         f = np.cos(2*np.pi*self.u + dotprods)
         return np.array(f).reshape(-1,1)
@@ -209,6 +212,7 @@ class ProductPeakProblem(Problem):
         numpy.ndarray of shape (N, 1)
             the function value evaluated at X
         """
+        X = self.handle_input(X)
         f = [1/np.prod(self.a**(-2) + (x - self.u)**2) for x in X]
         return np.array(f).reshape(-1,1)
     
@@ -250,6 +254,7 @@ class CornerPeakProblem(Problem):
         numpy.ndarray of shape (N, 1)
             the function value evaluated at X
         """
+        X = self.handle_input(X)
         dotprods = np.array([np.dot(x,self.a) for x in X])
         f =(1 + dotprods)**(-self.D-1)
         return np.array(f).reshape(-1,1)
@@ -289,6 +294,7 @@ class C0Problem(Problem):
         numpy.ndarray of shape (N, 1)
             the function value evaluated at X
         """
+        X = self.handle_input(X)
         f = [np.exp(-np.sum(self.a * np.abs(x - self.u))) for x in X]
         return np.array(f).reshape(-1,1)
     
@@ -331,6 +337,7 @@ class DiscontinuousProblem(Problem):
         numpy.ndarray of shape (N, 1)
             the function value evaluated at X
         """
+        X = self.handle_input(X)
         dotprods = np.array([np.dot(x,self.a) for x in X])
         if self.D == 1:
             f = np.array([np.where(x[0] > self.u1, 0, 1) for x in X]) * np.exp(dotprods)

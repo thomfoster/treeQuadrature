@@ -248,7 +248,7 @@ def plotIntegrand(integrand, D, xlim, ylim=None, n_points=500, levels=10,
         raise Exception('only supports 1D and 2D problems')
 
 def _plot1D(f, xlim, n_points, file_path):
-    x = np.linspace(xlim[0], xlim[1], n_points)
+    x = np.linspace(xlim[0], xlim[1], n_points).reshape(-1, 1)
     ys = f(x)
 
     plt.plot(x, ys)

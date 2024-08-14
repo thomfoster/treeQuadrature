@@ -21,7 +21,8 @@ class ImportanceSampler(Sampler):
         np.ndarray
             Samples from the distribution.
         """
-        samples = problem.rvs(n)
+        # Generate uniform random samples within the domain
+        samples = np.random.uniform(problem.lows, problem.highs, (n, problem.D))
         
         # Calculate distances to the edges of the domain for each sample
         distances_to_edges = np.minimum(samples - problem.lows, problem.highs - samples)

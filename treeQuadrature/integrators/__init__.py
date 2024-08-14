@@ -7,3 +7,7 @@ from .integrator import Integrator
 from .treeIntegrator import TreeIntegrator
 from .bayesMcIntegrator import BayesMcIntegrator
 from .gpTreeIntegrator import GpTreeIntegrator
+from .iterISIntegrator import IterISIntegrator
+from .biasISIntegrator import BiasISIntegrator
+from .combinedISIntegrator import CombinedISIntegrator
+from .otherIntegrator import OtherIntegrator

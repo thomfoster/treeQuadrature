@@ -13,6 +13,7 @@ from scipy.optimize import fmin_l_bfgs_b
 from abc import ABC, abstractmethod
 
 from ..container import Container
+from .scorings import r2
 
 
 class GPFit(ABC):
@@ -93,10 +94,6 @@ class GPFit(ABC):
         """
         pass
 
-
-## default scoring
-def predictive_ll(y_true, y_pred, sigma):
-    return np.sum(norm.logpdf(y_true, loc=y_pred, scale=sigma))
 
 class SklearnGPFit(GPFit):
     """
@@ -248,7 +245,7 @@ class SklearnGPFit(GPFit):
 
 
 def gp_kfoldCV(xs, ys, kernel, gp: GPFit, 
-               n_splits: int=5, scoring: Callable = predictive_ll):
+               n_splits: int=5, scoring: Callable = r2):
     """
     Perform k-fold Cross-Validation (CV) to evaluate the 
     performance of a Gaussian Process model.
@@ -367,7 +364,7 @@ class IterativeGPFitting:
         if scoring:
             self.scoring = scoring
         else:
-            self.scoring = predictive_ll
+            self.scoring = r2
         self.fit_residuals = fit_residuals
 
     def fit(self, f: Callable, container: Union[Container, List[Container]], 

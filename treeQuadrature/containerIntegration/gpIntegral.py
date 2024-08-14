@@ -77,7 +77,7 @@ class RbfIntegral(ContainerIntegral):
             'n_samples': 15,
             'n_splits' : 5,
             'max_redraw': 5,
-            'threshold' : 10,
+            'threshold' : 0.7,
             'threshold_direction' : 'up',
             'check_GP': False,
             'fit_residuals' : True
@@ -124,9 +124,9 @@ class RbfIntegral(ContainerIntegral):
                 f'max_redraw must be an int, got {max_redraw}'
                 )
         threshold = options['threshold']
-        if not isinstance(threshold, float):
+        if not isinstance(threshold, Union[int, float]):
             raise TypeError(
-                f'threshold must be a float, got {threshold}'
+                f'threshold must be an integer or float, got {threshold}'
                 )    
         if not isinstance(options['check_GP'], bool):
             raise TypeError('check_GP must be a bool')

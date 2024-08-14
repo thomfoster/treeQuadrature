@@ -5,55 +5,37 @@ import numpy as np
 
 
 class ImportanceSampler(Sampler):
-    """
-    Importance sampler based on the integrand function
-
-    Attributes
-    ----------
-    n_init : int
-        size of initial samples drawn to identify the function weights
-    """
-    def __init__(self, n_init=2000) -> None:
-        self.n_init = n_init
-
     def rvs(self, n: int, problem: Problem) -> np.ndarray:
         """
-        Generate importance sampling random samples.
-        with importance propotional to |problem.integrand|
+        Importance sampling with a bias towards edges and corners.
 
         Parameters
         ----------
-        n : int 
+        n : int
             Number of samples.
-        problem: Problem
+        problem : Problem
             The integration problem being solved.
-
+        
         Returns
         -------
         np.ndarray
-            Samples from the importance sampling distribution.
+            Samples from the distribution.
         """
-        # Determine the number of initial samples
-        n_init_used = min(self.n_init, n)
-        n_remaining = n - n_init_used
-
-        # Step 1: Initial uniform sampling
-        initial_samples = np.random.uniform(low=problem.lows, high=problem.highs, 
-                                            size=(n_init_used, problem.D))
-        integrand_values = problem.integrand(initial_samples).reshape(-1)
-        weights = np.abs(integrand_values)
-        probabilities = weights / weights.sum()
-
-        # Step 2: Importance sampling
-        if n_remaining > 0:
-            indices = np.random.choice(np.arange(n_init_used), size=n_remaining, p=probabilities)
-            importance_samples = initial_samples[indices]
-            combined_samples = np.vstack((initial_samples, importance_samples))
-        else:
-            # If no remaining evaluations are allowed, 
-            # just perform importance sampling within initial samples
-            indices = np.random.choice(np.arange(n_init_used), size=n, p=probabilities)
-            combined_samples = initial_samples[indices]
-
-        # Ensure exactly n samples are returned
-        return combined_samples[:n]
+        samples = problem.rvs(n)
+        
+        # Calculate distances to the edges of the domain for each sample
+        distances_to_edges = np.minimum(samples - problem.lows, problem.highs - samples)
+        min_distance_to_edge = np.min(distances_to_edges, axis=1, keepdims=True)
+        
+        # Invert distances to give higher weight to points closer to the edges/corners
+        edge_bias = 1 / (min_distance_to_edge + 1e-6)  # Avoid division by zero
+        
+        # Combine edge bias with the original density
+        densities = problem.integrand(samples)
+        biased_probabilities = densities * edge_bias
+        biased_probabilities /= np.sum(biased_probabilities)  # Normalize to sum to 1
+        
+        # Draw samples with replacement using biased probabilities
+        indices = np.random.choice(np.arange(n), size=n, replace=True, p=biased_probabilities.flatten())
+        
+        return samples[indices]

@@ -1,9 +1,8 @@
 from treeQuadrature.exampleProblems import PyramidProblem, SimpleGaussian, Camel, QuadraticProblem
-from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator
-from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral, PolyIntegral
+from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator, LimitedSamplesGpIntegrator
+from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.samplers import ImportanceSampler, UniformSampler, McmcSampler
-from treeQuadrature.gaussianProcess import SklearnGPFit
 from treeQuadrature import compare_integrators
 
 ## profiling
@@ -14,13 +13,14 @@ from treeQuadrature.integrators import TreeIntegrator
 
 ### Set problem
 # problem = PyramidProblem(D=5)
-# problem = Camel(D=2)
+problem = Camel(D=2)
 # problem = SimpleGaussian(D=1)
-problem = QuadraticProblem(D=2)
+# problem = QuadraticProblem(D=2)
 
 ### set basic parameters
 n_samples = 20
 max_redraw = 4
+max_n_samples = 15_000
 
 N = 8_000
 P = 50
@@ -36,6 +36,7 @@ rbfIntegral = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3,
                             n_samples=n_samples)
 aRbf = AdaptiveRbfIntegral(min_n_samples= int(n_samples / 2), 
                            max_n_samples=int(n_samples * max_redraw))
+iRbf = IterativeRbfIntegral()
 rmeanIntegral = RandomIntegral(n=n_samples)
 polyIntegral = PolyIntegral(n_samples=n_samples, degrees=[2, 3], max_redraw=0)
 
@@ -63,6 +64,10 @@ integ2 = LimitedSampleIntegrator(2000, 500, 10, split, rmeanIntegral,
                                  lambda container: container.volume)
 integ2.name = 'LimitedSampleIntegrator'
 
+integ_limitedGp = LimitedSamplesGpIntegrator(base_N=N, P=P, max_n_samples=max_n_samples,
+                                            split=split, integral=iRbf)
+integ_limitedGp.name = 'Limited RbfIntegrator'
+
 integ3 = SimpleIntegrator(N, P, split, rbfIntegral)
 integ3.name = 'TQ with RBF'
 
@@ -85,7 +90,7 @@ if __name__ == '__main__':
 
 
     # profiler.enable_by_count()
-    compare_integrators([integ_poly, integ_is], plot=True, 
+    compare_integrators([integ_limitedGp], plot=True, verbose=2,
                         xlim=[0.0, 1.0], ylim=[0.0, 1.0], 
                         problem=problem, dimensions=[0, 1], 
                         n_repeat=1)

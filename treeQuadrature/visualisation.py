@@ -56,8 +56,8 @@ def plotContainers(containers: List[Container], contributions: List[float],
     """
 
     assert len(containers) == len(contributions), (
-        'The length of containers and contributions must be the same'
-        f'got {len(containers)} and {len(contributions)}'
+        'The length of containers and contributions must be the same, '
+        f'got {len(containers)} containers and {len(contributions)} contributions'
     )
 
     # check dimensions

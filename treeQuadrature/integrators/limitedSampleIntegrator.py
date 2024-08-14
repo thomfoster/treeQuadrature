@@ -95,12 +95,16 @@ class LimitedSampleIntegrator(TreeIntegrator):
         self.weighting_function = weighting_function
         self.queue = queue
 
-    def __call__(self, problem: Problem, return_N: bool=False, return_containers: bool=False, return_std: bool=False):
-        return super().__call__(problem, return_N, return_containers, return_std, 
-                                integrand=problem.integrand)
+    def __call__(self, problem: Problem, return_N: bool=False, return_containers: bool=False, 
+                 return_std: bool=False, verbose: bool=False, **kwargs):
+        return super().__call__(problem, return_N=return_N, 
+                                return_containers=return_containers, 
+                                return_std=return_std, 
+                                verbose=verbose,
+                                integrand=problem.integrand, **kwargs)
 
     def construct_tree(self, root: Container, integrand: Callable, 
-                       max_iter: int = 1e4, verbose: bool = False):
+                       verbose: bool = False, **kwargs):
         """
         Actively refine the containers with samples.
 
@@ -121,6 +125,8 @@ class LimitedSampleIntegrator(TreeIntegrator):
         List[Container]
             A list of finished containers.
         """
+        max_iter = kwargs.get('max_iter', 1e4)
+
         q = self.queue
         q.put(root, 1)
         finished_containers = []
@@ -152,20 +158,27 @@ class LimitedSampleIntegrator(TreeIntegrator):
 
             if iteration_count % 100 == 0 and verbose:  # Log every 100 iterations
                 elapsed_time = time.time() - start_time
-                print(f"Iteration {iteration_count}: Queue size = {q.qsize()}, "
+                print(f"Iteration {iteration_count}: Queue size = {q.n}, "
                       f"Number of containers = {len(finished_containers)}, "
                       f"Elapsed time = {elapsed_time:.2f}s")
+                
+            iteration_count += 1
         
         total_time = time.time() - start_time
-        if verbose:
-            print(f"Total finished containers: {len(finished_containers)}")
-            print(f"Total iterations: {iteration_count}")
-            print(f"Total time taken: {total_time:.2f}s")
 
         if iteration_count == max_iter:
             warnings.warn(
                 'Maximum iterations reached. Either increase max_iter or check split and samples.', 
                 RuntimeWarning
             )
+            # append containers left
+            while not q.empty():
+                c = q.get()
+                finished_containers.append(c)
+
+        if verbose:
+            print(f"Total finished containers: {len(finished_containers)}")
+            print(f"Total iterations: {iteration_count}")
+            print(f"Total time taken: {total_time:.2f}s")
 
         return finished_containers

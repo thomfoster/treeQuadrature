@@ -6,16 +6,16 @@ import warnings, time, csv, concurrent.futures
 
 from inspect import signature
 import numpy as np
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Any
 from traceback import print_exc
 import os
 
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
-                        plot: bool=False, verbose: bool=False, 
+                        plot: bool=False, verbose: int=1, 
                         xlim: Optional[List[float]]=None, 
                         ylim: Optional[List[float]]=None,
                         dimensions: Optional[List[float]]=None,
-                        n_repeat: int=1) -> None:
+                        n_repeat: int=1, **kwargs: Any) -> None:
     """
     Compare different integrators on a given problem.
     Give integrators attribute `name` 
@@ -43,9 +43,11 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
     plot : bool, optional
         Whether to plot the contributions of the integrators.
         Default is False.
-    verbose : bool, optional
-        If true, print the stages of the test.
-        Default is False.
+    verbose : int, optional
+        If 0, print no message;
+        if 1, print the test runrs;
+        if 2, print the messages within integrators
+        Default is 1.
     xlim, ylim : List[float], optional
         The limits for the plot containers.
         Will not be used when plot=False.
@@ -56,31 +58,41 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         Default is 1.
     """
     print(f'True value: {problem.answer}')
-    D = problem.D
 
     for i, integrator in enumerate(integrators):
         integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
 
-        if verbose:
+        if verbose >= 1:
             print(f'Testing {integrator_name}')
 
         estimates = []
         n_evals_list = []
         times = []
 
-        for _ in range(n_repeat):
+        for i in range(n_repeat):
+            if verbose >= 1:
+                print(f'Run {i}')
             start_time = time.time()
             try:
                 # Perform integration
                 parameters = signature(integrator).parameters
                 if 'verbose' in parameters and 'return_containers' in parameters:
-                    result = integrator(problem, return_N=True, return_containers=True, verbose=verbose)
+                    if verbose >= 2:
+                        result = integrator(problem, return_N=True, return_containers=True, verbose=True, 
+                                            **kwargs)
+                    else:
+                        result = integrator(problem, return_N=True, return_containers=True, verbose=False,
+                                            **kwargs)
                 elif 'return_containers' in parameters:
-                    result = integrator(problem, return_N=True, return_containers=True)
+                    result = integrator(problem, return_N=True, return_containers=True,
+                                        **kwargs)
                 elif 'verbose' in parameters:
-                    result = integrator(problem, return_N=True, verbose=verbose)
+                    if verbose >= 2:
+                        result = integrator(problem, return_N=True, verbose=True, **kwargs)
+                    else:
+                        result = integrator(problem, return_N=True, verbose=False, **kwargs)
                 else:
-                    result = integrator(problem, return_N=True)
+                    result = integrator(problem, return_N=True, **kwargs)
             except Exception as e:
                 print(f'Error during integration with {integrator_name}: {e}')
                 print_exc()
@@ -146,17 +158,23 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
 
 
 ## add protection to code interruption
-def load_existing_results(output_file: str) -> List[Dict[str, Any]]:
-    existing_results = {}
-    if os.path.exists(output_file):
-        with open(output_file, mode='r', newline='') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                key = (row['integrator'], row['problem'])
-                if row['estimate'] != 'None':
-                    existing_results[key] = row
-
-    return existing_results
+def load_existing_results(output_file: str) -> dict:
+    if not os.path.exists(output_file):
+        return {}
+    with open(output_file, mode='r', newline='') as file:
+        reader = csv.DictReader(file)
+        return {(row['integrator'], row['problem']): row for row in reader}
+    
+def write_results(output_file: str, results: List[dict], write_header: bool, 
+                  mode: str='a'):
+    with open(output_file, mode=mode, newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=[
+            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
+        if write_header:
+            writer.writeheader()
+        for result in results:
+            writer.writerow(result)
 
 def test_integrators(integrators: List[Integrator], 
                      problems: List[Problem], 
@@ -202,7 +220,13 @@ def test_integrators(integrators: List[Integrator],
 
     existing_results = load_existing_results(output_file)
 
+    if existing_results:
+        is_first_run = False
+    else:
+        is_first_run = True
+
     results = []
+    n_eval = None
 
     for problem in problems:
         problem_name = str(problem)
@@ -251,7 +275,7 @@ def test_integrators(integrators: List[Integrator],
                             f'Time limit exceeded for {integrator_name} on {problem_name}, '
                             'increase max_time or change the problem/integrator'
                             )
-                        results.append({
+                        new_result = {
                             'integrator': integrator_name,
                             'problem': problem_name,
                             'true_value': problem.answer,
@@ -264,11 +288,11 @@ def test_integrators(integrators: List[Integrator],
                             'n_evals_std': None,
                             'time_taken': f'Exceeded {max_time}s',
                             'errors': None
-                        })
+                        }
                         break
                     except Exception as e:
                         print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
-                        results.append({
+                        new_result = {
                             'integrator': integrator_name,
                             'problem': problem_name,
                             'true_value': problem.answer,
@@ -281,7 +305,7 @@ def test_integrators(integrators: List[Integrator],
                             'n_evals_std': None,
                             'time_taken': None,
                             'errors': None
-                        })
+                        }
                         print_exc()
                         break
 
@@ -307,7 +331,7 @@ def test_integrators(integrators: List[Integrator],
                     error_std = np.std(errors)
                     error_name = 'Signed Absolute error'
 
-                results.append({
+                new_result = {
                     'integrator': integrator_name,
                     'problem': problem_name,
                     'true_value': problem.answer,
@@ -320,15 +344,16 @@ def test_integrators(integrators: List[Integrator],
                     'n_evals_std': np.std(n_evals_list),
                     'time_taken': avg_time_taken, 
                     'errors': errors
-                })
+                }
     
-            # Save for each integrator and each problem
-            with open(output_file, mode='w', newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=[
-                    'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-                    'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
-                writer.writeheader()
-                for result in results:
-                    writer.writerow(result)
+            # Update the existing results
+            existing_results[key] = new_result
+
+            # Write results incrementally to ensure recovery
+            write_results(output_file, [new_result], 
+                            is_first_run)
+            is_first_run = False
+
+    write_results(output_file, list(existing_results.values()), True, mode='w')
 
     print(f'Results saved to {output_file}')

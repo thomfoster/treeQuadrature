@@ -62,7 +62,7 @@ class SimpleIntegrator(TreeIntegrator):
         self.P = P
 
     def construct_tree(self, root: Container, 
-                       verbose: bool=False, max_iter: int=1e4) -> List[Container]:
+                       verbose: bool=False, **kwargs) -> List[Container]:
         """
         Construct a tree of containers.
 
@@ -81,6 +81,8 @@ class SimpleIntegrator(TreeIntegrator):
         List[Container]
             A list of finished containers.
         """
+        max_iter = kwargs.get('max_iter', 1e4)
+
         # Construct tree
         finished_containers = []
         q = SimpleQueue()
@@ -117,8 +119,12 @@ class SimpleIntegrator(TreeIntegrator):
         
         if iteration_count == max_iter:
             warnings.warn(
-                'maximum iterations reached, either '
-                'incresae max_iter or check split and samples', 
+                'maximum iterations reached for constructing the tree, '
+                'either incresae max_iter or check split and samples', 
                 RuntimeWarning)
+            # append containers left
+            while not q.empty():
+                c = q.get()
+                finished_containers.append(c)
                 
         return finished_containers

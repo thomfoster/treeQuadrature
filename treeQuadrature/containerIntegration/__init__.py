@@ -1,5 +1,5 @@
 from .containerIntegral import ContainerIntegral
 from .constantIntegral import MidpointIntegral, MedianIntegral
-from .monteCarloIntegral import RandomIntegral, SmcIntegral
-from .gpIntegral import RbfIntegral
+from .monteCarloIntegral import RandomIntegral
+from .gpIntegral import RbfIntegral, AdaptiveRbfIntegral, PolyIntegral
 from .gaussCurveIntegral import GaussianCurveIntegral

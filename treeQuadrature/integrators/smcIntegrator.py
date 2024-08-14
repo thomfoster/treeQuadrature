@@ -1,7 +1,9 @@
 import numpy as np
+from typing import Optional
 
 from .integrator import Integrator
-from ..exampleProblems import BayesProblem
+from ..exampleProblems import Problem, BayesProblem
+from ..samplers import Sampler
 
 class SmcIntegrator(Integrator):
     """
@@ -13,11 +15,13 @@ class SmcIntegrator(Integrator):
     ----------
     N : int
         Number of samples to draw.
+    sampler
     """
-    def __init__(self, N: int):
+    def __init__(self, N: int, sampler: Optional[Sampler]=None):
         self.N = N
+        self.sampler = sampler
 
-    def __call__(self, problem: BayesProblem, return_N: bool=False, 
+    def __call__(self, problem: Problem, return_N: bool=False, 
                  return_std: bool=False):
         """
         Perform the integration process.
@@ -40,12 +44,15 @@ class SmcIntegrator(Integrator):
             - 'std' (float) : standard deviation of the estimate, if return_std is True
         """
         # Draw N samples from the prior distribution
-        if problem.p is not None:
+        if isinstance(problem, BayesProblem):
             xs = problem.p.rvs(self.N)
+        elif self.sampler is not None:
+            xs = self.sampler.rvs(self.N, problem)
         else:
-            xs = problem.rvs(self.N)
+            raise ValueError('problem is not BayesProblem, and '
+                             'integrator does not have sampler')
         # Evaluate the likelihood at these samples
-        ys = problem.d.pdf(xs).reshape(-1)
+        ys = problem.integrand(xs)
         G = np.mean(ys)
         std_G = np.std(ys) / np.sqrt(self.N)  # Standard deviation of the mean
 

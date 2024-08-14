@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Union
+from typing import List, Optional
 from inspect import signature
 
 import warnings
@@ -12,20 +12,34 @@ from .integrator import Integrator
 from ..container import Container
 from ..exampleProblems import Problem
 from ..splits import Split
-from ..containerIntegration import ContainerIntegral
-from ..samplers import Sampler, UniformSampler
+from ..containerIntegration import ContainerIntegral, AdaptiveRbfIntegral
+from ..samplers import Sampler
+from ..visualisation import plotContainers
 
 
-default_sampler = UniformSampler()
 
 def parallel_container_integral(integral: ContainerIntegral, 
                                 cont: Container, integrand: callable, 
-                                return_std: bool):
+                                return_std: bool, min_cont_size: float):
+    params = {}
+    if isinstance(integral, AdaptiveRbfIntegral) and min_cont_size is not None:
+        params['min_cont_size'] = min_cont_size
+    elif hasattr(integral, 'get_additional_params'):
+        params.update(integral.get_additional_params())
+
     if return_std:
+        params['return_std'] = True
         integral_results = integral.containerIntegral(cont, integrand, 
-                                                      return_std=return_std)
+                                                      **params)
     else: 
-        integral_results = integral.containerIntegral(cont, integrand)
+        integral_results = integral.containerIntegral(cont, integrand,
+                                                      **params)
+    # check types
+    if 'integral' not in integral_results:
+        raise KeyError("results of containerIntegral does not have key 'integral'")
+    elif return_std and 'std' not in integral_results:
+        raise KeyError("results of containerIntegral does not have key 'std'")
+        
     return integral_results, cont
 
 class TreeIntegrator(Integrator):
@@ -36,7 +50,7 @@ class TreeIntegrator(Integrator):
     @abstractmethod
     def __init__(self, split: Split,
             integral: ContainerIntegral, base_N: int, 
-            sampler: Sampler=default_sampler,
+            sampler: Optional[Sampler]=None,
             *args, **kwargs):
         """
         Initialise the tree structure. 
@@ -126,10 +140,15 @@ class TreeIntegrator(Integrator):
         if verbose: 
             print('drawing initial samples')
         # Draw samples
-        if hasattr(problem, 'rvs'):
+        if self.sampler is not None:
+            X = self.sampler.rvs(self.base_N, problem)
+        elif hasattr(problem, 'rvs'):
             X = problem.rvs(self.base_N)
         else:
-            X = self.sampler.rvs(self.base_N, problem)
+            raise RuntimeError('cannot draw initial samples. '
+                               'Either problem should have rvs method, '
+                               'or specify self.sampler'
+                               )
         y = problem.integrand(X)
         assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1), (
             'the output of problem.integrand must be one-dimensional array'
@@ -152,11 +171,29 @@ class TreeIntegrator(Integrator):
         else:
             finished_containers = self.construct_tree(root, *args, **kwargs)
 
+        if len(finished_containers) == 0:
+            raise RuntimeError('No container obtained from construct_tree')
+        
+        if verbose:
+            n_samples = np.sum([cont.N for cont in finished_containers])
+            print(f'got {len(finished_containers)} containers with {n_samples} samples')
+
+        if isinstance(self.integral, AdaptiveRbfIntegral):
+            min_cont_size = min(cont.volume for cont in finished_containers)
+        else:
+            min_cont_size = None
+
         # uncertainty estimates
-        compute_std = return_std and hasattr(self.integral, 'return_std')
-        if not hasattr(self.integral, 'return_std') and return_std:
+        method = getattr(self.integral, 'containerIntegral', None)
+        if method:
+            has_return_std =  'return_std' in signature(method).parameters
+        else:
+            raise TypeError("self.integral must have 'containerIntegral' method")
+        compute_std = return_std and has_return_std
+        if not has_return_std and return_std:
             warnings.warn(
-                f'{str(self.integral)} does not have parameter return_std, will be ignored', 
+                f'{str(self.integral)}.containerIntegral does not have '
+                'parameter return_std, will be ignored', 
                 UserWarning
             )
             compute_std = False
@@ -171,7 +208,7 @@ class TreeIntegrator(Integrator):
             futures = {
                 executor.submit(parallel_container_integral, 
                                 self.integral, cont, problem.integrand, 
-                                compute_std): cont
+                                compute_std, min_cont_size): cont
                 for cont in finished_containers
             }
 
@@ -201,7 +238,7 @@ class TreeIntegrator(Integrator):
         if return_containers:
             return_values['containers'] = containers
             return_values['contributions'] = contributions
-        if return_std:
+        if compute_std:
             return_values['stds'] = stds
 
         return return_values

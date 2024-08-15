@@ -294,7 +294,7 @@ class LimitedSamplesGpIntegrator(Integrator):
     def _allocate_samples(self, ranked_containers_results: list, available_samples: int, max_per_container: int = 1000):
         """
         Allocate samples to containers based on their performance, with a cap on the number
-        of samples allocated to any single container.
+        of samples allocated to any single container in this iteration.
 
         Parameters
         ----------
@@ -326,22 +326,19 @@ class LimitedSamplesGpIntegrator(Integrator):
         # Allocate samples based on these weights, with a cap per container
         allocation = np.minimum(np.round(allocation_weights * available_samples).astype(int), max_per_container)
 
-        # Ensure the total allocation does not exceed available_samples
+        # Calculate discrepancy after initial allocation
         total_allocated = np.sum(allocation)
-        while total_allocated > available_samples:
-            excess = total_allocated - available_samples
-            idx = np.argmax(allocation)
-            allocation[idx] = max(allocation[idx] - excess, 0)
-            total_allocated = np.sum(allocation)
-
-        # Adjust to ensure all available samples are allocated
         discrepancy = available_samples - total_allocated
+
+        # Adjust the allocation to match available_samples while respecting max_per_container
         while discrepancy != 0:
             if discrepancy > 0:
-                idx = np.argmax(allocation_weights)
+                # Add samples, but only to containers that have not reached max_per_container
+                idx = np.argmax(np.where(allocation < max_per_container, allocation_weights, -np.inf))
                 allocation[idx] += 1
                 discrepancy -= 1
             elif discrepancy < 0:
+                # Remove samples, but avoid reducing any container below zero
                 idx = np.argmax(allocation)
                 if allocation[idx] > 0:
                     allocation[idx] -= 1

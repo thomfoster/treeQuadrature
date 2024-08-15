@@ -29,6 +29,9 @@ class UniformSampler(Sampler):
         np.ndarray of shape (n, self.D)
             samples from the distribution
         """
+        if not isinstance(n, int):
+            raise TypeError(f"n must be an integer, got {n}")
+
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 
         xs = np.random.uniform(

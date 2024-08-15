@@ -26,9 +26,8 @@ class ImportanceSampler(Sampler):
         np.ndarray
             Samples from the distribution.
         """
-        f = kwargs.get('f')
-        if f is None:
-            raise ValueError("The required argument 'f' is missing.")
+        if not isinstance(n, int):
+            raise TypeError(f"n must be an integer, got {n}")
         
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 

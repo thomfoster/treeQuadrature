@@ -57,7 +57,6 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         Number of times to repeat the integration and average the results.
         Default is 1.
     """
-    print(f'True value: {problem.answer}')
 
     for i, integrator in enumerate(integrators):
         integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
@@ -128,6 +127,7 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
             error_name = 'Signed Absolute error'
 
         print(f'-------- {integrator_name} --------')
+        print(f'True answer of {str(problem)}: {problem.answer}')
         print(f'Estimated value: {avg_estimate:.4f} ± {std_estimate:.4f}')
         print(f'{error_name}: {avg_error:.2f} % ± {std_error:.2f} %')
         print(f'Number of evaluations: {avg_n_evals:.2f} ± {std_n_evals:.2f}')

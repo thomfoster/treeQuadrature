@@ -5,7 +5,7 @@ from ..container import Container
 from .integrator import Integrator
 from ..exampleProblems import Problem
 
-from typing import Optional, List, Tuple
+from typing import Optional, List
 from queue import SimpleQueue
 import numpy as np
 import time, warnings
@@ -46,7 +46,6 @@ def parallel_container_integral(integral: IterativeGpIntegral,
     new_samples : tuple of np.ndarray
         Updated tuple containing all samples used.
     """
-
     if previous_samples is None:
         previous_samples = {}
 
@@ -207,23 +206,26 @@ class LimitedSamplesGpIntegrator(Integrator):
         if len(containers) == 0:
             raise RuntimeError('No container obtained from construct_tree')
         
+        n_samples = np.sum([cont.N for cont in containers])
         if verbose:
-            n_samples = np.sum([cont.N for cont in containers])
             print(f'got {len(containers)} containers with {n_samples} samples')
 
         # Initialize previous_samples dictionary
         previous_samples = {}
 
-        total_samples = self.base_N
+        total_samples = n_samples
         all_containers = []
         all_results = []
 
+        sample_allocation = [self.n_samples for _ in range(len(containers))]
+        if total_samples + sum(sample_allocation) > self.max_n_samples:
+            raise ValueError('not enough samples to fit first run of GP'
+                                'please reduce base_N or increase max_n_samples')
+
         while total_samples < self.max_n_samples:
-            requested_samples = (self.max_n_samples - total_samples
-                                 ) + len(containers) * self.n_samples
-            if total_samples == self.base_N and requested_samples > self.max_n_samples:
-                raise ValueError('not enough samples to fit first run of GP'
-                                 'please reduce base_N or increase max_n_samples')
+            total_samples += sum(sample_allocation)
+            if verbose:
+                print(f"largest container allocation {max(sample_allocation)}")
 
             with ProcessPoolExecutor() as executor:
                 futures = {
@@ -248,10 +250,9 @@ class LimitedSamplesGpIntegrator(Integrator):
             )
 
             # Allocate samples dynamically based on GP performance
+            # for next iteration
             sample_allocation = self._allocate_samples(ranked_containers_results, 
                                                        self.max_n_samples - total_samples)
-            total_samples += sum(sample_allocation)
-
             if verbose:
                 print(f"Total samples used: {total_samples}/{self.max_n_samples}")
         

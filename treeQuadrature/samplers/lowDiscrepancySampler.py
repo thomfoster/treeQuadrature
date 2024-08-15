@@ -26,7 +26,7 @@ class SobolSampler(Sampler):
         -------
         np.ndarray
             Samples from the distribution.
-        """
+        """        
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 
         n_adjusted = 2 ** np.floor(np.log2(n)).astype(int)

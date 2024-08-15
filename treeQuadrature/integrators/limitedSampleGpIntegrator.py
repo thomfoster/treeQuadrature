@@ -144,32 +144,7 @@ class LimitedSamplesGpIntegrator(Integrator):
                  return_std: bool=False, verbose: bool=False,
                  return_all: bool=False, 
                  **kwargs) -> dict:
-        """
-        Perform the integration process.
 
-        Parameters
-        ----------
-        problem : Problem
-            The integration problem to be solved.
-        return_N : bool, optional
-            If true, return the number of function evaluations.
-        return_containers : bool, optional
-            If true, return containers and their contributions as well.
-        return_std : bool, optional
-            If true, return the standard deviation estimate. 
-            Ignored if self.integral does not have return_std attribute.
-        verbose : bool, optional
-            If true, print the stages (for debugging).
-        return_all : bool, optional
-            If true, returns a list of raw results from self.integral.containerIntegral.
-        **kwargs : Any
-            additional arguments for constructing the tree 
-
-        Returns
-        -------
-        dict
-            Dictionary containing integration results.
-        """
         if verbose: 
             print('drawing initial samples')
         # Draw samples
@@ -182,9 +157,8 @@ class LimitedSamplesGpIntegrator(Integrator):
         else:
             raise RuntimeError('cannot draw initial samples. '
                                'Either problem should have rvs method, '
-                               'or specify self.sampler'
-                               )
-        
+                               'or specify self.sampler')
+
         assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1), (
             'the output of problem.integrand must be one-dimensional array'
             f', got shape {y.shape}'
@@ -194,9 +168,8 @@ class LimitedSamplesGpIntegrator(Integrator):
             print('constructing root container')
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
-        # construct tree
-        containers = self.construct_tree(root, verbose=verbose, 
-                                                **kwargs)
+        # Construct tree
+        containers = self.construct_tree(root, verbose=verbose, **kwargs)
 
         if len(containers) == 0:
             raise RuntimeError('No container obtained from construct_tree')
@@ -231,13 +204,11 @@ class LimitedSamplesGpIntegrator(Integrator):
                 }
 
                 results = []
-                modified_containers = []
                 new_samples_dict = {}
                 for i, future in enumerate(as_completed(futures)):
-                    integral_results, modified_cont, new_samples = future.result()
-                    results.append(integral_results)
-                    modified_containers.append(modified_cont)
-                    new_samples_dict[modified_cont] = new_samples
+                    integral_results, container, new_samples = future.result()
+                    results.append((integral_results, container))
+                    new_samples_dict[container] = new_samples
 
                     total_samples += sample_allocation[i]
 
@@ -245,15 +216,15 @@ class LimitedSamplesGpIntegrator(Integrator):
             previous_samples.update(new_samples_dict)
 
             ranked_containers_results = sorted(
-                zip(results, modified_containers), 
+                results, 
                 key=lambda x: x[0]['performance'], 
                 reverse=self.integral.score_direction == 'down'
             )
 
             # Allocate samples dynamically based on GP performance
             # for next iteration
-            available_samples =  min(self.max_n_samples - total_samples, 
-                                                           self.n_samples * len(containers))
+            available_samples = min(self.max_n_samples - total_samples, 
+                                    self.n_samples * len(containers))
             sample_allocation = self._allocate_samples(ranked_containers_results, 
                                                        available_samples,
                                                        self.max_container_samples)
@@ -273,12 +244,13 @@ class LimitedSamplesGpIntegrator(Integrator):
                 print(f"Total samples used: {total_samples}/{self.max_n_samples}")
                 print(f"Number of containers left: {len(containers)}")
         
-        all_containers.extend([cont for _, cont in ranked_containers_results])
-        all_results.extend([res for res, _ in ranked_containers_results])
+        # Only add the remaining containers not yet processed
+        all_containers.extend(containers)
+        all_results.extend([result for result, _ in ranked_containers_results if result not in all_results])
 
         if len(all_containers) != len(all_results):
             raise RuntimeError(f'number of containers ({len(all_containers)}) not the same as '
-                               f'numebr of integral results ({len(all_results)})')
+                               f'number of integral results ({len(all_results)})')
 
         if return_all:
             return all_results, all_containers

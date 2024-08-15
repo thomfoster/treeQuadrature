@@ -658,7 +658,9 @@ class IterativeRbfIntegral(IterativeGpIntegral):
 
         # Fit the GP with all accumulated samples
         gp_results = iGP.fit(f, container, self.kernel, 
-                             initial_samples=(xs, ys))
+                             initial_samples=(xs, ys), add_samples=False)
+        
+        container.add(new_xs, new_ys)
 
         # Perform integration using the fitted GP model
         ret = kernel_integration(iGP, container, gp_results, 

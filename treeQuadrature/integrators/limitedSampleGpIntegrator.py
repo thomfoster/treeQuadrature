@@ -217,7 +217,7 @@ class LimitedSamplesGpIntegrator(Integrator):
             raise ValueError('not enough samples to fit first run of GP'
                                 'please reduce base_N or increase max_n_samples')
 
-        while total_samples < self.max_n_samples:
+        while total_samples < self.max_n_samples and len(containers) > 0:
             total_samples += sum(sample_allocation)
             if verbose:
                 print(f"largest container allocation {max(sample_allocation)}")
@@ -256,6 +256,17 @@ class LimitedSamplesGpIntegrator(Integrator):
                                                            self.n_samples * len(containers)),
                                                        max_per_container=self.max_container_samples)
             
+            # Separate out containers that received 0 samples
+            containers_for_next_iteration = []
+            for idx, (result, container) in enumerate(ranked_containers_results):
+                if sample_allocation[idx] > 0:
+                    containers_for_next_iteration.append(container)
+                else:
+                    all_containers.append(container)
+                    all_results.append(result)
+
+            containers = containers_for_next_iteration
+
             if verbose:
                 print(f"Total samples used: {total_samples}/{self.max_n_samples}")
         

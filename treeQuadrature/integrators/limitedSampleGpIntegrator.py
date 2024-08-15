@@ -242,7 +242,6 @@ class LimitedSamplesGpIntegrator(Integrator):
 
             # Update previous_samples with new samples from this iteration
             previous_samples.update(new_samples_dict)
-            containers = modified_containers
 
             ranked_containers_results = sorted(
                 zip(results, modified_containers), 

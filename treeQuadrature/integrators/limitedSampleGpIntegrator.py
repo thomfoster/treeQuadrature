@@ -89,7 +89,8 @@ class LimitedSamplesGpIntegrator(Integrator):
     """
     def __init__(self, base_N: int, max_n_samples: int, P: int, split: Split, 
                  integral: IterativeGpIntegral,
-                 sampler: Optional[Sampler]=None):
+                 sampler: Optional[Sampler]=None, 
+                 max_container_samples: int=600):
         self.split = split
         self.base_N = base_N
         self.integral = integral
@@ -97,6 +98,7 @@ class LimitedSamplesGpIntegrator(Integrator):
         self.max_n_samples = max_n_samples
         self.sampler = sampler
         self.n_samples = integral.n_samples
+        self.max_container_samples = max_container_samples
 
     def construct_tree(self, root: Container, verbose: bool=False, 
                        **kwargs) -> List[Container]:
@@ -252,7 +254,10 @@ class LimitedSamplesGpIntegrator(Integrator):
             # Allocate samples dynamically based on GP performance
             # for next iteration
             sample_allocation = self._allocate_samples(ranked_containers_results, 
-                                                       self.max_n_samples - total_samples)
+                                                       min(self.max_n_samples - total_samples, 
+                                                           self.n_samples * len(containers)),
+                                                       max_per_container=self.max_container_samples)
+            
             if verbose:
                 print(f"Total samples used: {total_samples}/{self.max_n_samples}")
         
@@ -286,49 +291,57 @@ class LimitedSamplesGpIntegrator(Integrator):
 
         return return_values
     
-    def _allocate_samples(self, ranked_containers_results: list, available_samples: int):
+    def _allocate_samples(self, ranked_containers_results: list, available_samples: int, max_per_container: int = 1000):
         """
-        Allocate samples to containers based on their performance.
+        Allocate samples to containers based on their performance, with a cap on the number
+        of samples allocated to any single container.
 
         Parameters
         ----------
         ranked_containers_results : list
-            A list of tuples where each tuple contains a result dictionary
-            and a container, sorted by performance.
+            A list of tuples where each tuple contains a result dictionary and a container,
+            sorted by performance.
         available_samples : int
             The total number of samples available to be allocated.
+        max_per_container : int, optional
+            The maximum number of samples to allocate to any single container in this iteration.
+            Defaults to 1000.
 
         Returns
         -------
         List[int]
             A list containing the number of samples allocated to each container.
         """
-        performances = np.array([result['performance'] for result, 
-                                _ in ranked_containers_results])
-        
+        performances = np.array([result['performance'] for result, _ in ranked_containers_results])
+
         # Invert the performance scores so that lower-performing containers get more samples
         inverted_performances = np.max(performances) - performances
-        
+
         # Normalize the inverted performance scores to sum to 1
         if np.sum(inverted_performances) > 0:
             allocation_weights = inverted_performances / np.sum(inverted_performances)
         else:
             allocation_weights = np.ones_like(performances) / len(performances)
 
-        # Allocate samples based on these weights
-        allocation = np.round(allocation_weights * available_samples).astype(int)
+        # Allocate samples based on these weights, with a cap per container
+        allocation = np.minimum(np.round(allocation_weights * available_samples).astype(int), max_per_container)
 
-        # Ensure the total allocation matches available_samples
-        discrepancy = available_samples - np.sum(allocation)
-        
+        # Ensure the total allocation does not exceed available_samples
+        total_allocated = np.sum(allocation)
+        while total_allocated > available_samples:
+            excess = total_allocated - available_samples
+            idx = np.argmax(allocation)
+            allocation[idx] = max(allocation[idx] - excess, 0)
+            total_allocated = np.sum(allocation)
+
+        # Adjust to ensure all available samples are allocated
+        discrepancy = available_samples - total_allocated
         while discrepancy != 0:
             if discrepancy > 0:
-                # If we need to add samples, increment the allocation of the container with the largest weight
                 idx = np.argmax(allocation_weights)
                 allocation[idx] += 1
                 discrepancy -= 1
             elif discrepancy < 0:
-                # If we need to remove samples, decrement the allocation of the container with the largest allocation
                 idx = np.argmax(allocation)
                 if allocation[idx] > 0:
                     allocation[idx] -= 1

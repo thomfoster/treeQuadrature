@@ -12,6 +12,7 @@ from .containerIntegral import ContainerIntegral
 from ..container import Container
 from ..gaussianProcess.kernels import Polynomial
 from ..gaussianProcess.scorings import r2
+from ..samplers import Sampler, UniformSampler
 
 class RbfIntegral(ContainerIntegral):
     """
@@ -244,8 +245,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     fit_residuals : bool
         if True, GP is fitted to residuals
         instead of samples
-    return_std : bool
-        if True, returns the posterior std of integral estimate
+    sampler : Sampler
+        used for drawing samples in the container
     scaling method : str or Callable,
         The way sample size increase with volume. (ignored if volume_scaling = False)
         should be one of 'linear', 'sqrt', or 'exponential'; 
@@ -262,6 +263,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
                  threshold_direction: str='up',
                  fit_residuals: bool=True, scoring: Optional[Callable]=None,
                  GPFit: Type[GPFit]=SklearnGPFit, gp_params: dict={},
+                 sampler: Sampler=UniformSampler(),
                  volume_scaling: bool=False,
                  scaling_method: Union[str, Callable]='linear', 
                  alpha: float=0.2) -> None:
@@ -280,6 +282,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.GPFit = GPFit
         self.gp_params = gp_params
         self.fit_residuals = fit_residuals
+        self.sampler = sampler
         self.volume_scaling = volume_scaling
         self.scaling_method = scaling_method
         self.alpha = alpha
@@ -343,8 +346,9 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         else: 
             n_samples = self.min_n_samples
 
-        xs = container.rvs(n_samples)
-        ys = f(xs)
+        # generate samples
+        xs, ys = self.sampler.rvs(n_samples, container.mins, 
+                              container.maxs, f)
 
         pairwise_dists = pairwise_distances(xs)
         # Mask the diagonal
@@ -432,7 +436,8 @@ class PolyIntegral(ContainerIntegral):
                  n_splits: int = 4, max_redraw: int = 4, 
                  threshold: float = 10, fit_residuals: bool = True, 
                  GPFit: Type[GPFit]=SklearnGPFit,
-                 gp_params: dict = {}) -> None:
+                 gp_params: dict = {}, 
+                 sampler: Sampler=UniformSampler()) -> None:
         self.n_samples = n_samples
         self.n_splits = n_splits
         self.max_redraw = max_redraw
@@ -445,6 +450,7 @@ class PolyIntegral(ContainerIntegral):
             self.coeffs = coeffs
         else:
             self.coeffs = np.logspace(-2, 1, 5)  # default coeffs between 0.01 and 10
+        self.sampler = sampler
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
@@ -467,8 +473,8 @@ class PolyIntegral(ContainerIntegral):
             - hyper_params (dict) hyper-parameters of the fitted kernel.
             - performance (float) GP goodness of fit score.
         """
-        xs = container.rvs(self.n_samples)
-        ys = f(xs)
+        xs, ys = self.sampler.rvs(self.n_samples, container.mins,  
+                                  container.maxs, f)
 
         # Define a function to optimize the hyper-parameters (degree and coefficient)
         def optimize_kernel_hyperparams(d, c):
@@ -516,7 +522,8 @@ class IterativeGpIntegral(ContainerIntegral):
     def __init__(self, n_samples: int,
                  n_splits: int, fit_residuals: bool, 
                  scoring: Callable, score_direction: str,
-                 GPFit: Type[GPFit], gp_params: dict) -> None:
+                 GPFit: Type[GPFit], gp_params: dict, 
+                 sampler: Sampler) -> None:
         if n_samples < 1:
             raise ValueError('n_samples must be at least 1')
         self.n_samples = n_samples
@@ -526,6 +533,7 @@ class IterativeGpIntegral(ContainerIntegral):
         self.GPFit = GPFit
         self.gp_params = gp_params
         self.fit_residuals = fit_residuals
+        self.sampler = sampler
 
     @abstractmethod
     def containerIntegral(self, container: Container, f: Callable, return_std: bool,
@@ -591,31 +599,38 @@ class IterativeRbfIntegral(IterativeGpIntegral):
     fit_residuals : bool
         if True, GP is fitted to residuals
         instead of samples
-    return_std : bool
-        if True, returns the posterior std of integral estimate
+    sampler : Sampler
+        used for drawing samples in the container
     """
     def __init__(self, n_samples: int=20,
                  n_splits: int=4, fit_residuals: bool=True, 
                  scoring: Optional[Callable]=r2, score_direction='up',
-                 GPFit: Type[GPFit]=SklearnGPFit, gp_params: dict={}) -> None:
+                 GPFit: Type[GPFit]=SklearnGPFit, gp_params: dict={}, 
+                 sampler: Sampler=UniformSampler()) -> None:
         super().__init__(n_samples, n_splits, fit_residuals, scoring, score_direction,
-                         GPFit, gp_params)
+                         GPFit, gp_params, sampler)
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], return_std: bool=False,
                           previous_samples: Optional[Tuple[np.ndarray, 
                                                            np.ndarray]] = None):
         # Draw new samples
-        new_xs = container.rvs(self.n_samples)
-        new_ys = f(new_xs)
+        new_xs, new_ys = self.sampler.rvs(self.n_samples, container.mins,  
+                                  container.maxs, f)
 
         if previous_samples:
             # Combine previous samples with the new ones
             xs = np.vstack([previous_samples[0], new_xs])
             ys = np.vstack([previous_samples[1], new_ys])
+            n_prev = previous_samples[0].shape[0]
         else:
             xs = new_xs
             ys = new_ys
+            n_prev = 0
+
+        if xs.shape[0] == 0: 
+            raise ValueError(f'xs has no samples, got {n_prev} previous samples'
+                             f'and {self.n_samples} new samples')
 
         # Compute pairwise distances and determine bounds
         pairwise_dists = pairwise_distances(xs)
@@ -643,7 +658,9 @@ class IterativeRbfIntegral(IterativeGpIntegral):
 
         # Fit the GP with all accumulated samples
         gp_results = iGP.fit(f, container, self.kernel, 
-                             initial_samples=(xs, ys))
+                             initial_samples=(xs, ys), add_samples=False)
+        
+        container.add(new_xs, new_ys)
 
         # Perform integration using the fitted GP model
         ret = kernel_integration(iGP, container, gp_results, 

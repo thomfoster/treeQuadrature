@@ -55,10 +55,10 @@ class BayesMcIntegrator(Integrator):
         # create a container with samples
         if hasattr(problem, 'rvs'):
             X = problem.rvs(self.N)
+            y = problem.integrand(X)
         else:
-            X = self.sampler.rvs(self.N, problem)
-
-        y = problem.integrand(X)
+            X, y = self.sampler.rvs(self.N, problem.lows, problem.highs, 
+                                    problem.integrand)
         
         cont = Container(X, y, mins=problem.lows, maxs=problem.highs)
 

@@ -3,6 +3,10 @@ from typing import Callable, Optional
 
 from .containerIntegral import ContainerIntegral
 from ..container import Container
+from ..samplers import Sampler, UniformSampler
+
+
+defaultSampler = UniformSampler()
 
 class RandomIntegral(ContainerIntegral):
     '''
@@ -24,11 +28,13 @@ class RandomIntegral(ContainerIntegral):
         obtain an estimate of the uncertainty
     '''
     def __init__(self, n: int = 10, eval: Callable=np.mean, 
-                 error_estimate: Optional[Callable]=None) -> None:
+                 error_estimate: Optional[Callable]=None, 
+                 sampler: Sampler=defaultSampler) -> None:
         self.n = n
         self.name = 'RandomIntegral'
         self.eval = eval  
         self.error_estimate = error_estimate
+        self.sampler = sampler
 
     def containerIntegral(self, container: Container, f: Callable, 
                           return_std: bool=False):

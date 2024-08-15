@@ -75,7 +75,7 @@ class GaussianProposal(Proposal):
 class McmcSampler(Sampler):
     """
     MCMC sampler that generates samples from 
-    the modulus of problem.integrand
+    the modulus of f
     using the Metropolis-Hastings algorithm.
     """
 
@@ -97,7 +97,8 @@ class McmcSampler(Sampler):
 
         self.burning = burning
 
-    def rvs(self, n: int, problem: Problem) -> np.ndarray:
+    def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray,
+            f: callable) -> np.ndarray:
         """
         Generate MCMC samples.
 
@@ -105,26 +106,30 @@ class McmcSampler(Sampler):
         ----------
         n : int 
             Number of samples.
-        problem: Problem
-            The integration problem being solved.
+        mins, maxs : np.ndarray
+            1 dimensional arrays of the lower bounds
+            and upper bounds
+        f : function
+            the integrand
 
         Returns
         -------
         np.ndarray
             Samples from the modulus of the integrand.
         """
-        D = problem.D
+        mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
+
         samples = np.zeros((n+self.burning, D))
-        current_sample = np.random.uniform(low=problem.lows, 
-                                           high=problem.highs, size=D)
+        current_sample = np.random.uniform(low=mins, 
+                                           high=maxs, size=D)
         
         for i in range(n+self.burning):
             proposal = self.proposal.propose(current_sample, 
-                                             problem.lows, problem.highs)
-            proposal = np.clip(proposal, problem.lows, problem.highs)
+                                             mins, maxs)
+            proposal = np.clip(proposal, mins, maxs)
             
-            current_value = np.abs(problem.integrand(current_sample.reshape(1, -1)))[0]
-            proposal_value = np.abs(problem.integrand(proposal.reshape(1, -1)))[0]
+            current_value = np.abs(f(current_sample.reshape(1, -1)))[0]
+            proposal_value = np.abs(f(proposal.reshape(1, -1)))[0]
 
             proposal_density_forward = self.proposal.density(proposal, current_sample)
             proposal_density_backward = self.proposal.density(current_sample, proposal)

@@ -5,8 +5,8 @@ from scipy.stats.qmc import Sobol
 import numpy as np
 
 
-class LowDiscrepancySampler(Sampler):
-    def rvs(self, n: int, problem: Problem) -> np.ndarray:
+class SobolSampler(Sampler):
+    def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray) -> np.ndarray:
         """
         Low-discrepancy sampling using Sobol sequences.
 
@@ -22,11 +22,13 @@ class LowDiscrepancySampler(Sampler):
         np.ndarray
             Samples from the distribution.
         """
-        n_adjusted = 2 ** np.ceil(np.log2(n)).astype(int)
-        sampler = Sobol(d=problem.D, scramble=False)
+        mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
+
+        n_adjusted = 2 ** np.floor(np.log2(n)).astype(int)
+        sampler = Sobol(d=D, scramble=False)
         samples = sampler.random(n_adjusted)
         
         # Map samples from [0, 1] to the integration domain
-        samples = samples * (problem.highs - problem.lows) + problem.lows
+        samples = samples * (maxs - mins) + mins
         
         return samples

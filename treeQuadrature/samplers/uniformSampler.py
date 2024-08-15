@@ -9,7 +9,7 @@ class UniformSampler(Sampler):
     Uniform sampler in a hyper-rectangle
     """
 
-    def rvs(self, n: int, problem: Problem):
+    def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray):
         """
         Argument
         --------
@@ -23,6 +23,8 @@ class UniformSampler(Sampler):
         np.ndarray of shape (n, self.D)
             samples from the distribution
         """
+        mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
+
         return np.random.uniform(
-            low=problem.lows, high=problem.highs, size=(
-                n, problem.D))
+            low=mins, high=maxs, size=(
+                n, D))

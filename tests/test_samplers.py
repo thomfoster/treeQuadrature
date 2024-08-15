@@ -1,10 +1,13 @@
 import pytest
 import treeQuadrature as tq
+from inspect import signature
 
 
 samplers = [tq.samplers.UniformSampler(), 
             tq.samplers.ImportanceSampler(),
-            tq.samplers.McmcSampler()]
+            tq.samplers.McmcSampler(), 
+            tq.samplers.StratifiedSampler(), 
+            tq.samplers.SobolSampler()]
 
 @pytest.mark.parametrize('sampler', samplers)
 @pytest.mark.parametrize('D', [1, 2, 5])
@@ -14,12 +17,20 @@ def test_sampler(sampler, D):
     N = 1000
 
     # Generate samples
-    X = sampler.rvs(N, problem)
-    assert X.shape[0] == N
+    signatures = signature(sampler.rvs).parameters
+    if 'f' in signatures:
+        X = sampler.rvs(N, mins=problem.lows, maxs=problem.highs, 
+                        f = problem.integrand)
+    else: 
+        X = sampler.rvs(N, mins=problem.lows, maxs=problem.highs)
+
+    if 'SobolSampler' in str(sampler):
+        # number of samples in LowDiscrepancySampler must be power of 2
+        assert X.shape[0] <= N
+    else:
+        assert X.shape[0] == N
 
     # Evaluate the integrand
     y = problem.integrand(X)
     root = tq.Container(X, y, mins=problem.lows, maxs=problem.highs)
-    assert root.X.shape[0] == N
-    assert root.y.shape[0] == N
     assert (root.X >= problem.lows).all() and (root.X <= problem.highs).all()

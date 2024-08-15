@@ -15,15 +15,16 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 def parallel_container_integral(integral: IterativeGpIntegral, 
-                                cont: Container, integrand: callable, return_std: bool, 
-                                previous_samples: Optional[dict]=None):
+                                cont: Container, integrand: callable, 
+                                return_std: bool, n_samples: int, 
+                                previous_samples: Optional[dict] = None):
     
     """
     Perform the container integral with the option to pass in previous samples.
 
     Parameters
     ----------
-    integral : IterativeRbfIntegral
+    integral : IterativeGpIntegral
         The integral method to be used.
     cont : Container
         The container to perform the integral on.
@@ -31,6 +32,8 @@ def parallel_container_integral(integral: IterativeGpIntegral,
         The integrand function.
     return_std : bool
         Whether to return the standard deviation of the integral.
+    n_samples : int
+        Number of samples to draw for this container in this iteration.
     previous_samples : tuple of np.ndarray, optional
         Tuple containing previous samples (xs, ys) if available, otherwise None.
         
@@ -48,6 +51,10 @@ def parallel_container_integral(integral: IterativeGpIntegral,
         previous_samples = {}
 
     container_samples = previous_samples.get(cont, None)
+    
+    # Adjust the number of samples to draw in this iteration
+    integral.n_samples = n_samples
+
     integral_results, new_samples = integral.containerIntegral(
         cont, integrand, return_std=return_std, 
         previous_samples=container_samples
@@ -222,8 +229,9 @@ class LimitedSamplesGpIntegrator(Integrator):
                 futures = {
                     executor.submit(parallel_container_integral, 
                                     self.integral, cont, problem.integrand, 
-                                    return_std, previous_samples=previous_samples): cont
-                    for cont in containers
+                                    return_std, sample_allocation[i],
+                                    previous_samples=previous_samples): cont
+                    for i, cont in enumerate(containers)
                 }
 
                 results = []
@@ -238,27 +246,17 @@ class LimitedSamplesGpIntegrator(Integrator):
                 key=lambda x: x[0]['performance'], 
                 reverse=self.integral.score_direction == 'down'
             )
-            total_samples += len(containers) * self.n_samples
-            additional_samples = self.max_n_samples - total_samples
-            num_poor_containers = min(int(np.floor(additional_samples / self.integral.n_samples)), 
-                                      len(ranked_containers_results))
-            poor_containers = [cont for _, cont in ranked_containers_results[:num_poor_containers]]
-            good_containers = [cont for _, cont in ranked_containers_results[num_poor_containers:]]
-            poor_results = [res for res, _ in ranked_containers_results[:num_poor_containers]]
-            good_results = [res for res, _ in ranked_containers_results[num_poor_containers:]]
 
-            all_results.extend(good_results)
-            all_containers.extend(good_containers)
-            containers = poor_containers
+            # Allocate samples dynamically based on GP performance
+            sample_allocation = self._allocate_samples(ranked_containers_results, 
+                                                       self.max_n_samples - total_samples)
+            total_samples += sum(sample_allocation)
 
             if verbose:
                 print(f"Total samples used: {total_samples}/{self.max_n_samples}")
-
-            if len(poor_containers) == 0:
-                break
         
-        all_containers.extend(poor_containers)
-        all_results.extend(poor_results)
+        all_containers.extend([cont for _, cont in ranked_containers_results])
+        all_results.extend([res for res, _ in ranked_containers_results])
 
         if len(all_containers) != len(all_results):
             raise RuntimeError(f'number of containers ({len(all_containers)}) not the same as '
@@ -286,3 +284,53 @@ class LimitedSamplesGpIntegrator(Integrator):
             return_values['stds'] = stds
 
         return return_values
+    
+    def _allocate_samples(self, ranked_containers_results: list, available_samples: int):
+        """
+        Allocate samples to containers based on their performance.
+
+        Parameters
+        ----------
+        ranked_containers_results : list
+            A list of tuples where each tuple contains a result dictionary
+            and a container, sorted by performance.
+        available_samples : int
+            The total number of samples available to be allocated.
+
+        Returns
+        -------
+        List[int]
+            A list containing the number of samples allocated to each container.
+        """
+        performances = np.array([result['performance'] for result, 
+                                _ in ranked_containers_results])
+        
+        # Invert the performance scores so that lower-performing containers get more samples
+        inverted_performances = np.max(performances) - performances
+        
+        # Normalize the inverted performance scores to sum to 1
+        if np.sum(inverted_performances) > 0:
+            allocation_weights = inverted_performances / np.sum(inverted_performances)
+        else:
+            allocation_weights = np.ones_like(performances) / len(performances)
+
+        # Allocate samples based on these weights
+        allocation = np.round(allocation_weights * available_samples).astype(int)
+
+        # Ensure the total allocation matches available_samples
+        discrepancy = available_samples - np.sum(allocation)
+        
+        while discrepancy != 0:
+            if discrepancy > 0:
+                # If we need to add samples, increment the allocation of the container with the largest weight
+                idx = np.argmax(allocation_weights)
+                allocation[idx] += 1
+                discrepancy -= 1
+            elif discrepancy < 0:
+                # If we need to remove samples, decrement the allocation of the container with the largest allocation
+                idx = np.argmax(allocation)
+                if allocation[idx] > 0:
+                    allocation[idx] -= 1
+                    discrepancy += 1
+
+        return allocation.tolist()

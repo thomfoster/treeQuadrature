@@ -269,6 +269,7 @@ class LimitedSamplesGpIntegrator(Integrator):
 
             if verbose:
                 print(f"Total samples used: {total_samples}/{self.max_n_samples}")
+                print(f"Number of containers left: {len(containers)}")
         
         all_containers.extend([cont for _, cont in ranked_containers_results])
         all_results.extend([res for res, _ in ranked_containers_results])
@@ -300,8 +301,7 @@ class LimitedSamplesGpIntegrator(Integrator):
 
         return return_values
     
-    def _allocate_samples(self, ranked_containers_results: list, available_samples: int, 
-                          max_per_container: int):
+    def _allocate_samples(self, ranked_containers_results: list, available_samples: int, max_per_container: int = 1000):
         """
         Allocate samples to containers based on their performance, with a cap on the number
         of samples allocated to any single container in this iteration.
@@ -327,31 +327,31 @@ class LimitedSamplesGpIntegrator(Integrator):
         # Invert the performance scores so that lower-performing containers get more samples
         inverted_performances = np.max(performances) - performances
 
-        # Normalize the inverted performance scores to sum to 1
-        if np.sum(inverted_performances) > 0:
-            allocation_weights = inverted_performances / np.sum(inverted_performances)
-        else:
-            allocation_weights = np.ones_like(performances) / len(performances)
+        # Apply a softening function to the inverted performances to reduce aggressiveness
+        softened_weights = np.power(inverted_performances + 1e-10, 0.5)
 
-        # Allocate samples based on these weights, with a cap per container
-        allocation = np.minimum(np.round(allocation_weights * available_samples).astype(int), max_per_container)
+        # Normalize the softened weights to sum to 1
+        allocation_weights = softened_weights / np.sum(softened_weights)
 
-        # Calculate discrepancy after initial allocation
+        # Allocate samples based on these weights, with a minimum allocation for each container
+        min_allocation = max(1, available_samples // (2 * len(allocation_weights)))
+        allocation = np.round(np.maximum(allocation_weights * available_samples, min_allocation)).astype(int)
+
+        # Ensure the total allocation does not exceed available_samples
         total_allocated = np.sum(allocation)
-        discrepancy = available_samples - total_allocated
-
-        # Adjust the allocation to match available_samples while respecting max_per_container
-        while discrepancy != 0:
-            if discrepancy > 0:
-                # Add samples, but only to containers that have not reached max_per_container
-                idx = np.argmax(np.where(allocation < max_per_container, allocation_weights, -np.inf))
-                allocation[idx] += 1
-                discrepancy -= 1
-            elif discrepancy < 0:
-                # Remove samples, but avoid reducing any container below zero
+        if total_allocated > available_samples:
+            excess = total_allocated - available_samples
+            while excess > 0:
                 idx = np.argmax(allocation)
-                if allocation[idx] > 0:
-                    allocation[idx] -= 1
-                    discrepancy += 1
+                reduction = min(excess, allocation[idx] - min_allocation)
+                allocation[idx] -= reduction
+                excess -= reduction
+
+        # Adjust to ensure all available samples are allocated
+        discrepancy = available_samples - np.sum(allocation)
+        while discrepancy > 0:
+            idx = np.argmax(allocation_weights)
+            allocation[idx] += 1
+            discrepancy -= 1
 
         return allocation.tolist()

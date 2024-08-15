@@ -141,15 +141,16 @@ class TreeIntegrator(Integrator):
             print('drawing initial samples')
         # Draw samples
         if self.sampler is not None:
-            X = self.sampler.rvs(self.base_N, problem)
+            X, y = self.sampler.rvs(self.base_N, problem.lows, problem.highs,
+                                    problem.integrand)
         elif hasattr(problem, 'rvs'):
             X = problem.rvs(self.base_N)
+            y = problem.integrand(X)
         else:
             raise RuntimeError('cannot draw initial samples. '
                                'Either problem should have rvs method, '
                                'or specify self.sampler'
                                )
-        y = problem.integrand(X)
         assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1), (
             'the output of problem.integrand must be one-dimensional array'
             f', got shape {y.shape}'

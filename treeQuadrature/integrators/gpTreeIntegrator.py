@@ -269,9 +269,10 @@ class GpTreeIntegrator(Integrator):
 
         if hasattr(problem, 'rvs'):
             X = problem.rvs(self.base_N)
+            y = problem.integrand(X)
         else:
-            X = self.sampler.rvs(self.base_N, problem)
-        y = problem.integrand(X)
+            X, y = self.sampler.rvs(self.base_N, problem.lows, problem.highs,
+                                    problem.integrand)
         assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1), (
             'the output of problem.integrand must be one-dimensional array'
             f', got shape {y.shape}'

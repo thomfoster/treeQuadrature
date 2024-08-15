@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from typing import Optional
+from typing import Optional, Any, Tuple
 
 from .sampler import Sampler
-from ..exampleProblems import Problem
 
 class Proposal(ABC):
     @abstractmethod
@@ -98,7 +97,8 @@ class McmcSampler(Sampler):
         self.burning = burning
 
     def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray,
-            f: callable) -> np.ndarray:
+            f: callable,
+            **kwargs: Any) -> Tuple[np.ndarray, np.ndarray]:
         """
         Generate MCMC samples.
 
@@ -117,9 +117,11 @@ class McmcSampler(Sampler):
         np.ndarray
             Samples from the modulus of the integrand.
         """
+
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 
-        samples = np.zeros((n+self.burning, D))
+        xs = np.zeros((n+self.burning, D))
+        ys = np.zeros((n+self.burning))
         current_sample = np.random.uniform(low=mins, 
                                            high=maxs, size=D)
         
@@ -139,7 +141,9 @@ class McmcSampler(Sampler):
             
             if np.random.rand() < acceptance_ratio:
                 current_sample = proposal
+                current_value = proposal_value
             
-            samples[i] = current_sample
+            xs[i] = current_sample
+            ys[i] = current_value
 
-        return samples[self.burning:]
+        return xs[self.burning:], ys[self.burning:]

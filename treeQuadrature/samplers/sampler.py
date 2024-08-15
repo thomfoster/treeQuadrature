@@ -4,6 +4,7 @@ import numpy as np
 class Sampler(ABC):
     @abstractmethod
     def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray, 
+            f: callable, 
             *args, **kwargs) -> np.ndarray:
         """
         A method to generate random samples 
@@ -12,8 +13,11 @@ class Sampler(ABC):
         --------
         n : int 
             number of samples
-        problem: Problem
-            the integration problem being solved
+        mins, maxs : np.ndarray
+            1 dimensional arrays of the lower bounds
+            and upper bounds
+        f : function
+            the integrand
         *args, **kwargs
             other necessary arguments and keyward arguments
 

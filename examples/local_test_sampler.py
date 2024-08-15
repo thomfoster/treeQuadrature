@@ -14,11 +14,8 @@ stratifiedSampler = StratifiedSampler()
 
 def test_sampler(sampler, N):
     signatures = signature(sampler.rvs).parameters
-    if 'f' in signatures:
-        X = sampler.rvs(N, mins=problem.lows, maxs=problem.highs, 
-                        f = problem.integrand)
-    else: 
-        X = sampler.rvs(N, mins=problem.lows, maxs=problem.highs)
+    X = sampler.rvs(N, mins=problem.lows, maxs=problem.highs, 
+                    f = problem.integrand)
 
     if 'SobolSampler' in str(sampler):
         # number of samples in LowDiscrepancySampler must be power of 2
@@ -33,4 +30,4 @@ def test_sampler(sampler, N):
                    xlim=[problem.lows[0], problem.highs[0]], 
                    ylim=[problem.lows[1], problem.highs[1]], plot_samples=True)
     
-test_sampler(mcmcSampler, 5_000)
+test_sampler(stratifiedSampler, 5_000)

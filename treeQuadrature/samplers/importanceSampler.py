@@ -1,12 +1,13 @@
 from .sampler import Sampler
 
 import numpy as np
-from typing import Callable
+from typing import Tuple
 
 
 class ImportanceSampler(Sampler):
     def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray, 
-            f: Callable) -> np.ndarray:
+            f: callable,
+            **kwargs) -> Tuple[np.ndarray, np.ndarray]:
         """
         Importance sampling with a bias towards edges and corners.
 
@@ -25,6 +26,10 @@ class ImportanceSampler(Sampler):
         np.ndarray
             Samples from the distribution.
         """
+        f = kwargs.get('f')
+        if f is None:
+            raise ValueError("The required argument 'f' is missing.")
+        
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 
         # Generate uniform random samples within the domain
@@ -44,5 +49,7 @@ class ImportanceSampler(Sampler):
         
         # Draw samples with replacement using biased probabilities
         indices = np.random.choice(np.arange(n), size=n, replace=True, p=biased_probabilities.flatten())
+
+        xs = samples[indices]
         
-        return samples[indices]
+        return xs, f(xs)

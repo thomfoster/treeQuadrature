@@ -19,13 +19,16 @@ class RandomIntegral(ContainerIntegral):
     n : int
         number of samples to be redrawn for evaluating the integral
         default : 10
-    eval : function, optional
+    eval : function
         Should take a np.ndarray (samples of integrand) 
         and return a float (aggregated value) 
         Default is mean 
-    error_estimate : function, optional
+    error_estimate : function
         must be provided when eval is not mean nor median
         obtain an estimate of the uncertainty
+    sampler : Sampler
+        The sampler used to draw samples in the container
+        Default is UniformSampler
     '''
     def __init__(self, n: int = 10, eval: Callable=np.mean, 
                  error_estimate: Optional[Callable]=None, 
@@ -39,10 +42,11 @@ class RandomIntegral(ContainerIntegral):
     def containerIntegral(self, container: Container, f: Callable, 
                           return_std: bool=False):
 
-        samples = container.rvs(self.n)
-        ys = f(samples)
-        container.add(samples, ys)  # for tracking num function evaluations
-        # I deliberately ignore previous samples which give skewed estimates
+        xs, ys = self.sampler.rvs(self.n, container.mins, 
+                                   container.maxs, f)
+        container.add(xs, ys)  # for tracking num function evaluations
+        # ignore previous samples in the container 
+        # which will give skewed estimates
         y = self.eval(ys)
 
         integral_estimate = y * container.volume

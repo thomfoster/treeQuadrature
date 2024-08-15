@@ -1,6 +1,5 @@
 import pytest
 import treeQuadrature as tq
-from inspect import signature
 
 
 samplers = [tq.samplers.UniformSampler(), 
@@ -17,12 +16,8 @@ def test_sampler(sampler, D):
     N = 1000
 
     # Generate samples
-    signatures = signature(sampler.rvs).parameters
-    if 'f' in signatures:
-        X = sampler.rvs(N, mins=problem.lows, maxs=problem.highs, 
-                        f = problem.integrand)
-    else: 
-        X = sampler.rvs(N, mins=problem.lows, maxs=problem.highs)
+    X, y = sampler.rvs(N, mins=problem.lows, maxs=problem.highs, 
+                    f = problem.integrand)
 
     if 'SobolSampler' in str(sampler):
         # number of samples in LowDiscrepancySampler must be power of 2
@@ -30,7 +25,5 @@ def test_sampler(sampler, D):
     else:
         assert X.shape[0] == N
 
-    # Evaluate the integrand
-    y = problem.integrand(X)
     root = tq.Container(X, y, mins=problem.lows, maxs=problem.highs)
     assert (root.X >= problem.lows).all() and (root.X <= problem.highs).all()

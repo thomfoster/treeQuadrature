@@ -2,10 +2,12 @@ from .sampler import Sampler
 from ..exampleProblems import Problem
 
 import numpy as np
+from typing import Tuple
 
 
 class StratifiedSampler(Sampler):
-    def __init__(self, strata_per_dim: int = None, sampling_method: str = 'midpoint'):
+    def __init__(self, strata_per_dim: int = None, 
+                 sampling_method: str = 'midpoint'):
         """
         Initialize the StratifiedSampler with user-defined parameters.
 
@@ -23,7 +25,9 @@ class StratifiedSampler(Sampler):
         self.strata_per_dim = strata_per_dim
         self.sampling_method = sampling_method
 
-    def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray) -> np.ndarray:
+    def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray, 
+            f: callable,
+            **kwargs) -> Tuple[np.ndarray, np.ndarray]:
         """
         Stratified sampling to ensure coverage of the entire domain.
 
@@ -31,8 +35,11 @@ class StratifiedSampler(Sampler):
         ----------
         n : int
             Number of samples.
-        problem : Problem
-            The integration problem being solved.
+        mins, maxs : np.ndarray
+            1 dimensional arrays of the lower bounds
+            and upper bounds
+        f : function
+            the integrand
         
         Returns
         -------
@@ -75,5 +82,7 @@ class StratifiedSampler(Sampler):
         
         # Select samples randomly from the grid points
         selected_indices = np.random.choice(grid_points.shape[0], n, replace=True)
+
+        xs = grid_points[selected_indices]
         
-        return grid_points[selected_indices]
+        return xs, f(xs)

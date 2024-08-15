@@ -218,7 +218,6 @@ class LimitedSamplesGpIntegrator(Integrator):
                                 'please reduce base_N or increase max_n_samples')
 
         while total_samples < self.max_n_samples and len(containers) > 0:
-            total_samples += sum(sample_allocation)
             if verbose:
                 print(f"largest container allocation {max(sample_allocation)}")
 
@@ -234,11 +233,13 @@ class LimitedSamplesGpIntegrator(Integrator):
                 results = []
                 modified_containers = []
                 new_samples_dict = {}
-                for future in as_completed(futures):
+                for i, future in enumerate(as_completed(futures)):
                     integral_results, modified_cont, new_samples = future.result()
                     results.append(integral_results)
                     modified_containers.append(modified_cont)
                     new_samples_dict[modified_cont] = new_samples
+
+                    total_samples += sample_allocation[i]
 
             # Update previous_samples with new samples from this iteration
             previous_samples.update(new_samples_dict)
@@ -251,11 +252,12 @@ class LimitedSamplesGpIntegrator(Integrator):
 
             # Allocate samples dynamically based on GP performance
             # for next iteration
+            available_samples =  min(self.max_n_samples - total_samples, 
+                                                           self.n_samples * len(containers))
             sample_allocation = self._allocate_samples(ranked_containers_results, 
-                                                       min(self.max_n_samples - total_samples, 
-                                                           self.n_samples * len(containers)),
-                                                       max_per_container=self.max_container_samples)
-            
+                                                       available_samples,
+                                                       self.max_container_samples)
+
             # Separate out containers that received 0 samples
             containers_for_next_iteration = []
             for idx, (result, container) in enumerate(ranked_containers_results):
@@ -325,11 +327,14 @@ class LimitedSamplesGpIntegrator(Integrator):
         """
         performances = np.array([result['performance'] for result, _ in ranked_containers_results])
 
-        # Invert the performance scores so that lower-performing containers get more samples
-        inverted_performances = np.max(performances) - performances
+        # Establish a baseline to avoid issues with very low or negative performance scores
+        baseline = np.min(performances)
+        adjusted_performances = performances - baseline + 1e-10
 
-        # Apply a softening function to the inverted performances to reduce aggressiveness
-        softened_weights = np.power(inverted_performances + 1e-10, 0.5)
+        # Invert and apply a logarithmic scale to reduce aggressiveness
+        inverted_performances = np.log(adjusted_performances + 1e-10)
+         # Shift to positive space
+        softened_weights = inverted_performances - np.min(inverted_performances) + 1 
 
         # Normalize the softened weights to sum to 1
         allocation_weights = softened_weights / np.sum(softened_weights)
@@ -357,9 +362,8 @@ class LimitedSamplesGpIntegrator(Integrator):
             elif discrepancy < 0:
                 # Remove samples
                 idx = np.argmax(allocation)
-                if allocation[idx] > 0:
-                    allocation[idx] -= 1
-                    discrepancy += 1
+                allocation[idx] -= 1
+                discrepancy += 1
 
         if max(allocation) > max_per_container:
             raise RuntimeError('Too many samples allocated: '

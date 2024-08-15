@@ -45,28 +45,21 @@ def parallel_container_integral(integral: IterativeGpIntegral,
         The container used for the integral.
     new_samples : tuple of np.ndarray
         Updated tuple containing all samples used.
-    """
+    """    
     if previous_samples is None:
         previous_samples = {}
 
     container_samples = previous_samples.get(cont, None)
     
-    # Adjust the number of samples to draw in this iteration
     integral.n_samples = n_samples
 
     integral_results, new_samples = integral.containerIntegral(
         cont, integrand, return_std=return_std, 
         previous_samples=container_samples
     )
-    previous_samples[cont] = new_samples
 
-    # Validate results
-    if 'integral' not in integral_results:
-        raise KeyError("Results of containerIntegral do not have key 'integral'")
-    if return_std and 'std' not in integral_results:
-        raise KeyError("Results of containerIntegral do not have key 'std'")
-        
-    return integral_results, cont, previous_samples
+    # Return integral results, modified container, and the new samples
+    return integral_results, cont, new_samples
 
 class LimitedSamplesGpIntegrator(Integrator):
     """
@@ -90,7 +83,7 @@ class LimitedSamplesGpIntegrator(Integrator):
     def __init__(self, base_N: int, max_n_samples: int, P: int, split: Split, 
                  integral: IterativeGpIntegral,
                  sampler: Optional[Sampler]=None, 
-                 max_container_samples: int=600):
+                 max_container_samples: int=200):
         self.split = split
         self.base_N = base_N
         self.integral = integral
@@ -240,10 +233,15 @@ class LimitedSamplesGpIntegrator(Integrator):
 
                 results = []
                 modified_containers = []
+                new_samples_dict = {}
                 for future in as_completed(futures):
-                    integral_results, modified_cont, previous_samples = future.result()
+                    integral_results, modified_cont, new_samples = future.result()
                     results.append(integral_results)
                     modified_containers.append(modified_cont)
+                    new_samples_dict[modified_cont] = new_samples
+
+            # Update previous_samples with new samples from this iteration
+            previous_samples.update(new_samples_dict)
 
             ranked_containers_results = sorted(
                 zip(results, modified_containers), 
@@ -291,7 +289,8 @@ class LimitedSamplesGpIntegrator(Integrator):
 
         return return_values
     
-    def _allocate_samples(self, ranked_containers_results: list, available_samples: int, max_per_container: int = 1000):
+    def _allocate_samples(self, ranked_containers_results: list, available_samples: int, 
+                          max_per_container: int):
         """
         Allocate samples to containers based on their performance, with a cap on the number
         of samples allocated to any single container in this iteration.

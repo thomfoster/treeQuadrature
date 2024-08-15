@@ -5,6 +5,7 @@ from .container import Container
 import numpy as np
 from abc import ABC, abstractmethod
 from scipy.stats import qmc
+from typing import Optional
 
 """
 Defines the specific problems we want results for.
@@ -107,10 +108,39 @@ class Problem(ABC):
                              f'got shape {xs.shape}')
 
 class RippleProblem(Problem):
+    """
+    A problem class representing a ripple-like integrand function
+    for numerical integration or other mathematical evaluations.
+
+    The ripple function has an oscillatory behavior controlled by the 
+    parameter `a` and is defined over a D-dimensional space with bounds 
+    from -10 to 10 in each dimension.
+
+    Attributes
+    ----------
+    D : int
+        The dimensionality of the problem.
+    a : float, optional
+        A parameter controlling the frequency of the ripple in the 
+        integrand function. Default is 3.
+    answer : float
+        The analytic solution to the integral of the function over the
+        entire domain.
+
+    Methods
+    -------
+    integrand(X)
+        Evaluates the ripple function at the given input points X.
+    __str__()
+        Returns a string representation of the problem.
+    """
     def __init__(self, D, a=3):
         super().__init__(D, lows=-10., highs=10.)
         self.a = a 
-        temp = (1/(1 + 16 * self.a**2))**(self.D/4) * np.cos(self.D*np.arccos(np.sqrt((1/(1 + 16 * self.a**2))))/2)
+
+        # Compute the answer 
+        temp = (1/(1 + 16 * self.a**2))**(self.D/4) * np.cos(
+            self.D*np.arccos(np.sqrt((1/(1 + 16 * self.a**2))))/2)
         self.answer = np.sqrt(2*np.pi)**self.D * (1 + temp)/2
 
     
@@ -139,9 +169,62 @@ class RippleProblem(Problem):
 
 
 class OscillatoryProblem(Problem):
-    def __init__(self, D, u=0, a=None):
+    """
+    A problem class representing an oscillatory integrand function
+    for numerical integration or other mathematical evaluations.
+
+    The oscillatory function depends on a frequency vector `a` and a phase
+    shift parameter `u`. The integration bounds are [0, 1] in each dimension.
+
+    Attributes
+    ----------
+    D : int
+        The dimensionality of the problem.
+    a : numpy.ndarray
+        The frequency vector of the oscillatory function. 
+    u : float
+        The phase shift parameter of the oscillatory function. 
+    answer : float
+        The analytic solution to the integral of the function over the
+        entire domain.
+
+    Methods
+    -------
+    compute_answer(a, u)
+        Recursively computes the analytic solution to the integral.
+    integrand(X)
+        Evaluates the oscillatory function at the given input points X.
+    __str__()
+        Returns a string representation of the problem.
+    """
+    def __init__(self, D: int, u: int=0, a: Optional[np.ndarray]=None):
+        """
+        Initialize the OscillatoryProblem with the given dimensionality,
+        frequency vector, and phase shift parameter.
+
+        Parameters
+        ----------
+        D : int
+            The dimensionality of the problem.
+        u : float, optional
+            The phase shift parameter of the oscillatory function.
+            Default is 0.
+        a : np.ndarray or None, optional
+            The frequency vector that controls the frequency of oscillation 
+            in each dimension. If None, it is set to 5 / np.linspace(1, D, D),
+            which generates a decreasing frequency across dimensions.
+
+        Notes
+        -----
+        The vector `a` affects the oscillatory behavior of the integrand. 
+        Specifically, each element of `a` controls the frequency of oscillation 
+        along the corresponding dimension. Larger values in `a` result in higher 
+        frequencies, causing more rapid oscillations along that dimension.
+
+        The integration domain is always [0, 1]^D
+        """
         super().__init__(D, lows=0., highs=1.)
-        if a == None:
+        if a is None:
             self.a = 5/np.linspace(1,D,D)
         else:
             self.a = a
@@ -183,14 +266,39 @@ class OscillatoryProblem(Problem):
 
 
 class ProductPeakProblem(Problem):
-    def __init__(self, D, u=None, a=None):
+    def __init__(self, D: int, u: Optional[np.ndarray]=None, 
+                 a: Optional[np.ndarray]=None):
+        """
+        Initialize a product peak problem with the given parameters.
+
+        Parameters
+        ----------
+        D : int
+            The dimension of the problem.
+        u : np.ndarray or None, optional
+            The location of the peaks in each dimension. If None, it is set 
+            to be evenly spaced between 0.2 and 0.8 across the dimensions.
+        a : np.ndarray or None, optional
+            The sharpness of the peaks in each dimension. If None, it is set 
+            to an array of ones, meaning equal sharpness in all dimensions.
+
+        Notes
+        -----
+        The `ProductPeakProblem` is a multidimensional integration problem where the 
+        integrand has peaks at specific locations in each dimension, controlled by 
+        the vector `u`. The sharpness of these peaks is determined by the vector `a`, 
+        where larger values of `a` result in sharper peaks, meaning the function values 
+        drop off more quickly as you move away from the peak location.
+        
+        The integration domain is always [0, 1]^D
+        """
         super().__init__(D, lows=0., highs=1.)
-        if a == None:
+        if a is None:
             self.a = np.array([1.]*D)
         else:
             self.a = a
         
-        if u == None:
+        if u is None:
             self.u = np.linspace(0.2,0.8,D)
         else:
             self.u = u
@@ -222,9 +330,30 @@ class ProductPeakProblem(Problem):
 
 
 class CornerPeakProblem(Problem):
-    def __init__(self, D, a=None):
+    def __init__(self, D: int, a: Optional[np.ndarray]=None):
+        """
+        Initialize a corner peak problem with the given parameters.
+
+        Parameters
+        ----------
+        D : int
+            The dimension of the problem.
+        a : np.ndarray or None, optional
+            A vector controlling the "steepness" of the corner peak in each dimension.
+            If None, it defaults to an array of ones, 
+            meaning equal steepness in all dimensions.
+
+        Notes
+        -----
+        The `CornerPeakProblem` is a multidimensional integration problem where the 
+        integrand has a peak located near the corner of the domain [0, 1]^D. 
+        The steepness of the peak is controlled by the vector `a`. 
+        Larger values of `a` result in a steeper 
+        peak, meaning the function value drops off more quickly as you move away from 
+        the corner where the peak is located.
+        """
         super().__init__(D, lows=0., highs=1.)
-        if a == None:
+        if a is None:
             self.a = np.array([1.]*D)
         else:
             self.a = a
@@ -265,19 +394,42 @@ class CornerPeakProblem(Problem):
 
 
 class C0Problem(Problem):
-    def __init__(self, D, u=None, a=None):
+    def __init__(self, D: int, u: Optional[np.ndarray]=None, 
+                 a: Optional[np.ndarray]=None):
+        """
+        Initialize the C0 problem with the given parameters.
+
+        Parameters
+        ----------
+        D : int
+            The dimensionality of the problem.
+        u : np.ndarray or None, optional
+            The location parameter that shifts the peak of the function.
+            If None, defaults to a linearly spaced array between 0.2 and 0.8.
+        a : np.ndarray or None, optional
+            A vector controlling the rate of decay of the function. 
+            If None, defaults to an array of ones, meaning equal decay in all dimensions.
+
+        Notes
+        -----
+        The `C0Problem` is a multidimensional integration problem where the 
+        integrand is a smooth, exponentially decaying function. The function
+        is centered around the vector `u`, and its rate of decay is controlled
+        by the vector `a`. 
+        """
         super().__init__(D, lows=0., highs=1.)
-        if a == None:
-            self.a = np.array([1.]*D)
+        if a is None:
+            self.a = np.array([1.] * D)
         else:
             self.a = a
         
-        if u == None:
-            self.u = np.linspace(0.2,0.8,D)
+        if u is None:
+            self.u = np.linspace(0.2, 0.8, D)
         else:
             self.u = u
 
-        self.answer = np.prod((2 - np.exp(-self.a * self.u) - np.exp(-self.a * (1 - self.u)))/self.a)
+        self.answer = np.prod((2 - np.exp(-self.a * self.u) - 
+                               np.exp(-self.a * (1 - self.u)))/self.a)
 
 
     def integrand(self, X) -> np.ndarray:
@@ -307,7 +459,7 @@ class DiscontinuousProblem(Problem):
     def __init__(self, D, a=None):
         super().__init__(D, lows=0., highs=1.)
 
-        if a == None:
+        if a is None:
             self.a = np.array([1.]*D)
         else:
             self.a = a

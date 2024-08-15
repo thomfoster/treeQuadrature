@@ -622,9 +622,15 @@ class IterativeRbfIntegral(IterativeGpIntegral):
             # Combine previous samples with the new ones
             xs = np.vstack([previous_samples[0], new_xs])
             ys = np.vstack([previous_samples[1], new_ys])
+            n_prev = previous_samples[0].shape[0]
         else:
             xs = new_xs
             ys = new_ys
+            n_prev = 0
+
+        if xs.shape[0] == 0: 
+            raise ValueError(f'xs has no samples, got {n_prev} previous samples'
+                             f'and {self.n_samples} new samples')
 
         # Compute pairwise distances and determine bounds
         pairwise_dists = pairwise_distances(xs)

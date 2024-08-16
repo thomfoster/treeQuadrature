@@ -57,6 +57,10 @@ class MinSseSplit(Split):
         
         lcont, rcont = container.split(best_dimension, best_thresh)
 
+        if np.any(lcont.mins == lcont.maxs) or np.any(rcont.mins == rcont.maxs):
+            warnings.warn('Split resulted in a zero-volume container; reverting to original container')
+            return [container]
+
         return [lcont, rcont]
 
     @staticmethod

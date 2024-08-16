@@ -216,9 +216,6 @@ class LimitedSamplesGpIntegrator(Integrator):
 
             # Update previous_samples with new samples from this iteration
             previous_samples.update(new_samples_dict)
-
-            container_iterations = {c: container_iterations.get(c, 0) + 
-                                    1 for _, c in ranked_containers_results}
             
             # Track performance gains
             for result, container in results:

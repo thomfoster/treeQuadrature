@@ -8,16 +8,13 @@ from treeQuadrature import Container
 
 import numpy as np
 from scipy.stats import norm
-from sklearn.metrics import mean_squared_error
-import concurrent.futures
-import matplotlib
-matplotlib.use('Agg')
+from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
     # Monte Carlo sample size in each container
-    ns = np.arange(10, 105, 10)
+    ns = np.arange(20, 105, 10)
     # dimensions of the problem
     Ds = np.arange(2, 14, 2)
     Ds = np.append(Ds, 3)
@@ -27,6 +24,9 @@ if __name__ == '__main__':
 
     def mse(y_true, y_pred, sigma):
         return mean_squared_error(y_true, y_pred)
+
+    def r2(y_true, y_pred, sigma):
+        return r2_score(y_true, y_pred)
     
     def predictive_ll(y_true, y_pred, sigma):
         return np.sum(norm.logpdf(y_true, loc=y_pred, scale=sigma))
@@ -41,25 +41,13 @@ if __name__ == '__main__':
         """Negative Log Predictive Density"""
         return -np.mean(norm.logpdf(y_true, loc=y_pred, scale=sigma))
 
-    rbfIntegral = AdaptiveRbfIntegral(max_redraw=0, n_splits=5, scoring=nlpd)
-    rmeanIntegral = RandomIntegral(n=20)
+    rmeanIntegral = RandomIntegral(n_samples=20)
 
     split = MinSseSplit()
     sampler = ImportanceSampler()
 
-    integ = SimpleIntegrator(20_000, 40, split, rbfIntegral, 
+    integ = SimpleIntegrator(20_000, 40, split, rmeanIntegral, 
                              sampler=sampler)
-    integ.name = 'TQ with RBF, fitting to mean'
-
-    def compute_integral(integral: ContainerIntegral, container: Container, problem: Problem):
-        gp_results = integral.containerIntegral(container, 
-                                                problem.integrand, return_std=False)
-        estimate = gp_results['integral']
-        true_value = problem.exact_integral(container.mins, container.maxs)
-        error = estimate - true_value
-        lml = integral.gp.gp.log_marginal_likelihood()
-        return container, lml, error
-        # return container, gp_results['performance'], error
 
     problems = []
     for D in Ds:
@@ -71,7 +59,7 @@ if __name__ == '__main__':
 
         results = {}
 
-        X = integ.sampler.rvs(integ.base_N, problem)
+        X = sampler.rvs(integ.base_N, problem)
         y = problem.integrand(X)
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
         containers = integ.construct_tree(root)
@@ -80,43 +68,46 @@ if __name__ == '__main__':
         # select the largest containers
         selected_containers = sorted(containers, 
                                     key=lambda c: c.volume, 
-                                    reverse=False)[:n_containers]
+                                    reverse=True)[:n_containers]
 
         for n in ns:
             print(f'testing {n} samples')
-            integral = PolyIntegral(degrees=[2, 3], n_samples=n, max_redraw=0)
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = [executor.submit(compute_integral, integral, container, 
-                                        problem) for container in selected_containers]
-                
-                for future in concurrent.futures.as_completed(futures):
-                    # container, performance, error, std = future.result()
-                    container, performance, error = future.result()
-                    
-                    if container not in results:
-                        # results[container] = {'performance': [], 'error': [], 'std': [], 'n': []}
-                        results[container] = {'performance': [], 'error': [], 'n': []}
-                
-                    results[container]['performance'].append(performance)
-                    results[container]['error'].append(error)
-                    # results[container]['std'].append(std)
-                    results[container]['n'].append(n)
+            # integral = PolyIntegral(degrees=[2, 3], n_samples=n, max_redraw=0)
+            integral = AdaptiveRbfIntegral(max_redraw=0, n_splits=5, scoring=nlpd, 
+                                              min_n_samples=n)
+            for container in selected_containers:
+                gp_results = integral.containerIntegral(container, 
+                                                problem.integrand, return_std=False)
+                estimate = gp_results['integral']
+                true_value = problem.exact_integral(container.mins, container.maxs)
+                error = estimate - true_value
+                lml = integral.gp.gp.log_marginal_likelihood()
+
+                if container not in results:
+                    # results[container] = {'performance': [], 'error': [], 'std': [], 'n': []}
+                    results[container] = {'performance': [], 'error': [], 'n': []}
+            
+                results[container]['performance'].append(gp_results['performance'])
+                results[container]['error'].append(error)
+                # results[container]['std'].append(gp_results['std'])
+                results[container]['n'].append(n)
 
         # Plot R^2 score vs Error
         plt.figure()
         for container in selected_containers:
             plt.plot(results[container]['performance'], results[container]['error'], marker='o')
 
-        plt.title(f'Log marginal likelihood vs Error \n for {n_containers} containers with smallest volumes')
-        plt.xlabel('LML', fontsize=17)
+        plt.title(f'Negative Log Predictive Density \n for {n_containers} containers with largest volumes')
+        plt.xlabel('nlpd', fontsize=17)
         plt.ylabel('Error', fontsize=17)
         plt.grid(True)
         plt.tight_layout() 
-        plt.savefig(f'figures/lml_errors_small_containers_{str(problem)}.png')
+        plt.savefig(f'figures/nlpd_errors_containers_{str(problem)}.png')
         plt.close()
 
         # Plot Posterior std vs Error
         # plt.figure()
+        
         # for container in selected_containers:
         #     plt.plot(results[container]['std'], results[container]['error'], marker='o')
 
@@ -129,14 +120,14 @@ if __name__ == '__main__':
         # plt.close()
 
         # Plot Error vs number of samples
-        plt.figure()
-        for container in selected_containers:
-            plt.plot(results[container]['n'], results[container]['error'], marker='o')
+        # plt.figure()
+        # for container in selected_containers:
+        #     plt.plot(results[container]['n'], results[container]['error'], marker='o')
 
-        plt.title(f'Number of samples vs Error \n for {n_containers} containers with smallest volumes')
-        plt.xlabel('Number of samples', fontsize=17)
-        plt.ylabel('Error', fontsize=17)
-        plt.grid(True)
-        plt.tight_layout()  
-        plt.savefig(f'figures/poly_gp/gp_n_errors_small_containers_{str(problem)}.png')
-        plt.close()
+        # plt.title(f'Number of samples vs Error \n for {n_containers} containers with largest volumes')
+        # plt.xlabel('Number of samples', fontsize=17)
+        # plt.ylabel('Error', fontsize=17)
+        # plt.grid(True)
+        # plt.tight_layout()  
+        # plt.savefig(f'figures/gp_n_errors_containers_{str(problem)}.png')
+        # plt.close()

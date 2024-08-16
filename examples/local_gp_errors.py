@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
 
     rbfIntegral = AdaptiveRbfIntegral(max_redraw=4, threshold=0.5, n_splits=5)
-    rmeanIntegral = RandomIntegral(n=20)
+    rmeanIntegral = RandomIntegral(n_samples=20)
 
     split = MinSseSplit()
 

@@ -40,7 +40,8 @@ class DistributedSampleIntegrator(SimpleIntegrator):
                  sampler: Optional[Sampler]=None):
         """
         An integrator that constructs a tree and then distributes the 
-        remaining samples among the containers obtained.
+        remaining samples among the containers obtained 
+        according to the volume of containers
 
         Parameters
         ----------
@@ -115,13 +116,18 @@ class DistributedSampleIntegrator(SimpleIntegrator):
 
         if remaining_samples > 0:
             # Distribute remaining samples across containers
+            total_volume = sum(c.volume for c in finished_containers)
             for cont in finished_containers:
                 additional_samples = max(1, int(remaining_samples * 
-                                                (cont.volume / sum(c.volume for c in finished_containers))))
+                                                (cont.volume / total_volume)))
+                additional_samples = min(additional_samples, remaining_samples)
                 if additional_samples > 0:
                     X_additional = cont.rvs(additional_samples)
                     y_additional = problem.integrand(X_additional)
                     cont.add(X_additional, y_additional)
+                    remaining_samples -= additional_samples
+                    if remaining_samples <= 0:
+                        break
         
         # Uncertainty estimates
         method = getattr(self.integral, 'containerIntegral', None)

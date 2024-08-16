@@ -260,7 +260,10 @@ def test_integrators(integrators: List[Integrator],
             n_evals_list = []
             total_time_taken = 0
 
-            specific_kwargs = integrator_specific_kwargs.get(integrator, {})
+            specific_kwargs = integrator_specific_kwargs.get(integrator, {}).copy()
+
+            if 'integrand' in specific_kwargs:
+                specific_kwargs['specific_kwargs'] = problem.integrand
 
             for repeat in range(n_repeat):
                 np.random.seed(seed + repeat)

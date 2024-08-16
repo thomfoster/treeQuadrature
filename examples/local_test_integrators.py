@@ -39,9 +39,9 @@ for D in Ds:
     problems.append(QuadraticProblem(D))
     problems.append(RippleProblem(D))
     problems.append(OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))))
-    problems.append(ProductPeakProblem(D, a=np.array([10]*D)))
-    problems.append(C0Problem(D, np.array([1.1] * D)))
-    problems.append(CornerPeakProblem(D, a=np.array([10]*D)))
+    problems.append(ProductPeakProblem(D, a=10))
+    problems.append(C0Problem(D, a=1.1))
+    problems.append(CornerPeakProblem(D, a=10))
                
 ### container Integrals 
 ranIntegral = RandomIntegral(n_samples=args.n_samples)

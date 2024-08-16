@@ -457,13 +457,34 @@ class C0Problem(Problem):
 
 
 class DiscontinuousProblem(Problem):
+    """
+    A problem with a discontinuous integrand function.
+
+    The integrand is designed to be discontinuous at specified points `u1` and `u2`.
+    The function value drops to zero beyond these thresholds, creating a discontinuity
+    in the domain. 
+
+    Attributes
+    ----------
+    D : int
+        Dimensionality of the problem.
+    a : np.ndarray
+        one dimensional array, 
+        Coefficient vector for the exponential function.
+    u1 : float
+        Threshold for discontinuity in the first dimension.
+    u2 : float
+        Threshold for discontinuity in the second dimension (if D > 1).
+    answer : float
+        The analytical solution of the integral for comparison.
+    """
     def __init__(self, D, a=None):
         super().__init__(D, lows=0., highs=1.)
 
         if a is None:
             self.a = np.array([1.]*D)
         else:
-            self.a = a
+            self.a = handle_bound(a)
 
         self.u1 = 0.3
         self.u2 = 0.5

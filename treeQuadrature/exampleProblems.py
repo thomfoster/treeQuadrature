@@ -293,10 +293,8 @@ class ProductPeakProblem(Problem):
         The integration domain is always [0, 1]^D
         """
         super().__init__(D, lows=0., highs=1.)
-        if a is None:
-            self.a = np.array([1.]*D)
-        else:
-            self.a = a
+        
+        self.a = handle_bound(a, D, 1.0)
         
         if u is None:
             self.u = np.linspace(0.2,0.8,D)
@@ -321,7 +319,7 @@ class ProductPeakProblem(Problem):
             the function value evaluated at X
         """
         X = self.handle_input(X)
-        f = [1/np.prod(self.a**(-2) + (x - self.u)**2) for x in X]
+        f = [1/np.prod(self.a**(-2.0) + (x - self.u)**2) for x in X]
         return np.array(f).reshape(-1,1)
     
     

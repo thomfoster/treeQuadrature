@@ -6,4 +6,5 @@ tqdm
 matplotlib
 scipy
 vegas
+pandas
 scikit-learn

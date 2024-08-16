@@ -5,12 +5,6 @@ from treeQuadrature.splits import MinSseSplit, KdSplit
 from treeQuadrature.samplers import ImportanceSampler, UniformSampler, McmcSampler, SobolSampler
 from treeQuadrature import compare_integrators
 
-## profiling
-from line_profiler import LineProfiler
-from treeQuadrature import gaussianProcess
-# from treeQuadrature.integrators import gpTreeIntegrator
-from treeQuadrature.integrators import TreeIntegrator
-
 import numpy as np
 
 D = 2
@@ -99,21 +93,7 @@ integ_smc = SmcIntegrator(N=max_n_samples, sampler=UniformSampler())
 integ_smc.name = 'SMC'
 
 if __name__ == '__main__':
-    ### profile to test runnning time
-    profiler = LineProfiler()
-    profiler.add_function(TreeIntegrator.__call__)
-    # profiler.add_function(gaussianProcess.gp_kfoldCV)
-    profiler.add_function(gaussianProcess.IterativeGPFitting.fit)
-    # profiler.add_function(GpTreeIntegrator.__call__)
-    # profiler.add_function(GpTreeIntegrator.fit_gps)
-    # profiler.add_function(gpTreeIntegrator.build_grid)
-    # profiler.add_function(gpTreeIntegrator.find_neighbors_grid)
-
-
-    # profiler.enable_by_count()
     compare_integrators([integ_activeTQ], plot=True, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], ylim=[problem.lows[1], problem.highs[1]], 
                         problem=problem, dimensions=[0, 1], 
                         n_repeat=1, integrator_specific_kwargs={'LimitedSampleIntegrator': {'integrand' : problem.integrand}})
-    # profiler.disable_by_count()
-    # profiler.print_stats()

@@ -83,7 +83,7 @@ class LimitedSamplesGpIntegrator(Integrator):
     def __init__(self, base_N: int, max_n_samples: int, P: int, split: Split, 
                  integral: IterativeGpIntegral,
                  sampler: Optional[Sampler]=None, 
-                 max_container_samples: int=150):
+                 max_container_samples: int=200):
         self.split = split
         self.base_N = base_N
         self.integral = integral
@@ -142,7 +142,7 @@ class LimitedSamplesGpIntegrator(Integrator):
     def __call__(self, problem: Problem, 
                  return_N: bool=False, return_containers: bool=False, 
                  return_std: bool=False, verbose: bool=False,
-                 return_all: bool=False, 
+                 return_all: bool=False, max_iterations_per_container: int = 5,
                  **kwargs) -> dict:
 
         if verbose: 
@@ -180,7 +180,9 @@ class LimitedSamplesGpIntegrator(Integrator):
 
         # Initialize previous_samples dictionary
         previous_samples = {}
-
+        container_iterations = {}
+        container_performances = {}
+        container_prev_performances = {}  # To store old performances
         total_samples = n_samples
         all_containers = []
         all_results = []
@@ -214,21 +216,34 @@ class LimitedSamplesGpIntegrator(Integrator):
 
             # Update previous_samples with new samples from this iteration
             previous_samples.update(new_samples_dict)
+            
+            # Track performance gains
+            for result, container in results:
+                new_performance = result['performance']
+                old_performance = container_prev_performances.get(container, new_performance)
+                delta_performance = new_performance - old_performance if (
+                    container in container_prev_performances) else new_performance
+                container_prev_performances[container] = new_performance
+                container_performances[container] = delta_performance
+                container_iterations[container] = container_iterations.get(container, 0) + 1
 
+            # Sort containers by performance gain (delta)
             ranked_containers_results = sorted(
                 results, 
-                key=lambda x: x[0]['performance'], 
-                reverse=self.integral.score_direction == 'down'
+                key=lambda x: container_performances[x[1]],
+                reverse=True
             )
 
-            # Allocate samples dynamically based on GP performance
-            # for next iteration
+            # Allocate samples dynamically based on performance gain
             available_samples = min(self.max_n_samples - total_samples, 
                                     self.n_samples * len(containers))
             sample_allocation = self._allocate_samples(ranked_containers_results, 
                                                        available_samples,
+                                                       container_iterations,
+                                                       max_iterations_per_container, 
+                                                       container_performances,
                                                        self.max_container_samples)
-
+            
             # Separate out containers that received 0 samples
             containers_for_next_iteration = []
             for idx, (result, container) in enumerate(ranked_containers_results):
@@ -276,69 +291,51 @@ class LimitedSamplesGpIntegrator(Integrator):
         return return_values
     
     def _allocate_samples(self, ranked_containers_results: list, 
-                          available_samples: int, max_per_container: int = 1000):
+                          available_samples: int, 
+                          container_iterations: dict, 
+                          max_iterations_per_container: int, 
+                          container_performances: dict, 
+                          max_per_container) -> List[int]:
         """
-        Allocate samples to containers based on their performance, with a strict cap on the number
+        Allocate samples to containers based on their performance gain, 
+        with a strict cap on the number
         of samples allocated to any single container in this iteration.
 
         Parameters
         ----------
         ranked_containers_results : list
-            A list of tuples where each tuple contains a result dictionary and a container,
-            sorted by performance.
+            A list of tuples where each tuple contains a result dictionary 
+            and a container,
+            sorted by performance gain.
         available_samples : int
             The total number of samples available to be allocated.
-        max_per_container : int, optional
-            The maximum number of samples to allocate to any single container in this iteration.
-            Defaults to 1000.
+        container_iterations : dict
+            Dictionary tracking the number of iterations each container has undergone.
+        max_iterations_per_container : int
+            The maximum number of iterations allowed per container.
+        container_performances : dict
+            Dictionary tracking the performance gain for each container.
+        max_per_container : int
+            The maximum number of samples to allocate to any single 
+            container in this iteration.
 
         Returns
         -------
         List[int]
             A list containing the number of samples allocated to each container.
         """
-        performances = np.array([result['performance'] for result, _ in ranked_containers_results])
+        allocation = []
+        for result, container in ranked_containers_results:
+            # Cap the number of iterations per container
+            if container_iterations[container] >= max_iterations_per_container:
+                allocation.append(0)
+                continue
+            
+            # Allocate samples based on performance gain
+            delta_performance = container_performances.get(container, 0)
+            weight = np.log(delta_performance + 1e-10) + 1  # Apply log for softening
+            samples = min(int(weight * available_samples / 
+                              len(ranked_containers_results)), max_per_container)
+            allocation.append(samples)
 
-        # Establish a baseline to avoid issues with very low or negative performance scores
-        baseline = np.min(performances)
-        adjusted_performances = performances - baseline + 1e-10
-
-        # Invert and apply a logarithmic scale to reduce aggressiveness
-        inverted_performances = np.log(adjusted_performances + 1e-10)
-         # Shift to positive space
-        softened_weights = inverted_performances - np.min(inverted_performances) + 1 
-
-        # Normalize the softened weights to sum to 1
-        allocation_weights = softened_weights / np.sum(softened_weights)
-
-        # Calculate the initial allocation based on weights
-        allocation = np.round(allocation_weights * available_samples).astype(int)
-
-        # Apply the max_per_container cap
-        allocation = np.minimum(allocation, max_per_container)
-
-        # Adjust allocation to match available_samples
-        total_allocated = np.sum(allocation)
-        discrepancy = available_samples - total_allocated
-
-        # Distribute the discrepancy while respecting max_per_container
-        while discrepancy != 0:
-            if discrepancy > 0:
-                # Add samples where allocation < max_per_container
-                candidates = np.where(allocation < max_per_container)[0]
-                if len(candidates) == 0:
-                    break  # No more candidates to allocate to
-                idx = candidates[np.argmax(allocation_weights[candidates])]
-                allocation[idx] += 1
-                discrepancy -= 1
-            elif discrepancy < 0:
-                # Remove samples
-                idx = np.argmax(allocation)
-                allocation[idx] -= 1
-                discrepancy += 1
-
-        if max(allocation) > max_per_container:
-            raise RuntimeError('Too many samples allocated: '
-                               f'maximum {max(allocation)}; '
-                               f'upper limit {max_per_container}')
-        return allocation.tolist()
+        return allocation

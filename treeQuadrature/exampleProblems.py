@@ -351,10 +351,7 @@ class CornerPeakProblem(Problem):
         the corner where the peak is located.
         """
         super().__init__(D, lows=0., highs=1.)
-        if a is None:
-            self.a = np.array([1.]*D)
-        else:
-            self.a = a
+        self.a = handle_bound(a, D, 1.0)
         
         self.answer = self.compute_answer(a0 = 1, a = self.a)
 
@@ -383,6 +380,9 @@ class CornerPeakProblem(Problem):
         """
         X = self.handle_input(X)
         dotprods = np.array([np.dot(x,self.a) for x in X])
+        # prevent raising 0 to a power 
+        epsilon = 1e-13
+        dotprods = np.clip(dotprods, -1 + epsilon, None)
         f =(1 + dotprods)**(-self.D-1)
         return np.array(f).reshape(-1,1)
     
@@ -416,10 +416,8 @@ class C0Problem(Problem):
         by the vector `a`. 
         """
         super().__init__(D, lows=0., highs=1.)
-        if a is None:
-            self.a = np.array([1.] * D)
-        else:
-            self.a = a
+        
+        self.a = handle_bound(a, D, 1.0)
         
         if u is None:
             self.u = np.linspace(0.2, 0.8, D)
@@ -454,13 +452,31 @@ class C0Problem(Problem):
 
 
 class DiscontinuousProblem(Problem):
+    """
+    A problem with a discontinuous integrand function.
+
+    The integrand is designed to be discontinuous at specified points `u1` and `u2`.
+    The function value drops to zero beyond these thresholds, creating a discontinuity
+    in the domain. 
+
+    Attributes
+    ----------
+    D : int
+        Dimensionality of the problem.
+    a : np.ndarray
+        one dimensional array, 
+        Coefficient vector for the exponential function.
+    u1 : float
+        Threshold for discontinuity in the first dimension.
+    u2 : float
+        Threshold for discontinuity in the second dimension (if D > 1).
+    answer : float
+        The analytical solution of the integral for comparison.
+    """
     def __init__(self, D, a=None):
         super().__init__(D, lows=0., highs=1.)
 
-        if a is None:
-            self.a = np.array([1.]*D)
-        else:
-            self.a = a
+        self.a = handle_bound(a, D, 1.0)
 
         self.u1 = 0.3
         self.u2 = 0.5

@@ -68,30 +68,28 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         n_evals_list = []
         times = []
 
+        integrator_params = signature(integrator.__call__).parameters
+        applicable_kwargs = {k: v for k, v in kwargs.items() if k in integrator_params}
+
+        # Prepare common arguments
+        integration_args = {'return_N': True}
+
+        if 'return_containers' in integrator_params:
+            integration_args['return_containers'] = True
+
+        if 'verbose' in integrator_params:
+            integration_args['verbose'] = verbose >= 2
+
+        # Merge common arguments with applicable kwargs
+        integration_args.update(applicable_kwargs)
+
         for i in range(n_repeat):
             if verbose >= 1:
                 print(f'Run {i}')
             start_time = time.time()
             try:
                 # Perform integration
-                parameters = signature(integrator).parameters
-                if 'verbose' in parameters and 'return_containers' in parameters:
-                    if verbose >= 2:
-                        result = integrator(problem, return_N=True, return_containers=True, verbose=True, 
-                                            **kwargs)
-                    else:
-                        result = integrator(problem, return_N=True, return_containers=True, verbose=False,
-                                            **kwargs)
-                elif 'return_containers' in parameters:
-                    result = integrator(problem, return_N=True, return_containers=True,
-                                        **kwargs)
-                elif 'verbose' in parameters:
-                    if verbose >= 2:
-                        result = integrator(problem, return_N=True, verbose=True, **kwargs)
-                    else:
-                        result = integrator(problem, return_N=True, verbose=False, **kwargs)
-                else:
-                    result = integrator(problem, return_N=True, **kwargs)
+                result = integrator(problem, **integration_args)
             except Exception as e:
                 print(f'Error during integration with {integrator_name}: {e}')
                 print_exc()

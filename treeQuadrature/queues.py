@@ -27,11 +27,15 @@ class ReservoirQueue:
         self.accentuation_factor = accentuation_factor
 
     def put(self, item, weight):
-        assert np.isscalar(weight), 'weights must be scalar'
-        assert weight >= 0, f'weights must be >= 0, got {weight}'
+        if not np.isscalar(weight): 
+            raise TypeError('weights must be scalar')
+        if weight < 0:
+            raise ValueError(f'weights must be >= 0, got {weight}')
         self.items.append(item)
         self.weights.append(weight)
         self.n += 1
+        total_weight = np.sum(np.array(self.weights))
+        print(f"put a container, current total weight: {total_weight}")
 
     def get_probabilities(self, weights):
         weights = np.array(self.weights)
@@ -47,13 +51,8 @@ class ReservoirQueue:
         # us into 0 everywhere
         ps = ps + 1
         ps = np.power(ps, self.accentuation_factor)
-
-        if np.any(np.isnan(ps)):
-            raise ValueError(f'Probabilities contain NaN values after accentuation: {ps}')
         
         s = sum(ps)
-        if s == 0:
-            raise ValueError('Sum of probabilities is zero after accentuation.')
 
         ps = ps / s
         return ps
@@ -68,6 +67,8 @@ class ReservoirQueue:
                 list(range(len(self.items))), p=ps)
             choice = self.items.pop(choice_of_index)
             self.weights.pop(choice_of_index)
+            total_weight = np.sum(np.array(self.weights))
+            print(f"popped out a container, current total weight: {total_weight}")
             self.n -= 1
             return choice
 

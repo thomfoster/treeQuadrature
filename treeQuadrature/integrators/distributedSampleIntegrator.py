@@ -17,10 +17,12 @@ def parallel_container_integral(integral: ContainerIntegral,
                                 cont: Container, integrand: callable, 
                                 return_std: bool, n_samples: int):
     try:
-        integral.n_samples = n_samples
+        _ = integral.n_samples
     except AttributeError:
         raise AttributeError("self.integral does not have attribute "
                              "n_samples, cannot use DistributedSampleIntegrator")
+
+    integral.n_samples = n_samples
     
     params = {}
     if hasattr(integral, 'get_additional_params'):
@@ -124,7 +126,6 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         # Determine the number of remaining samples to distribute
         used_samples = np.sum([cont.N for cont in finished_containers])
         remaining_samples = self.max_n_samples - used_samples
-        print(f"remaining samples = {remaining_samples}")
 
         if remaining_samples > 0:
             total_volume = sum(c.volume for c in finished_containers)
@@ -146,8 +147,6 @@ class DistributedSampleIntegrator(SimpleIntegrator):
                         break
                     samples_distribution[cont] += 1
                     remainder_samples -= 1
-        
-        print(f"distributed samples: {sum(samples_distribution)}")
 
 
         # Uncertainty estimates

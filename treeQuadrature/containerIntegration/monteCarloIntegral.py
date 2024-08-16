@@ -16,7 +16,7 @@ class RandomIntegral(ContainerIntegral):
 
     Parameters
     ----------
-    n : int
+    n_samples : int
         number of samples to be redrawn for evaluating the integral
         default : 10
     eval : function
@@ -30,10 +30,10 @@ class RandomIntegral(ContainerIntegral):
         The sampler used to draw samples in the container
         Default is UniformSampler
     '''
-    def __init__(self, n: int = 10, eval: Callable=np.mean, 
+    def __init__(self, n_samples: int = 10, eval: Callable=np.mean, 
                  error_estimate: Optional[Callable]=None, 
                  sampler: Sampler=defaultSampler) -> None:
-        self.n = n
+        self.n_samples = n_samples
         self.name = 'RandomIntegral'
         self.eval = eval  
         self.error_estimate = error_estimate
@@ -42,7 +42,7 @@ class RandomIntegral(ContainerIntegral):
     def containerIntegral(self, container: Container, f: Callable, 
                           return_std: bool=False):
 
-        xs, ys = self.sampler.rvs(self.n, container.mins, 
+        xs, ys = self.sampler.rvs(self.n_samples, container.mins, 
                                    container.maxs, f)
         container.add(xs, ys)  # for tracking num function evaluations
         # ignore previous samples in the container 

@@ -35,13 +35,26 @@ class ReservoirQueue:
 
     def get_probabilities(self, weights):
         weights = np.array(self.weights)
+        if np.any(np.isnan(weights)):
+            raise ValueError(f'Weights contain NaN values: {weights}')
+
         s = sum(weights)
+        if s == 0:
+            raise ValueError('Sum of weights is zero, cannot normalize.')
+        
         ps = weights / s
         # range is now [1,2], which prevents large accentuation factors driving
         # us into 0 everywhere
         ps = ps + 1
         ps = np.power(ps, self.accentuation_factor)
+
+        if np.any(np.isnan(ps)):
+            raise ValueError(f'Probabilities contain NaN values after accentuation: {ps}')
+        
         s = sum(ps)
+        if s == 0:
+            raise ValueError('Sum of probabilities is zero after accentuation.')
+
         ps = ps / s
         return ps
 

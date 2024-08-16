@@ -15,7 +15,13 @@ from ..container import Container
 
 def parallel_container_integral(integral: ContainerIntegral, 
                                 cont: Container, integrand: callable, 
-                                return_std: bool):
+                                return_std: bool, n_samples: int):
+    try:
+        integral.n_samples = n_samples
+    except AttributeError:
+        raise AttributeError("self.integral does not have attribute "
+                             "n_samples, cannot use DistributedSampleIntegrator")
+    
     params = {}
     if hasattr(integral, 'get_additional_params'):
         params.update(integral.get_additional_params())
@@ -120,18 +126,22 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         remaining_samples = self.max_n_samples - used_samples
 
         if remaining_samples > 0:
-            total_containers = len(finished_containers)
-            samples_per_container = remaining_samples // total_containers
+            total_volume = sum(c.volume for c in finished_containers)
+            samples_distribution = {}
 
+            for i, cont in enumerate(finished_containers):
+                additional_samples = max(1, int(remaining_samples * 
+                                                (cont.volume / total_volume)))
+                samples_distribution[cont] = additional_samples
+
+            # Distribute the remainder
+            total_assigned = sum(samples_distribution.values())
+            remainder_samples = remaining_samples - total_assigned
             for cont in finished_containers:
-                if samples_per_container > 0:
-                    additional_samples = min(samples_per_container, remaining_samples)
-                    X_additional = cont.rvs(additional_samples)
-                    y_additional = problem.integrand(X_additional)
-                    cont.add(X_additional, y_additional)
-                    remaining_samples -= additional_samples
-                if remaining_samples <= 0:
+                if remainder_samples <= 0:
                     break
+                samples_distribution[cont] += 1
+                remainder_samples -= 1
         
         # Uncertainty estimates
         method = getattr(self.integral, 'containerIntegral', None)
@@ -158,7 +168,7 @@ class DistributedSampleIntegrator(SimpleIntegrator):
             futures = {
                 executor.submit(parallel_container_integral, 
                                 self.integral, cont, problem.integrand, 
-                                compute_std): cont
+                                compute_std, n_samples=samples_distribution.get(cont)): cont
                 for cont in finished_containers
             }
 

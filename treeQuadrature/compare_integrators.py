@@ -190,7 +190,8 @@ def test_integrators(integrators: List[Integrator],
                      max_time: float=60.0, 
                      verbose: int=1, 
                      seed: int=2024, 
-                     n_repeat: int=1) -> None:
+                     n_repeat: int=1, 
+                     integrator_specific_kwargs: Optional[dict] = None) -> None:
     """
     Test different integrators on a list of problems 
     and save the results to a CSV file.
@@ -259,6 +260,8 @@ def test_integrators(integrators: List[Integrator],
             n_evals_list = []
             total_time_taken = 0
 
+            specific_kwargs = integrator_specific_kwargs.get(integrator, {})
+
             for repeat in range(n_repeat):
                 np.random.seed(seed + repeat)
                 start_time = time.time()
@@ -266,9 +269,11 @@ def test_integrators(integrators: List[Integrator],
 
                 def integrator_wrapper():
                     if 'verbose' in parameters and verbose >= 2:
-                        return integrator(problem, return_N=True, verbose=True)
+                        return integrator(problem, return_N=True, verbose=True, 
+                                          **specific_kwargs)
                     else:
-                        return integrator(problem, return_N=True)
+                        return integrator(problem, return_N=True, 
+                                          **specific_kwargs)
                     
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(integrator_wrapper)

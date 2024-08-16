@@ -124,25 +124,32 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         # Determine the number of remaining samples to distribute
         used_samples = np.sum([cont.N for cont in finished_containers])
         remaining_samples = self.max_n_samples - used_samples
+        print(f"remaining samples = {remaining_samples}")
 
         if remaining_samples > 0:
             total_volume = sum(c.volume for c in finished_containers)
             samples_distribution = {}
 
+            # Initial distribution based on volume
+            total_assigned = 0
             for i, cont in enumerate(finished_containers):
                 additional_samples = max(1, int(remaining_samples * 
                                                 (cont.volume / total_volume)))
                 samples_distribution[cont] = additional_samples
+                total_assigned += additional_samples
 
-            # Distribute the remainder
-            total_assigned = sum(samples_distribution.values())
+            # Distribute the remaining samples
             remainder_samples = remaining_samples - total_assigned
-            for cont in finished_containers:
-                if remainder_samples <= 0:
-                    break
-                samples_distribution[cont] += 1
-                remainder_samples -= 1
+            while remainder_samples > 0:
+                for cont in finished_containers:
+                    if remainder_samples <= 0:
+                        break
+                    samples_distribution[cont] += 1
+                    remainder_samples -= 1
         
+        print(f"distributed samples: {sum(samples_distribution)}")
+
+
         # Uncertainty estimates
         method = getattr(self.integral, 'containerIntegral', None)
         if method:

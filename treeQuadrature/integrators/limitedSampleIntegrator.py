@@ -154,6 +154,9 @@ class LimitedSampleIntegrator(TreeIntegrator):
             children = self.split.split(c)
             for child in children:
                 weight = self.weighting_function(child)
+                if weight == 0:
+                    warnings.warn(f"Container has 0 weight, mins: {child.mins}, maxs: {child.maxs}"
+                                  f"volume: {child.volume}")
                 q.put(child, weight)
 
             if iteration_count % 100 == 0 and verbose:  # Log every 100 iterations

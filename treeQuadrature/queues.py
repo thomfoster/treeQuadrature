@@ -29,13 +29,11 @@ class ReservoirQueue:
     def put(self, item, weight):
         if not np.isscalar(weight): 
             raise TypeError('weights must be scalar')
-        if weight < 0:
-            raise ValueError(f'weights must be >= 0, got {weight}')
+        if weight <= 0:
+            raise ValueError(f'weights must be positive, got {weight}')
         self.items.append(item)
         self.weights.append(weight)
         self.n += 1
-        total_weight = np.sum(np.array(self.weights))
-        print(f"put a container, current total weight: {total_weight}")
 
     def get_probabilities(self, weights):
         weights = np.array(self.weights)
@@ -67,8 +65,6 @@ class ReservoirQueue:
                 list(range(len(self.items))), p=ps)
             choice = self.items.pop(choice_of_index)
             self.weights.pop(choice_of_index)
-            total_weight = np.sum(np.array(self.weights))
-            print(f"popped out a container, current total weight: {total_weight}")
             self.n -= 1
             return choice
 

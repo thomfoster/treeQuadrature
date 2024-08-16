@@ -419,10 +419,8 @@ class C0Problem(Problem):
         by the vector `a`. 
         """
         super().__init__(D, lows=0., highs=1.)
-        if a is None:
-            self.a = np.array([1.] * D)
-        else:
-            self.a = a
+        
+        self.a = handle_bound(a, D, 1.0)
         
         if u is None:
             self.u = np.linspace(0.2, 0.8, D)
@@ -481,10 +479,7 @@ class DiscontinuousProblem(Problem):
     def __init__(self, D, a=None):
         super().__init__(D, lows=0., highs=1.)
 
-        if a is None:
-            self.a = np.array([1.]*D)
-        else:
-            self.a = handle_bound(a)
+        self.a = handle_bound(a, D, 1.0)
 
         self.u1 = 0.3
         self.u2 = 0.5

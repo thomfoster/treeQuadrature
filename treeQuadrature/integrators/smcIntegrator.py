@@ -7,7 +7,7 @@ from ..samplers import Sampler
 
 class SmcIntegrator(Integrator):
     """
-    Simple integrator: Draw N samples from prior,
+    Simple Monte Carlo integrator: Draw N samples from prior,
     take sample mean of likelihood values at these samples.
     only works for BayesProblem
 

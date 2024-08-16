@@ -226,7 +226,6 @@ def test_integrators(integrators: List[Integrator],
         is_first_run = True
 
     results = []
-    n_eval = None
 
     for problem in problems:
         problem_name = str(problem)

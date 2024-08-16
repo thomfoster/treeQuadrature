@@ -26,7 +26,7 @@ def handle_bound(value, D, default_value) -> np.ndarray:
     if value is None:
         return np.array([default_value] * D)
     elif isinstance(value, (int, float)):
-        return np.array([value] * D)
+        return np.array([float(value)] * D)
     elif isinstance(value, (list, np.ndarray)) and len(value) == D:
         return np.array(value)
     else:

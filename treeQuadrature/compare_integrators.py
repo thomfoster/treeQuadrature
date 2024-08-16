@@ -15,7 +15,8 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
                         xlim: Optional[List[float]]=None, 
                         ylim: Optional[List[float]]=None,
                         dimensions: Optional[List[float]]=None,
-                        n_repeat: int=1, **kwargs: Any) -> None:
+                        n_repeat: int=1, integrator_specific_kwargs: Optional[dict]=None, 
+                        **kwargs: Any) -> None:
     """
     Compare different integrators on a given problem.
     Give integrators attribute `name` 
@@ -56,7 +57,15 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
     n_repeat : int, optional
         Number of times to repeat the integration and average the results.
         Default is 1.
+    integrator_specific_kwargs : dict, optional
+        A dictionary where the keys are names of integrator and the values are
+        dictionaries of specific arguments to be passed to those integrators.
+        Default is None.
+    **kwargs : Any
+        kwargs that should be used by __call__ method
     """
+    if integrator_specific_kwargs is None:
+        integrator_specific_kwargs = {}
 
     for i, integrator in enumerate(integrators):
         integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
@@ -82,6 +91,7 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
 
         # Merge common arguments with applicable kwargs
         integration_args.update(applicable_kwargs)
+        integration_args.update(integrator_specific_kwargs.get(integrator_name, {}))
 
         for i in range(n_repeat):
             if verbose >= 1:

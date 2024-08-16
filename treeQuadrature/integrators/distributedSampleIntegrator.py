@@ -120,19 +120,18 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         remaining_samples = self.max_n_samples - used_samples
 
         if remaining_samples > 0:
-            # Distribute remaining samples across containers
-            total_volume = sum(c.volume for c in finished_containers)
+            total_containers = len(finished_containers)
+            samples_per_container = remaining_samples // total_containers
+
             for cont in finished_containers:
-                additional_samples = max(1, int(remaining_samples * 
-                                                (cont.volume / total_volume)))
-                additional_samples = min(additional_samples, remaining_samples)
-                if additional_samples > 0:
+                if samples_per_container > 0:
+                    additional_samples = min(samples_per_container, remaining_samples)
                     X_additional = cont.rvs(additional_samples)
                     y_additional = problem.integrand(X_additional)
                     cont.add(X_additional, y_additional)
                     remaining_samples -= additional_samples
-                    if remaining_samples <= 0:
-                        break
+                if remaining_samples <= 0:
+                    break
         
         # Uncertainty estimates
         method = getattr(self.integral, 'containerIntegral', None)

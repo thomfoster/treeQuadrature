@@ -383,6 +383,9 @@ class CornerPeakProblem(Problem):
         """
         X = self.handle_input(X)
         dotprods = np.array([np.dot(x,self.a) for x in X])
+        # prevent raising 0 to a power 
+        epsilon = 1e-13
+        dotprods = np.clip(dotprods, -1 + epsilon, None)
         f =(1 + dotprods)**(-self.D-1)
         return np.array(f).reshape(-1,1)
     

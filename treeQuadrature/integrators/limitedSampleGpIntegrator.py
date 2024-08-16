@@ -83,7 +83,7 @@ class LimitedSamplesGpIntegrator(Integrator):
     def __init__(self, base_N: int, max_n_samples: int, P: int, split: Split, 
                  integral: IterativeGpIntegral,
                  sampler: Optional[Sampler]=None, 
-                 max_container_samples: int=150):
+                 max_container_samples: int=500):
         self.split = split
         self.base_N = base_N
         self.integral = integral
@@ -239,10 +239,10 @@ class LimitedSamplesGpIntegrator(Integrator):
                                     self.n_samples * len(containers))
             sample_allocation = self._allocate_samples(ranked_containers_results, 
                                                        available_samples,
-                                                       self.max_container_samples,
                                                        container_iterations,
                                                        max_iterations_per_container, 
-                                                       container_performances)
+                                                       container_performances,
+                                                       self.max_container_samples)
             
             # Separate out containers that received 0 samples
             containers_for_next_iteration = []
@@ -295,7 +295,7 @@ class LimitedSamplesGpIntegrator(Integrator):
                           container_iterations: dict, 
                           max_iterations_per_container: int, 
                           container_performances: dict, 
-                          max_per_container: int=1000) -> List[int]:
+                          max_per_container) -> List[int]:
         """
         Allocate samples to containers based on their performance gain, 
         with a strict cap on the number
@@ -304,7 +304,8 @@ class LimitedSamplesGpIntegrator(Integrator):
         Parameters
         ----------
         ranked_containers_results : list
-            A list of tuples where each tuple contains a result dictionary and a container,
+            A list of tuples where each tuple contains a result dictionary 
+            and a container,
             sorted by performance gain.
         available_samples : int
             The total number of samples available to be allocated.
@@ -314,9 +315,9 @@ class LimitedSamplesGpIntegrator(Integrator):
             The maximum number of iterations allowed per container.
         container_performances : dict
             Dictionary tracking the performance gain for each container.
-        max_per_container : int, optional
-            The maximum number of samples to allocate to any single container in this iteration.
-            Defaults to 1000.
+        max_per_container : int
+            The maximum number of samples to allocate to any single 
+            container in this iteration.
 
         Returns
         -------

@@ -3,7 +3,7 @@ from inspect import signature
 import numpy as np
 import warnings
 
-from typing import Optional
+from typing import Optional, Callable
 
 from .simpleIntegrator import SimpleIntegrator
 from ..containerIntegration import ContainerIntegral
@@ -37,7 +37,8 @@ def parallel_container_integral(integral: ContainerIntegral,
 class DistributedSampleIntegrator(SimpleIntegrator):
     def __init__(self, base_N: int, P: int, max_n_samples: int, split: Split, 
                  integral: ContainerIntegral, 
-                 sampler: Optional[Sampler]=None):
+                 sampler: Optional[Sampler]=None, 
+                 construct_tree_method: Optional[Callable] = None):
         """
         An integrator that constructs a tree and then distributes the 
         remaining samples among the containers obtained 
@@ -58,9 +59,13 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         sampler : Sampler, optional
             Method for generating initial samples, 
             when the problem does not have an rvs method.
+        construct_tree_method : Callable, optional
+            Custom method to construct the tree. If None, use the default 
+            `construct_tree` method from `SimpleIntegrator`. 
         """
         super().__init__(base_N, P, split, integral, sampler)
         self.max_n_samples = max_n_samples
+        self.construct_tree_method = construct_tree_method or super().construct_tree
 
     def __call__(self, problem: Problem, 
                  return_N: bool=False, return_containers: bool=False, 
@@ -94,14 +99,14 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         # Construct tree
         if verbose:
             print('Constructing tree')
-            if 'verbose' in signature(self.construct_tree).parameters:
-                finished_containers = self.construct_tree(root, verbose=True, 
+            if 'verbose' in signature(self.construct_tree_method).parameters:
+                finished_containers = self.construct_tree_method(root, verbose=True, 
                                                           *args, **kwargs)
             else:
-                finished_containers = self.construct_tree(root, 
+                finished_containers = self.construct_tree_method(root, 
                                                           *args, **kwargs)
         else:
-            finished_containers = self.construct_tree(root, *args, **kwargs)
+            finished_containers = self.construct_tree_method(root, *args, **kwargs)
 
         if len(finished_containers) == 0:
             raise RuntimeError('No container obtained from construct_tree')

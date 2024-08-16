@@ -266,6 +266,8 @@ def test_integrators(integrators: List[Integrator],
                 specific_kwargs['integrand'] = problem.integrand
 
             for repeat in range(n_repeat):
+                break_integrator = False
+                
                 np.random.seed(seed + repeat)
                 start_time = time.time()
                 parameters = signature(integrator).parameters
@@ -304,6 +306,7 @@ def test_integrators(integrators: List[Integrator],
                             'time_taken': f'Exceeded {max_time}s',
                             'errors': None
                         }
+                        break_integrator = True
                         break
                     except Exception as e:
                         print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
@@ -322,7 +325,12 @@ def test_integrators(integrators: List[Integrator],
                             'errors': None
                         }
                         print_exc()
+                        break_integrator = True
                         break
+
+                if break_integrator:
+                    break
+
 
                 estimate = result['estimate']
                 n_evals = result['n_evals']

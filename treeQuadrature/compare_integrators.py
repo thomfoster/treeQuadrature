@@ -15,7 +15,8 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
                         xlim: Optional[List[float]]=None, 
                         ylim: Optional[List[float]]=None,
                         dimensions: Optional[List[float]]=None,
-                        n_repeat: int=1, **kwargs: Any) -> None:
+                        n_repeat: int=1, integrator_specific_kwargs: Optional[dict]=None, 
+                        **kwargs: Any) -> None:
     """
     Compare different integrators on a given problem.
     Give integrators attribute `name` 
@@ -56,7 +57,15 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
     n_repeat : int, optional
         Number of times to repeat the integration and average the results.
         Default is 1.
+    integrator_specific_kwargs : dict, optional
+        A dictionary where the keys are names of integrator and the values are
+        dictionaries of specific arguments to be passed to those integrators.
+        Default is None.
+    **kwargs : Any
+        kwargs that should be used by __call__ method
     """
+    if integrator_specific_kwargs is None:
+        integrator_specific_kwargs = {}
 
     for i, integrator in enumerate(integrators):
         integrator_name = getattr(integrator, 'name', f'integrator[{i}]')
@@ -68,30 +77,29 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         n_evals_list = []
         times = []
 
+        integrator_params = signature(integrator.__call__).parameters
+        applicable_kwargs = {k: v for k, v in kwargs.items() if k in integrator_params}
+
+        # Prepare common arguments
+        integration_args = {'return_N': True}
+
+        if 'return_containers' in integrator_params:
+            integration_args['return_containers'] = True
+
+        if 'verbose' in integrator_params:
+            integration_args['verbose'] = verbose >= 2
+
+        # Merge common arguments with applicable kwargs
+        integration_args.update(applicable_kwargs)
+        integration_args.update(integrator_specific_kwargs.get(integrator_name, {}))
+
         for i in range(n_repeat):
             if verbose >= 1:
                 print(f'Run {i}')
             start_time = time.time()
             try:
                 # Perform integration
-                parameters = signature(integrator).parameters
-                if 'verbose' in parameters and 'return_containers' in parameters:
-                    if verbose >= 2:
-                        result = integrator(problem, return_N=True, return_containers=True, verbose=True, 
-                                            **kwargs)
-                    else:
-                        result = integrator(problem, return_N=True, return_containers=True, verbose=False,
-                                            **kwargs)
-                elif 'return_containers' in parameters:
-                    result = integrator(problem, return_N=True, return_containers=True,
-                                        **kwargs)
-                elif 'verbose' in parameters:
-                    if verbose >= 2:
-                        result = integrator(problem, return_N=True, verbose=True, **kwargs)
-                    else:
-                        result = integrator(problem, return_N=True, verbose=False, **kwargs)
-                else:
-                    result = integrator(problem, return_N=True, **kwargs)
+                result = integrator(problem, **integration_args)
             except Exception as e:
                 print(f'Error during integration with {integrator_name}: {e}')
                 print_exc()
@@ -182,7 +190,8 @@ def test_integrators(integrators: List[Integrator],
                      max_time: float=60.0, 
                      verbose: int=1, 
                      seed: int=2024, 
-                     n_repeat: int=1) -> None:
+                     n_repeat: int=1, 
+                     integrator_specific_kwargs: Optional[dict] = None) -> None:
     """
     Test different integrators on a list of problems 
     and save the results to a CSV file.
@@ -226,7 +235,6 @@ def test_integrators(integrators: List[Integrator],
         is_first_run = True
 
     results = []
-    n_eval = None
 
     for problem in problems:
         problem_name = str(problem)
@@ -252,6 +260,11 @@ def test_integrators(integrators: List[Integrator],
             n_evals_list = []
             total_time_taken = 0
 
+            specific_kwargs = integrator_specific_kwargs.get(integrator.name, {}).copy()
+
+            if 'integrand' in specific_kwargs:
+                specific_kwargs['integrand'] = problem.integrand
+
             for repeat in range(n_repeat):
                 np.random.seed(seed + repeat)
                 start_time = time.time()
@@ -259,9 +272,11 @@ def test_integrators(integrators: List[Integrator],
 
                 def integrator_wrapper():
                     if 'verbose' in parameters and verbose >= 2:
-                        return integrator(problem, return_N=True, verbose=True)
+                        return integrator(problem, return_N=True, verbose=True, 
+                                          **specific_kwargs)
                     else:
-                        return integrator(problem, return_N=True)
+                        return integrator(problem, return_N=True, 
+                                          **specific_kwargs)
                     
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(integrator_wrapper)

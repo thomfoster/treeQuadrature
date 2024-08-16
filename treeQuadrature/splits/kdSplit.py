@@ -23,6 +23,13 @@ class KdSplit(Split):
             return [container]
         median = np.median(unique_values)
 
-        lcont, rcont = container.split(split_dimension, median)
+        # Ensure that the split does not create zero-volume containers
+        while True:
+            lcont, rcont = container.split(split_dimension, median)
+            if np.all(lcont.maxs > lcont.mins) and np.all(rcont.maxs > rcont.mins):
+                break
+            else:
+                # Adjust the median slightly if it creates a zero-volume container
+                median += np.finfo(median.dtype).eps
 
         return [lcont, rcont]

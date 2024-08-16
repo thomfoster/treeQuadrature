@@ -351,10 +351,7 @@ class CornerPeakProblem(Problem):
         the corner where the peak is located.
         """
         super().__init__(D, lows=0., highs=1.)
-        if a is None:
-            self.a = np.array([1.]*D)
-        else:
-            self.a = a
+        self.a = handle_bound(a, D, 1.0)
         
         self.answer = self.compute_answer(a0 = 1, a = self.a)
 

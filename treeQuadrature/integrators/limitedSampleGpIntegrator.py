@@ -83,7 +83,7 @@ class LimitedSamplesGpIntegrator(Integrator):
     def __init__(self, base_N: int, max_n_samples: int, P: int, split: Split, 
                  integral: IterativeGpIntegral,
                  sampler: Optional[Sampler]=None, 
-                 max_container_samples: int=500):
+                 max_container_samples: int=200):
         self.split = split
         self.base_N = base_N
         self.integral = integral

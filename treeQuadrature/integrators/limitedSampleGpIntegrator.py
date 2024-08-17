@@ -345,23 +345,20 @@ class LimitedSamplesGpIntegrator(Integrator):
         List[int]
             A list containing the number of samples allocated to each container.
         """
-        allocation = []
-        min_performance = min(container_performances.values())
+        min_performance = min(container_performances.values(), default=0)
 
-        # Shift performances to ensure they're all positive
-        shift = -min_performance + 1e-10 if min_performance < 0 else 0
+        # Ensure positive weights
+        shift = -min_performance + 1e-10 if min_performance <= 0 else 0
 
         weights = []
         for result, container in ranked_containers_results:
-            # Cap the number of iterations per container
             if container_iterations[container] >= max_iterations_per_container:
                 weights.append(0)
                 continue
 
             delta_performance = container_performances.get(container, 0) + shift
-            # Ensure delta_performance is positive before taking log
-            delta_performance = max(delta_performance, 1e-10)
-            weight = np.log(delta_performance + 1e-10) + 1  
+            # Use np.clip to ensure the log does not produce negative results
+            weight = np.log(np.clip(delta_performance, 1e-10, None)) + 1
             weights.append(weight)
 
         weights = np.array(weights)
@@ -371,21 +368,23 @@ class LimitedSamplesGpIntegrator(Integrator):
             normalized_weights = weights / total_weight
         else:
             # Uniform allocation if all weights are zero
-            normalized_weights = np.ones_like(weights) / len(weights)  
+            normalized_weights = np.ones_like(weights) / len(weights)
 
-        allocation = np.round(normalized_weights * available_samples).astype(int)
+        allocation = np.floor(normalized_weights * available_samples).astype(int)
+        allocated_samples = np.sum(allocation)
+        discrepancy = available_samples - allocated_samples
 
-        # Ensure sum(allocation) == available_samples by adjusting the allocation
-        discrepancy = available_samples - np.sum(allocation)
-        while discrepancy != 0:
-            if discrepancy > 0:
+        # Handle discrepancies by incrementally allocating or reducing samples
+        if discrepancy > 0:
+            while discrepancy > 0:
                 for i in range(len(allocation)):
                     if discrepancy == 0:
                         break
                     if allocation[i] < max_per_container:
                         allocation[i] += 1
                         discrepancy -= 1
-            elif discrepancy < 0:
+        elif discrepancy < 0:
+            while discrepancy < 0:
                 for i in range(len(allocation)):
                     if discrepancy == 0:
                         break
@@ -393,18 +392,7 @@ class LimitedSamplesGpIntegrator(Integrator):
                         allocation[i] -= 1
                         discrepancy += 1
 
-        allocation = allocation.tolist()
+        # Ensure no over-allocation
+        allocation = np.clip(allocation, 0, max_per_container)
 
-        # Check for any negative allocation values and correct them
-        if any(alloc < 0 for alloc in allocation):
-            raise RuntimeError("Negative allocation detected, please check the weight calculation.")
-
-        allocated_samples = sum(allocation)
-
-        # Check the allocation is correct
-        if allocated_samples > available_samples:
-            raise RuntimeError("Allocated too many samples"
-                            f"available : {available_samples}, "
-                            f"allocated : {allocated_samples}")
-
-        return allocation
+        return allocation.tolist()

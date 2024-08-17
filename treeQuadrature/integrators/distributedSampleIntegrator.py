@@ -131,13 +131,21 @@ class DistributedSampleIntegrator(SimpleIntegrator):
             total_volume = sum(c.volume for c in finished_containers)
             samples_distribution = {}
 
-            # Initial distribution based on volume
+            # Initial distribution based on scaled volume
             total_assigned = 0
-            for i, cont in enumerate(finished_containers):
-                additional_samples = max(1, int(remaining_samples * 
-                                                (cont.volume / total_volume)))
+            scaling_factor = 1e-6  # Adjust this value if needed to avoid overly small allocations
+            for cont in finished_containers:
+                scaled_volume = (cont.volume / total_volume) ** (1 / problem.D)
+                additional_samples = max(1, int(remaining_samples * scaled_volume + scaling_factor))
                 samples_distribution[cont] = additional_samples
                 total_assigned += additional_samples
+
+            # Adjust to make sure the total assigned does not exceed remaining_samples
+            if total_assigned > remaining_samples:
+                scaling_factor = remaining_samples / total_assigned
+                for cont in samples_distribution:
+                    samples_distribution[cont] = max(1, int(samples_distribution[cont] * scaling_factor))
+                total_assigned = sum(samples_distribution.values())
 
             # Distribute the remaining samples
             remainder_samples = remaining_samples - total_assigned
@@ -148,6 +156,8 @@ class DistributedSampleIntegrator(SimpleIntegrator):
                     samples_distribution[cont] += 1
                     remainder_samples -= 1
 
+        if sum(samples_distribution.values()) > remaining_samples:
+            raise RuntimeError("allocated too many samples")
 
         # Uncertainty estimates
         method = getattr(self.integral, 'containerIntegral', None)

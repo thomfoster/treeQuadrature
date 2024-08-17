@@ -48,7 +48,7 @@ class DistributedSampleIntegrator(SimpleIntegrator):
                  sampler: Optional[Sampler]=None, 
                  construct_tree_method: Optional[Callable[[Container], List[Container]]] = None,
                  scaling_factor: float = 1e-6,
-                 min_n_samples: int = 1):
+                 min_container_samples: int = 1):
         """
         An integrator that constructs a tree and then distributes the 
         remaining samples among the containers obtained 
@@ -62,6 +62,9 @@ class DistributedSampleIntegrator(SimpleIntegrator):
             Maximum number of samples in each container during tree construction.
         max_n_samples : int
             Total number of evaluations available.
+        min_container_samples : int, optional
+            The minimum number of samples to allocate to each container 
+            (default is 1).
         split : Split
             Method to split a container during tree construction.
         integral : ContainerIntegral 
@@ -75,15 +78,12 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         scaling_factor : float, optional
             A scaling factor to control the aggressiveness of sample distribution 
             (default is 1e-6).
-        min_n_samples : int, optional
-            The minimum number of samples to allocate to each container 
-            (default is 1).
         """
         super().__init__(base_N, P, split, integral, sampler)
         self.max_n_samples = max_n_samples
+        self.min_container_samples = min_container_samples
         self.construct_tree_method = construct_tree_method or super().construct_tree
         self.scaling_factor = scaling_factor
-        self.min_n_samples = min_n_samples
 
     def __call__(self, problem: Problem, 
                  return_N: bool=False, return_containers: bool=False, 
@@ -138,43 +138,11 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         remaining_samples = self.max_n_samples - used_samples
 
         if remaining_samples > 0:
-            total_volume = sum(c.volume for c in finished_containers)
-            samples_distribution = {}
-
-            # Initial distribution based on scaled volume
-            total_assigned = 0
-            for cont in finished_containers:
-                scaled_volume = (cont.volume / total_volume) ** (1 / problem.D)
-                additional_samples = max(self.min_n_samples, 
-                                         int(remaining_samples * scaled_volume))
-                samples_distribution[cont] = additional_samples
-                total_assigned += additional_samples
-
-            # Adjust to make sure the total assigned does not exceed remaining_samples
-            if total_assigned > remaining_samples:
-                scaling_factor = remaining_samples / total_assigned
-                for cont in samples_distribution:
-                    samples_distribution[cont] = max(self.min_n_samples, 
-                                                     int(samples_distribution[cont] * scaling_factor))
-                total_assigned = sum(samples_distribution.values())
-
-            # Distribute the remaining samples more evenly
-            remainder_samples = remaining_samples - total_assigned
-            if remainder_samples > 0:
-                equal_allocation = remainder_samples // len(finished_containers)
-                for cont in finished_containers:
-                    if remainder_samples <= 0:
-                        break
-                    samples_distribution[cont] += equal_allocation
-                    remainder_samples -= equal_allocation
-
-                # If there are leftover samples after equal distribution
-                if remainder_samples > 0:
-                    for cont in finished_containers:
-                        if remainder_samples <= 0:
-                            break
-                        samples_distribution[cont] += 1
-                        remainder_samples -= 1
+            samples_distribution = self._distribute_samples(finished_containers, 
+                                           remaining_samples, 
+                                           self.min_container_samples, 
+                                           self.max_n_samples, 
+                                           problem.D)
 
         if sum(samples_distribution.values()) > remaining_samples:
             raise RuntimeError("allocated too many samples")
@@ -239,3 +207,45 @@ class DistributedSampleIntegrator(SimpleIntegrator):
             return_values['stds'] = stds
 
         return return_values
+
+
+    def _distribute_samples(finished_containers, remaining_samples, 
+                        min_container_samples, max_n_samples, 
+                        problem_dim):
+        total_volume = sum(c.volume for c in finished_containers)
+        samples_distribution = {}
+
+        # Initial distribution based on scaled volume
+        total_assigned = 0
+        scaling_factor = 1e-6  # Adjust this value if needed to avoid overly small allocations
+        for cont in finished_containers:
+            scaled_volume = (cont.volume / total_volume) ** (1 / problem_dim)
+            additional_samples = max(min_container_samples, 
+                                    min(max_n_samples, 
+                                        int(remaining_samples * scaled_volume + scaling_factor)))
+            samples_distribution[cont] = additional_samples
+            total_assigned += additional_samples
+
+        # Adjust to make sure the total assigned does not exceed remaining_samples
+        if total_assigned > remaining_samples:
+            scaling_factor = remaining_samples / total_assigned
+            for cont in samples_distribution:
+                samples_distribution[cont] = max(min_container_samples, 
+                                                min(max_n_samples, 
+                                                    int(samples_distribution[cont] * scaling_factor)))
+            total_assigned = sum(samples_distribution.values())
+
+        # Distribute any leftover samples (if any)
+        remainder_samples = remaining_samples - total_assigned
+        while remainder_samples > 0:
+            for cont in finished_containers:
+                if remainder_samples <= 0:
+                    break
+                if samples_distribution[cont] < max_n_samples:
+                    samples_distribution[cont] += 1
+                    remainder_samples -= 1
+
+        if sum(samples_distribution.values()) > remaining_samples:
+            raise RuntimeError("allocated too many samples")
+
+        return samples_distribution

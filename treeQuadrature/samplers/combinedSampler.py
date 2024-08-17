@@ -62,7 +62,7 @@ class AdaptiveImportanceSampler(Sampler):
             ys_stage1.append(stratum_values)
 
         xs_stage1 = np.vstack(xs_stage1)
-        ys_stage1 = np.concatenate(ys_stage1)
+        ys_stage1 = np.concatenate(ys_stage1).reshape(-1)
 
         # Stage 2: Importance Sampling on the sampled points from Stage 1
         densities = np.abs(ys_stage1)

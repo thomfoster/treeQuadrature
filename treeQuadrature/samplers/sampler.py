@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 import numpy as np
+from typing import Tuple
 
 class Sampler(ABC):
     @abstractmethod
     def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray, 
             f: callable, 
-            *args, **kwargs) -> np.ndarray:
+            *args, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
         """
         A method to generate random samples 
 
@@ -23,7 +24,10 @@ class Sampler(ABC):
 
         Return
         ------
-        np.ndarray of shape (n, self.D)
+        tuple 
+            (xs, ys)
+            xs is np.ndarray of shape (n, D)
+            ys is np.ndarray of shape (n, )
             samples from the distribution
         """
         pass

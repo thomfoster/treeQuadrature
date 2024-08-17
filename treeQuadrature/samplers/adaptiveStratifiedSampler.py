@@ -2,6 +2,7 @@ from .sampler import Sampler
 from ..exampleProblems import Problem
 
 import numpy as np
+from typing import Tuple
 
 
 class AdaptiveStratifiedSampler(Sampler):
@@ -24,7 +25,8 @@ class AdaptiveStratifiedSampler(Sampler):
         self.refinement_threshold = refinement_threshold
         self.max_refinement_levels = max_refinement_levels
 
-    def rvs(self, n: int, problem: Problem, *args, **kwargs) -> np.ndarray:
+    def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray, 
+            f: callable, *args, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
         """
         Adaptive stratified sampling to ensure coverage of the entire domain and focus on important regions.
 
@@ -32,17 +34,26 @@ class AdaptiveStratifiedSampler(Sampler):
         ----------
         n : int
             Number of samples.
-        problem : Problem
-            The integration problem being solved.
-
+        mins : np.ndarray
+            1-dimensional array of the lower bounds of the domain.
+        maxs : np.ndarray
+            1-dimensional array of the upper bounds of the domain.
+        f : callable
+            The integrand function to be sampled.
+        
         Returns
         -------
-        np.ndarray
-            Samples from the distribution.
+        Tuple[np.ndarray, np.ndarray]
+            xs : np.ndarray of shape (n, D)
+                The sampled points.
+            ys : np.ndarray of shape (n, )
+                The integrand values at the sampled points.
         """
         samples = []
-        strata = [(problem.lows, problem.highs)]
-        
+        values = []
+        strata = [(mins, maxs)]
+        D = len(mins)
+
         for level in range(self.max_refinement_levels):
             new_strata = []
             for low, high in strata:
@@ -50,17 +61,26 @@ class AdaptiveStratifiedSampler(Sampler):
                 sub_strata = self.subdivide_stratum(low, high, self.initial_strata_per_dim)
                 for sub_low, sub_high in sub_strata:
                     # Sample within each sub-stratum
-                    sub_samples = np.random.uniform(sub_low, sub_high, 
-                                                    (n // len(strata), problem.D))
-                    sub_integrands = problem.integrand(sub_samples)
-                    if np.mean(sub_integrands) > self.refinement_threshold:
+                    sub_samples = np.random.uniform(sub_low, sub_high, (n // len(strata), D))
+                    sub_values = f(sub_samples)
+                    if np.mean(sub_values) > self.refinement_threshold:
                         new_strata.append((sub_low, sub_high))
                     samples.append(sub_samples)
+                    values.append(sub_values)
             strata = new_strata
+
+        xs = np.vstack(samples)
+        ys = np.concatenate(values)
         
-        return np.vstack(samples)
+        # If we collected more samples than requested due to rounding, trim them
+        if xs.shape[0] > n:
+            indices = np.random.choice(xs.shape[0], n, replace=False)
+            xs = xs[indices]
+            ys = ys[indices]
+        
+        return xs, ys
     
-    def subdivide_stratum(self, low, high, strata_per_dim):
+    def subdivide_stratum(self, low: np.ndarray, high: np.ndarray, strata_per_dim: int) -> list:
         """
         Subdivide a stratum into smaller sub-strata.
 
@@ -78,7 +98,8 @@ class AdaptiveStratifiedSampler(Sampler):
         """
         sub_strata = []
         for i in range(strata_per_dim):
-            sub_low = low + i * (high - low) / strata_per_dim
-            sub_high = low + (i + 1) * (high - low) / strata_per_dim
-            sub_strata.append((sub_low, sub_high))
+            for j in range(strata_per_dim):
+                sub_low = low + i * (high - low) / strata_per_dim
+                sub_high = low + (i + 1) * (high - low) / strata_per_dim
+                sub_strata.append((sub_low, sub_high))
         return sub_strata

@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 
 
-class TwoStageSampler(Sampler):
+class AdaptiveImportanceSampler(Sampler):
     def __init__(self, strata_per_dim: int = 10, oversample_factor: int = 5):
         """
         Initialize the TwoStageSampler.

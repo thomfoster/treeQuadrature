@@ -26,8 +26,9 @@ class ImportanceSampler(Sampler):
         np.ndarray
             Samples from the distribution.
         """
-        if not isinstance(n, int):
-            raise TypeError(f"n must be an integer, got {n}")
+        if not isinstance(n, (int, np.integer)):
+            raise TypeError(f"n must be an integer, got {n} of type "
+                            f"type(n)")
         
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 

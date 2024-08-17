@@ -162,6 +162,9 @@ class RbfIntegral(ContainerIntegral):
             - hyper_params (dict) hyper-parameters of the fitted kernel
             - performance (float) GP goodness of fit score
         """
+        if self.n_samples < 2:
+            raise RuntimeError("Cannot perform GP Integral with less than 2 samples"
+                               "please increase 'n_samples'")
 
         ### reset options
         options = self.options.copy()
@@ -266,7 +269,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
-                          min_cont_size: int=0, return_std: bool=False) -> Dict:
+                          return_std: bool=False) -> Dict:
         """
         Arguments
         ---------
@@ -288,6 +291,9 @@ class AdaptiveRbfIntegral(ContainerIntegral):
             - hyper_params (dict) hyper-parameters of the fitted kernel
             - performance (float) GP goodness of fit score
         """
+        if self.n_samples < 2:
+            raise RuntimeError("Cannot perform GP Integral with less than 2 samples"
+                               "please increase 'n_samples'")
 
         # generate samples
         xs, ys = self.sampler.rvs(self.n_samples, container.mins, 
@@ -424,6 +430,10 @@ class PolyIntegral(ContainerIntegral):
             - hyper_params (dict) hyper-parameters of the fitted kernel.
             - performance (float) GP goodness of fit score.
         """
+        if self.n_samples < 2:
+            raise RuntimeError("Cannot perform GP Integral with less than 2 samples"
+                               "please increase 'n_samples'")
+        
         xs, ys = self.sampler.rvs(self.n_samples, container.mins,  
                                   container.maxs, f)
         
@@ -573,6 +583,10 @@ class IterativeRbfIntegral(IterativeGpIntegral):
                           f: Callable[..., np.ndarray], return_std: bool=False,
                           previous_samples: Optional[Tuple[np.ndarray, 
                                                            np.ndarray]] = None):
+        if self.n_samples < 2:
+            raise RuntimeError("Cannot perform GP Integral with less than 2 samples"
+                               "please increase 'n_samples'")
+        
         begin_n = container.N
 
         # Draw new samples

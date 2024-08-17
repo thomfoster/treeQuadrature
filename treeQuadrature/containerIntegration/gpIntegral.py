@@ -212,11 +212,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
     Attributes
     -----------
-    min_n_samples : int
-        number of samples to draw in the smallest container
-        for larger containers, sample size increases
-    max_n_samples : int
-        upper cap for samples size to control the fitting time
+    n_samples : int
+        number of samples to draw
     n_splits : int
         number of K-fold cross-validation splits
         if n_splits = 0, K-Fold CV will not be performed. 
@@ -247,33 +244,16 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         instead of samples
     sampler : Sampler
         used for drawing samples in the container
-    scaling method : str or Callable,
-        The way sample size increase with volume. (ignored if volume_scaling = False)
-        should be one of 'linear', 'sqrt', or 'exponential'; 
-        If callable, should take a float (ratio of current volume to smallest volume)
-        and return a float (scaled ratio to be multiplied to min_n_samples)
-    volume_scaling : bool
-        whether to choose sample size based on volume 
-        or not 
-    alpha : float
-        Controls the aggressiveness of exponential sample scaling
     """
-    def __init__(self, min_n_samples: int=15, max_n_samples: int=200,
+    def __init__(self, n_samples: int=15, 
                  n_splits: int=4, max_redraw: int=4, threshold: float=10, 
                  threshold_direction: str='up',
                  fit_residuals: bool=True, scoring: Optional[Callable]=None,
                  GPFit: Type[GPFit]=SklearnGPFit, gp_params: dict={},
-                 sampler: Sampler=UniformSampler(),
-                 volume_scaling: bool=False,
-                 scaling_method: Union[str, Callable]='linear', 
-                 alpha: float=0.2) -> None:
-        if min_n_samples < 1:
+                 sampler: Sampler=UniformSampler()) -> None:
+        if n_samples < 1:
             raise ValueError('min_n_samples must be at least 1')
-        if min_n_samples > max_n_samples:
-            raise ValueError(
-                'max_n_samples must be greater than or equal to min_n_samples')
-        self.min_n_samples = min_n_samples
-        self.max_n_samples = max_n_samples
+        self.n_samples = n_samples
         self.n_splits = n_splits
         self.max_redraw = max_redraw
         self.scoring = scoring
@@ -283,38 +263,6 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.gp_params = gp_params
         self.fit_residuals = fit_residuals
         self.sampler = sampler
-        self.volume_scaling = volume_scaling
-        self.scaling_method = scaling_method
-        self.alpha = alpha
-
-    def sample_size_scale(self, container: Container, min_cont_size: float):
-        ratio = (container.volume / min_cont_size) ** (1 / container.D)
-        if self.scaling_method == 'linear':
-            n = int(self.min_n_samples * ratio)
-        elif self.scaling_method == 'sqrt':
-            n = int(self.min_n_samples * np.sqrt(ratio))
-        elif self.scaling_method == 'exponential':
-            n = int(self.min_n_samples * ratio ** 
-                    (self.alpha * container.D))
-        elif isinstance(self.scaling_method, Callable):
-            try:
-                n = int(self.min_n_samples * self.scaling_method(ratio))
-            except Exception:
-                print_exc()
-                raise Exception(
-                    'Exception ocured when scaling volume ratio, please check sample_scaling function. '
-                    'It should take a float and return a float'
-                    )
-            
-            if n < 1:
-                raise ValueError('n should be at least 1, please check sample_scaling function')
-        else:
-            raise ValueError("sample_scaling must be one of ['linear', 'sqrt', or 'exponential'] "
-                             "or a callable function")
-        
-        if n > self.max_n_samples:
-            print('maximum sample size reached')
-        return min(self.max_n_samples, n)
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
@@ -340,14 +288,9 @@ class AdaptiveRbfIntegral(ContainerIntegral):
             - hyper_params (dict) hyper-parameters of the fitted kernel
             - performance (float) GP goodness of fit score
         """
-        
-        if self.volume_scaling:
-            n_samples = self.sample_size_scale(container, min_cont_size)
-        else: 
-            n_samples = self.min_n_samples
 
         # generate samples
-        xs, ys = self.sampler.rvs(n_samples, container.mins, 
+        xs, ys = self.sampler.rvs(self.n_samples, container.mins, 
                               container.maxs, f)
         
         # check samples are correct
@@ -379,7 +322,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.kernel = RBF(initial_length, bounds)
 
         gp = self.GPFit(**self.gp_params)
-        iGP = IterativeGPFitting(n_samples=n_samples, n_splits=self.n_splits, 
+        iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                  max_redraw=self.max_redraw, scoring=self.scoring,
                                  performance_threshold=self.threshold, 
                                  threshold_direction=self.threshold_direction,

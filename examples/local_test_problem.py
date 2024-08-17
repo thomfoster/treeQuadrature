@@ -2,7 +2,7 @@ from treeQuadrature.exampleProblems import RippleProblem, SimpleGaussian, Camel,
 from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator, LimitedSamplesGpIntegrator, SmcIntegrator, DistributedSampleIntegrator
 from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
 from treeQuadrature.splits import MinSseSplit, KdSplit
-from treeQuadrature.samplers import ImportanceSampler, UniformSampler, McmcSampler, SobolSampler
+from treeQuadrature.samplers import ImportanceSampler, UniformSampler, McmcSampler, SobolSampler, LHSImportanceSampler
 from treeQuadrature import compare_integrators
 
 import numpy as np
@@ -10,20 +10,20 @@ import numpy as np
 D = 2
 
 ### Set problem
-# problem = Camel(D=2)
-# problem = SimpleGaussian(D=2)
-# problem = RippleProblem(D=3)
-# problem = QuadraticProblem(D=2)
+# problem = Camel(D=D)
+problem = SimpleGaussian(D=D)
+# problem = RippleProblem(D=D)
+# problem = QuadraticProblem(D=D)
 # problem = OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D)))
 # problem = C0Problem(D, np.array([1.1] * D))
 # problem = CornerPeakProblem(D=D, a=np.array([10]*D))
-problem = ProductPeakProblem(D=D, a=np.array([10]*D))
+# problem = ProductPeakProblem(D=D, a=np.array([10]*D))
 
 
 ### set basic parameters
 n_samples = 30
 max_redraw = 4
-max_n_samples = 40_000
+max_n_samples = 15_000
 
 N = 10_000
 P = 50
@@ -37,8 +37,7 @@ rbfIntegral_mean = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3,
 rbfIntegral = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, 
                             fit_residuals=False, 
                             n_samples=n_samples)
-aRbf = AdaptiveRbfIntegral(min_n_samples= int(n_samples / 2), 
-                           max_n_samples=int(n_samples * max_redraw))
+aRbf = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0)
 iRbf = IterativeRbfIntegral(n_samples=n_samples)
 rmeanIntegral = RandomIntegral(n_samples=n_samples)
 polyIntegral = PolyIntegral(n_samples=n_samples, degrees=[2, 3], max_redraw=0)
@@ -48,6 +47,7 @@ iSampler = ImportanceSampler()
 uSampler = UniformSampler()    
 mcmcSampler = McmcSampler()
 sobolSampler = SobolSampler()
+lhsSampler = LHSImportanceSampler()
 
 ### set split
 split = MinSseSplit()
@@ -76,12 +76,13 @@ integ_activeTQ = DistributedSampleIntegrator(N, P, max_n_samples, split, rmeanIn
 integ_activeTQ.name = 'LimitedSampleIntegrator'
 
 integ_limitedGp = LimitedSamplesGpIntegrator(base_N=N, P=P, max_n_samples=max_n_samples,
-                                            split=split, integral=iRbf, sampler=mcmcSampler, 
-                                            max_container_samples=150)
+                                            split=split, integral=iRbf, sampler=lhsSampler, 
+                                            max_container_samples=100)
 integ_limitedGp.name = 'Limited RbfIntegrator'
 
-integ3 = SimpleIntegrator(N, P, split, rbfIntegral)
-integ3.name = 'TQ with RBF'
+integ_rbf = DistributedSampleIntegrator(N, P, max_n_samples, split, aRbf, sampler=lhsSampler, 
+                                        min_n_samples=10)
+integ_rbf.name = 'TQ with RBF'
 
 integ4 = SimpleIntegrator(N, P, split, aRbf)
 integ4.name = 'TQ with Adaptive RBF'
@@ -93,7 +94,7 @@ integ_smc = SmcIntegrator(N=max_n_samples, sampler=UniformSampler())
 integ_smc.name = 'SMC'
 
 if __name__ == '__main__':
-    compare_integrators([integ_activeTQ], plot=True, verbose=1,
+    compare_integrators([integ_rbf], plot=True, verbose=2,
                         xlim=[problem.lows[0], problem.highs[0]], ylim=[problem.lows[1], problem.highs[1]], 
                         problem=problem, dimensions=[0, 1], 
                         n_repeat=1, integrator_specific_kwargs={'LimitedSampleIntegrator': {'integrand' : problem.integrand}})

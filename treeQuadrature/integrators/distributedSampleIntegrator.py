@@ -3,7 +3,7 @@ from inspect import signature
 import numpy as np
 import warnings
 
-from typing import Optional, Callable
+from typing import Optional, Callable, List
 
 from .simpleIntegrator import SimpleIntegrator
 from ..containerIntegration import ContainerIntegral
@@ -46,7 +46,7 @@ class DistributedSampleIntegrator(SimpleIntegrator):
     def __init__(self, base_N: int, P: int, max_n_samples: int, split: Split, 
                  integral: ContainerIntegral, 
                  sampler: Optional[Sampler]=None, 
-                 construct_tree_method: Optional[Callable] = None,
+                 construct_tree_method: Optional[Callable[[Container], List[Container]]] = None,
                  scaling_factor: float = 1e-6,
                  min_n_samples: int = 1):
         """
@@ -197,6 +197,8 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         if verbose: 
             print('Integrating individual containers', 
                 'with standard deviation' if compute_std else '')
+            print(f"largest container distribution: {max(samples_distribution.values())}")
+            print(f"smallest container distribution: {min(samples_distribution.values())}")
 
         # for retracking containers 
         containers = []

@@ -6,7 +6,7 @@ from treeQuadrature.exampleProblems import SimpleGaussian, Camel, QuadCamel, Exp
 from treeQuadrature.containerIntegration import RandomIntegral, IterativeRbfIntegral
 from treeQuadrature.splits import MinSseSplit, KdSplit
 from treeQuadrature.integrators import DistributedSampleIntegrator, LimitedSampleIntegrator, LimitedSamplesGpIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator
-from treeQuadrature.samplers import McmcSampler, SobolSampler, UniformSampler, ImportanceSampler
+from treeQuadrature.samplers import McmcSampler, LHSImportanceSampler, UniformSampler, ImportanceSampler
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Run integrator tests with various configurations.")
@@ -14,6 +14,7 @@ parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help='List
 parser.add_argument('--n_samples', type=int, default=20, help='number of samples drawn from each container (default: 20)')
 parser.add_argument('--base_N', type=int, default=10_000, help='Base sample size for integrators (default: 10_000)')
 parser.add_argument('--max_samples', type=int, default=30_000, help='Maximum sample size (default: 30_000)')
+parser.add_argument('--gp_max_container_samples', type=int, default=150, help='maximum sample size for a container when fitting GP (default: 150)')
 parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleIntegrator (default: 1_000)')
 parser.add_argument('--lsi_active_N', type=int, default=10, help='active sample size for LimitedSampleIntegrator (default: 10)')
 parser.add_argument('--bmc_N', type=int, default=1200, help='Base sample size for BMC (default: 1200)')
@@ -21,7 +22,7 @@ parser.add_argument('--P', type=int, default=40, help='Size of the largest conta
 parser.add_argument('--vegas_iter', type=int, default=40, help='Number of iterations for VegasIntegrator (default: 40)')
 parser.add_argument('--max_time', type=float, default=180.0, help='Maximum allowed time for each integrator (default: 180.0)')
 parser.add_argument('--n_repeat', type=int, default=5, help='Number of repetitions for each test (default: 5)')
-parser.add_argument('--sampler', type=str, default='mcmc', help="The sampler used, must be one of 'mcmc', 'sobol', 'is', 'unif' (default: mcmc)")
+parser.add_argument('--sampler', type=str, default='mcmc', help="The sampler used, must be one of 'mcmc', 'lhs', 'is' (default: mcmc)")
 parser.add_argument('--split', type=str, default='minsse', help="The splitting method used, must be one of 'minsse', 'kd' (default: 'minsse')")
 
 # receive arguments from parser
@@ -56,8 +57,8 @@ elif args.split == 'kd':
 ### Sampler
 if args.sampler == 'mcmc':
     sampler = McmcSampler()
-elif args.sampler == 'sobol':
-    sampler = SobolSampler()
+elif args.sampler == 'lhs':
+    sampler = LHSImportanceSampler()
 elif args.sampler == 'unif':
     sampler = UniformSampler()
 elif args.sampler == 'is':
@@ -85,7 +86,7 @@ integ_activeTQ.name = 'ActiveTQ'
 integ_limitedGp = LimitedSamplesGpIntegrator(base_N=args.base_N, P=args.P, 
                                              max_n_samples=args.max_samples,
                                             split=split, integral=iRbf, sampler=sampler, 
-                                            max_container_samples=150)
+                                            max_container_samples=args.gp_max_container_samples)
 integ_limitedGp.name = 'TQ with Rbf'
 
 n_iter = args.vegas_iter

@@ -73,15 +73,15 @@ class SimpleIntegrator(TreeIntegrator):
         verbose : bool, optional
             Whether to print verbose output, by default False.
         max_iter : int, optional
-            Maximum number of iterations, 
-            by default 1e4.
+            Maximum number of binary splits.
+            by default 2000.
 
         Returns
         -------
         List[Container]
             A list of finished containers.
         """
-        max_iter = kwargs.get('max_iter', 1e4)
+        max_iter = kwargs.get('max_iter', 2000)
 
         # Construct tree
         finished_containers = []

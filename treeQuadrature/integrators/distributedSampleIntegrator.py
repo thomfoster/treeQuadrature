@@ -140,6 +140,11 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         used_samples = np.sum([cont.N for cont in finished_containers])
         remaining_samples = self.max_n_samples - used_samples
 
+        if used_samples + len(finished_containers) * self.min_container_samples > self.max_n_samples:
+            raise RuntimeError("too many samples to distribute. "
+                               "either decrease 'min_container_samples' "
+                               "or increase 'max_n_samples'")
+
         if remaining_samples > 0:
             samples_distribution = self._distribute_samples(finished_containers, 
                                            remaining_samples, 
@@ -147,8 +152,11 @@ class DistributedSampleIntegrator(SimpleIntegrator):
                                            self.max_container_samples, 
                                            problem.D)
 
-        if sum(samples_distribution.values()) > remaining_samples:
-            raise RuntimeError("allocated too many samples")
+        total_samples = sum(samples_distribution.values())
+        if total_samples > remaining_samples:
+            raise RuntimeError("allocated too many samples"
+                               f"upper limit: {remaining_samples}"
+                               f"allocated samples: {total_samples}")
 
         # Uncertainty estimates
         method = getattr(self.integral, 'containerIntegral', None)

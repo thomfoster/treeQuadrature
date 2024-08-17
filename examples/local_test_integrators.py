@@ -15,7 +15,7 @@ parser.add_argument('--n_samples', type=int, default=20, help='number of samples
 parser.add_argument('--base_N', type=int, default=10_000, help='Base sample size for integrators when D = 3 (default: 10_000)')
 parser.add_argument('--max_samples', type=int, default=15_000, help='Maximum sample size when D = 3 (default: 15_000)')
 parser.add_argument('--gp_max_container_samples', type=int, default=150, help='maximum sample size for a container when fitting GP (default: 150)')
-parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleIntegrator (default: 1_000)')
+parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleIntegrator when D = 3 (default: 1_000)')
 parser.add_argument('--lsi_active_N', type=int, default=10, help='active sample size for LimitedSampleIntegrator (default: 10)')
 parser.add_argument('--bmc_N', type=int, default=1200, help='Base sample size for BMC (default: 1200)')
 parser.add_argument('--P', type=int, default=40, help='Size of the largest container (default: 40)')
@@ -54,18 +54,21 @@ else:
     raise ValueError("Sampler must be one of 'mcmc', 'sobol', 'is', 'unif'")
 
 ## change base_N and max_n_samples with dimension
-def get_base_N(D):
-    return args.base_N * (D / 3) 
+def get_base_N(D) -> int:
+    return int(args.base_N * (D / 3))
 
-def get_max_n_samples(D):
-    return args.max_samples * D * (D / 3) 
+def get_max_n_samples(D) -> int:
+    return int(args.max_samples * (D / 3))
+
+def get_lsi_base_N(D) -> int:
+    return int(args.lsi_base_N * (D / 3))
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 location_prefix = 'fourth_run/'
 location_postfix = ''
 
 if __name__ == '__main__':
-    args_dict = vars(args)
+    args_dict = vars(args).copy()
     del args_dict['dimensions']
     # will be redistributed by integrator anyway
     del args_dict['n_samples']
@@ -79,9 +82,13 @@ if __name__ == '__main__':
 
         base_N = get_base_N(D)
         max_samples = get_max_n_samples(D)
+        lsi_base_N = get_lsi_base_N(D)
+        lsi_N = int(max_samples / (args.n_samples + 1))
 
         args_dict['max_samples'] = max_samples
         args_dict['base_N'] = base_N
+        args_dict['lsi_base_N'] = lsi_base_N
+        args_dict['lsi_N'] = lsi_N
 
         with open(config_path, 'w') as file:
             json.dump(args_dict, file, indent=4)
@@ -103,19 +110,18 @@ if __name__ == '__main__':
                                                 sampler=sampler)
         integ_simple.name = 'TQ with mean'
         
-        lsi_N = int(max_samples / (args.n_samples + 1)) * 1.3
-        integ_active = LimitedSampleIntegrator(N=lsi_N, base_N=base_N, 
+        integ_active = LimitedSampleIntegrator(N=lsi_N, base_N=lsi_base_N, 
                                         active_N=args.lsi_active_N, 
                                         split=split, integral=ranIntegral, 
                                         weighting_function=lambda container: container.volume, 
                                         sampler=sampler)
-        integ_activeTQ = DistributedSampleIntegrator(base_N, args.P, max_samples, 
+        integ_activeTQ = DistributedSampleIntegrator(lsi_base_N, args.P, max_samples, 
                                                     split, ranIntegral, sampler=sampler,
                                                     construct_tree_method=integ_active.construct_tree)
         integ_activeTQ.name = 'ActiveTQ'
         
         integ_rbf = DistributedSampleIntegrator(base_N, args.P, max_samples, split, aRbf, sampler=sampler, 
-                                                min_n_samples=10)
+                                                min_container_samples=10)
         integ_rbf.name = 'TQ with Rbf'
         
         n_iter = args.vegas_iter
@@ -126,7 +132,7 @@ if __name__ == '__main__':
         integ_bmc = BayesMcIntegrator(N=args.bmc_N, sampler=sampler)
         integ_bmc.name = 'BMC'
         
-        integ_smc = SmcIntegrator(N=max_samples, sampler=UniformSampler())
+        integ_smc = SmcIntegrator(N=max_samples, sampler=ImportanceSampler())
         integ_smc.name = 'SMC'
 
         # Now run the tests for the current dimension D

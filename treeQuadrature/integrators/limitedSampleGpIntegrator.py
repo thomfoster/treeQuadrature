@@ -291,33 +291,30 @@ class LimitedSamplesGpIntegrator(Integrator):
         return return_values
     
     def _allocate_samples(self, ranked_containers_results: list, 
-                          available_samples: int, 
-                          container_iterations: dict, 
-                          max_iterations_per_container: int, 
-                          container_performances: dict, 
-                          max_per_container) -> List[int]:
+                      available_samples: int, max_per_container: int,
+                      container_iterations: dict, 
+                      max_iterations_per_container: int,
+                      container_performances: dict) -> List[int]:
         """
-        Allocate samples to containers based on their performance gain, 
-        with a strict cap on the number
+        Allocate samples to containers based on their performance gain, with a strict cap on the number
         of samples allocated to any single container in this iteration.
 
         Parameters
         ----------
         ranked_containers_results : list
-            A list of tuples where each tuple contains a result dictionary 
-            and a container,
+            A list of tuples where each tuple contains a result dictionary and a container,
             sorted by performance gain.
         available_samples : int
             The total number of samples available to be allocated.
+        max_per_container : int, optional
+            The maximum number of samples to allocate to any single container in this iteration.
+            Defaults to 1000.
         container_iterations : dict
             Dictionary tracking the number of iterations each container has undergone.
         max_iterations_per_container : int
             The maximum number of iterations allowed per container.
         container_performances : dict
-            Dictionary tracking the performance gain for each container.
-        max_per_container : int
-            The maximum number of samples to allocate to any single 
-            container in this iteration.
+            Dictionary tracking the performance delta for each container.
 
         Returns
         -------
@@ -325,6 +322,11 @@ class LimitedSamplesGpIntegrator(Integrator):
             A list containing the number of samples allocated to each container.
         """
         allocation = []
+        min_performance = min(container_performances.values())
+
+        # Shift performances to ensure they're all positive
+        shift = -min_performance + 1e-10 if min_performance < 0 else 0
+
         for result, container in ranked_containers_results:
             # Cap the number of iterations per container
             if container_iterations[container] >= max_iterations_per_container:
@@ -332,10 +334,9 @@ class LimitedSamplesGpIntegrator(Integrator):
                 continue
             
             # Allocate samples based on performance gain
-            delta_performance = container_performances.get(container, 0)
+            delta_performance = container_performances.get(container, 0) + shift
             weight = np.log(delta_performance + 1e-10) + 1  # Apply log for softening
-            samples = min(int(weight * available_samples / 
-                              len(ranked_containers_results)), max_per_container)
+            samples = min(int(weight * available_samples / len(ranked_containers_results)), max_per_container)
             allocation.append(samples)
 
         return allocation

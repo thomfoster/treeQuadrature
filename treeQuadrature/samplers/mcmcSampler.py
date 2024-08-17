@@ -134,11 +134,16 @@ class McmcSampler(Sampler):
             current_value = np.abs(f(current_sample.reshape(1, -1)))[0]
             proposal_value = np.abs(f(proposal.reshape(1, -1)))[0]
 
-            proposal_density_forward = self.proposal.density(proposal, current_sample)
-            proposal_density_backward = self.proposal.density(current_sample, proposal)
+            if current_value == 0:
+                acceptance_ratio = 1.0
+            else:
+                proposal_density_forward = max(self.proposal.density(proposal, 
+                                                                     current_sample), 1e-10)
+                proposal_density_backward = max(self.proposal.density(current_sample, 
+                                                                      proposal), 1e-10)
 
-            acceptance_ratio = min(1, (proposal_value / current_value) * 
-                                   (proposal_density_backward / proposal_density_forward))
+                acceptance_ratio = min(1, (proposal_value / current_value) * 
+                                       (proposal_density_backward / proposal_density_forward))
             
             if np.random.rand() < acceptance_ratio:
                 current_sample = proposal

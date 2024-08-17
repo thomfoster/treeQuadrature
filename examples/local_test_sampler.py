@@ -1,20 +1,17 @@
-from treeQuadrature.exampleProblems import PyramidProblem, RippleProblem
-from treeQuadrature.samplers import ImportanceSampler, McmcSampler, SobolSampler, StratifiedSampler
+from treeQuadrature.exampleProblems import PyramidProblem, RippleProblem, Camel, QuadCamel
+from treeQuadrature.samplers import Sampler, ImportanceSampler, McmcSampler, SobolSampler, StratifiedSampler
 from treeQuadrature import Container
 from treeQuadrature.visualisation import plotContainers
 
-from inspect import signature
-
-problem = RippleProblem(D=2)
+problem = QuadCamel(D=2)
 
 iSampler = ImportanceSampler()
 mcmcSampler = McmcSampler()
 sobolSampler = SobolSampler()
 stratifiedSampler = StratifiedSampler()
 
-def test_sampler(sampler, N):
-    signatures = signature(sampler.rvs).parameters
-    X = sampler.rvs(N, mins=problem.lows, maxs=problem.highs, 
+def test_sampler(sampler: Sampler, N: int):
+    X, y = sampler.rvs(N, mins=problem.lows, maxs=problem.highs, 
                     f = problem.integrand)
 
     if 'SobolSampler' in str(sampler):
@@ -30,4 +27,4 @@ def test_sampler(sampler, N):
                    xlim=[problem.lows[0], problem.highs[0]], 
                    ylim=[problem.lows[1], problem.highs[1]], plot_samples=True)
     
-test_sampler(stratifiedSampler, 5_000)
+test_sampler(iSampler, 10_000)

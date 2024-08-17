@@ -3,9 +3,9 @@ import numpy as np
 
 from treeQuadrature.compare_integrators import test_integrators
 from treeQuadrature.exampleProblems import SimpleGaussian, Camel, QuadCamel, ExponentialProductProblem, QuadraticProblem, RippleProblem, OscillatoryProblem, ProductPeakProblem, CornerPeakProblem, DiscontinuousProblem, C0Problem
-from treeQuadrature.containerIntegration import RandomIntegral, IterativeRbfIntegral
+from treeQuadrature.containerIntegration import RandomIntegral, IterativeRbfIntegral, AdaptiveRbfIntegral
 from treeQuadrature.splits import MinSseSplit, KdSplit
-from treeQuadrature.integrators import DistributedSampleIntegrator, LimitedSampleIntegrator, LimitedSamplesGpIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator
+from treeQuadrature.integrators import DistributedSampleIntegrator, LimitedSampleIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator
 from treeQuadrature.samplers import McmcSampler, LHSImportanceSampler, UniformSampler, ImportanceSampler
 
 # Set up argument parser
@@ -46,7 +46,7 @@ for D in Ds:
                
 ### container Integrals 
 ranIntegral = RandomIntegral(n_samples=args.n_samples)
-iRbf = IterativeRbfIntegral(n_samples=args.n_samples)
+aRbf = AdaptiveRbfIntegral(n_samples= args.n_samples, max_redraw=0)
 
 ### Splits
 if args.split == 'minsse':
@@ -83,11 +83,9 @@ integ_activeTQ = DistributedSampleIntegrator(args.base_N, args.P, args.max_sampl
                                              construct_tree_method=integ_active.construct_tree)
 integ_activeTQ.name = 'ActiveTQ'
 
-integ_limitedGp = LimitedSamplesGpIntegrator(base_N=args.base_N, P=args.P, 
-                                             max_n_samples=args.max_samples,
-                                            split=split, integral=iRbf, sampler=sampler, 
-                                            max_container_samples=args.gp_max_container_samples)
-integ_limitedGp.name = 'TQ with Rbf'
+integ_rbf = DistributedSampleIntegrator(args.base_N, args.P, args.max_samples, split, aRbf, sampler=sampler, 
+                                        min_n_samples=10)
+integ_rbf.name = 'TQ with Rbf'
 
 n_iter = args.vegas_iter
 n_vegas = int(args.max_samples / n_iter)
@@ -111,7 +109,7 @@ if __name__ == '__main__':
     args_dict = vars(args)
     with open(config_path, 'w') as file:
         json.dump(args_dict, file, indent=4)
-    test_integrators([integ_simple, integ_activeTQ, integ_limitedGp, integ_smc, integ_vegas],
+    test_integrators([integ_simple, integ_activeTQ, integ_rbf, integ_smc, integ_vegas],
                     problems=problems, 
                     output_file=output_path,
                     max_time=args.max_time, n_repeat=args.n_repeat, 

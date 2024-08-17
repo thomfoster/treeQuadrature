@@ -209,7 +209,7 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         return return_values
 
 
-    def _distribute_samples(finished_containers, remaining_samples, 
+    def _distribute_samples(self, finished_containers, remaining_samples, 
                         min_container_samples, max_n_samples, 
                         problem_dim):
         total_volume = sum(c.volume for c in finished_containers)

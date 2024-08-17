@@ -34,8 +34,8 @@ def parallel_container_integral(integral: IterativeGpIntegral,
         Whether to return the standard deviation of the integral.
     n_samples : int
         Number of samples to draw for this container in this iteration.
-    previous_samples : tuple of np.ndarray, optional
-        Tuple containing previous samples (xs, ys) if available, otherwise None.
+    previous_samples : dict
+        containers are keys and values are 
         
     Returns
     -------
@@ -51,12 +51,22 @@ def parallel_container_integral(integral: IterativeGpIntegral,
 
     container_samples = previous_samples.get(cont, None)
     
+    if not hasattr(integral, "n_samples"):
+        raise AttributeError("integral must have attribute n_samples")
+    
     integral.n_samples = n_samples
+
+    n_previous = cont.N
 
     integral_results, new_samples = integral.containerIntegral(
         cont, integrand, return_std=return_std, 
         previous_samples=container_samples
     )
+
+    if cont.N - n_previous != n_samples:
+        raise RuntimeError("integral did not add proper number of samples. "
+                           f"added {cont.N - n_previous} "
+                           f"while expecting {n_samples}")
 
     # Return integral results, modified container, and the new samples
     return integral_results, cont, new_samples
@@ -196,23 +206,32 @@ class LimitedSamplesGpIntegrator(Integrator):
             if verbose:
                 print(f"largest container allocation {max(sample_allocation)}")
 
+            container_sample_map = {id(cont): sample_allocation[i] for i, cont in enumerate(containers)}
             with ProcessPoolExecutor() as executor:
                 futures = {
                     executor.submit(parallel_container_integral, 
                                     self.integral, cont, problem.integrand, 
-                                    return_std, sample_allocation[i],
-                                    previous_samples=previous_samples): cont
-                    for i, cont in enumerate(containers)
+                                    return_std, container_sample_map[id(cont)],
+                                    previous_samples=previous_samples): id(cont)
+                    for cont in containers
                 }
 
                 results = []
                 new_samples_dict = {}
-                for i, future in enumerate(as_completed(futures)):
+                for future in as_completed(futures):
+                    container_id = futures[future]
                     integral_results, container, new_samples = future.result()
                     results.append((integral_results, container))
                     new_samples_dict[container] = new_samples
 
-                    total_samples += sample_allocation[i]
+                    total_samples += container_sample_map[container_id]
+
+            if verbose:
+                print(f"Total samples used: {total_samples}/{self.max_n_samples}")
+
+            if total_samples >= self.max_n_samples:
+                containers = [cont for _, cont in results]
+                break
 
             # Update previous_samples with new samples from this iteration
             previous_samples.update(new_samples_dict)
@@ -246,17 +265,22 @@ class LimitedSamplesGpIntegrator(Integrator):
             
             # Separate out containers that received 0 samples
             containers_for_next_iteration = []
+            updated_sample_allocation = []
             for idx, (result, container) in enumerate(ranked_containers_results):
                 if sample_allocation[idx] > 0:
                     containers_for_next_iteration.append(container)
-                else:
+                    updated_sample_allocation.append(sample_allocation[idx])
+                elif sample_allocation[idx] == 0:
                     all_containers.append(container)
                     all_results.append(result)
+                else: 
+                    raise RuntimeError("allocation cannot be negative, got "
+                                       f"{sample_allocation[idx]}")
 
             containers = containers_for_next_iteration
+            sample_allocation = updated_sample_allocation
 
             if verbose:
-                print(f"Total samples used: {total_samples}/{self.max_n_samples}")
                 print(f"Number of containers left: {len(containers)}")
         
         # Only add the remaining containers not yet processed

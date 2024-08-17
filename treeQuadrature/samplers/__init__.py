@@ -4,4 +4,4 @@ from .importanceSampler import ImportanceSampler
 from .mcmcSampler import McmcSampler, Proposal
 from .lowDiscrepancySampler import SobolSampler
 from .stratifiedSampler import StratifiedSampler
-from .combinedSampler import AdaptiveImportanceSampler
+from .combinedSampler import AdaptiveImportanceSampler, LHSImportanceSampler

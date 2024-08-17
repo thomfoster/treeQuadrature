@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 
 
-class AdaptiveImportanceSampler(Sampler):
+class TwoStageSampler(Sampler):
     def __init__(self, strata_per_dim: int = 10, oversample_factor: int = 5):
         """
         Initialize the TwoStageSampler.
@@ -68,10 +68,20 @@ class AdaptiveImportanceSampler(Sampler):
         densities = np.abs(ys_stage1)
         probabilities = densities / np.sum(densities)  # Normalize to sum to 1
 
-        indices = np.random.choice(np.arange(len(xs_stage1)), size=n, replace=False, p=probabilities.flatten())
-
-        xs = xs_stage1[indices]
-        ys = ys_stage1[indices]
+        # Ensure that there are enough non-zero probability samples
+        non_zero_indices = np.nonzero(probabilities)[0]
+        if len(non_zero_indices) < n:
+            # If not enough, fallback to uniform sampling for remaining samples
+            uniform_samples = np.random.uniform(mins, maxs, 
+                                                (n - len(non_zero_indices), D))
+            xs = np.vstack([xs_stage1[non_zero_indices], uniform_samples])
+            ys = np.concatenate([ys_stage1[non_zero_indices], f(uniform_samples)])
+        else:
+            # Perform importance sampling
+            indices = np.random.choice(non_zero_indices, size=n, replace=False, 
+                                       p=probabilities[non_zero_indices])
+            xs = xs_stage1[indices]
+            ys = ys_stage1[indices]
 
         # Enforce the max_samples_per_region constraint
         final_xs = []

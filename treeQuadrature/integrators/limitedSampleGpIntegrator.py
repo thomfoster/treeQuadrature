@@ -327,16 +327,53 @@ class LimitedSamplesGpIntegrator(Integrator):
         # Shift performances to ensure they're all positive
         shift = -min_performance + 1e-10 if min_performance < 0 else 0
 
+        weights = []
         for result, container in ranked_containers_results:
             # Cap the number of iterations per container
             if container_iterations[container] >= max_iterations_per_container:
-                allocation.append(0)
+                weights.append(0)
                 continue
-            
-            # Allocate samples based on performance gain
-            delta_performance = container_performances.get(container, 0) + shift
-            weight = np.log(delta_performance + 1e-10) + 1  # Apply log for softening
-            samples = min(int(weight * available_samples / len(ranked_containers_results)), max_per_container)
-            allocation.append(samples)
 
+            delta_performance = container_performances.get(container, 0) + shift
+            # Apply log for softening
+            weight = np.log(delta_performance + 1e-10) + 1  
+            weights.append(weight)
+
+        weights = np.array(weights)
+        total_weight = np.sum(weights)
+
+        if total_weight > 0:
+            normalized_weights = weights / total_weight
+        else:
+            # Uniform allocation if all weights are zero
+            normalized_weights = np.ones_like(weights) / len(weights)  
+
+        allocation = np.round(normalized_weights * available_samples).astype(int)
+
+        # Ensure sum(allocation) == available_samples by adjusting the allocation
+        discrepancy = available_samples - np.sum(allocation)
+        while discrepancy != 0:
+            if discrepancy > 0:
+                for i in range(len(allocation)):
+                    if discrepancy == 0:
+                        break
+                    if allocation[i] < max_per_container:
+                        allocation[i] += 1
+                        discrepancy -= 1
+            elif discrepancy < 0:
+                for i in range(len(allocation)):
+                    if discrepancy == 0:
+                        break
+                    if allocation[i] > 0:
+                        allocation[i] -= 1
+                        discrepancy += 1
+
+        allocation = allocation.tolist()
+        allocated_samples = sum(allocation)
+        # check the allocation is correct
+        if allocated_samples > available_samples:
+            raise RuntimeError("Allocated oo many samples"
+                              f"available : {available_samples}"
+                              f"allocated : {allocated_samples}")
+        
         return allocation

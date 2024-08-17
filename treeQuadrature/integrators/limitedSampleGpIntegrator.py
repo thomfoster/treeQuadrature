@@ -237,12 +237,12 @@ class LimitedSamplesGpIntegrator(Integrator):
             # Allocate samples dynamically based on performance gain
             available_samples = min(self.max_n_samples - total_samples, 
                                     self.n_samples * len(containers))
-            sample_allocation = self._allocate_samples(ranked_containers_results, 
-                                                       available_samples,
-                                                       container_iterations,
-                                                       max_iterations_per_container, 
-                                                       container_performances,
-                                                       self.max_container_samples)
+            sample_allocation = self._allocate_samples(ranked_containers_results=ranked_containers_results, 
+                                                       available_samples=available_samples,
+                                                       container_iterations=container_iterations,
+                                                       max_iterations_per_container=max_iterations_per_container, 
+                                                       container_performances=container_performances,
+                                                       max_per_container=self.max_container_samples)
             
             # Separate out containers that received 0 samples
             containers_for_next_iteration = []

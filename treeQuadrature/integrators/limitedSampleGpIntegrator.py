@@ -359,7 +359,8 @@ class LimitedSamplesGpIntegrator(Integrator):
                 continue
 
             delta_performance = container_performances.get(container, 0) + shift
-            # Apply log for softening
+            # Ensure delta_performance is positive before taking log
+            delta_performance = max(delta_performance, 1e-10)
             weight = np.log(delta_performance + 1e-10) + 1  
             weights.append(weight)
 
@@ -393,11 +394,17 @@ class LimitedSamplesGpIntegrator(Integrator):
                         discrepancy += 1
 
         allocation = allocation.tolist()
+
+        # Check for any negative allocation values and correct them
+        if any(alloc < 0 for alloc in allocation):
+            raise RuntimeError("Negative allocation detected, please check the weight calculation.")
+
         allocated_samples = sum(allocation)
-        # check the allocation is correct
+
+        # Check the allocation is correct
         if allocated_samples > available_samples:
-            raise RuntimeError("Allocated oo many samples"
-                              f"available : {available_samples}"
-                              f"allocated : {allocated_samples}")
-        
+            raise RuntimeError("Allocated too many samples"
+                            f"available : {available_samples}, "
+                            f"allocated : {allocated_samples}")
+
         return allocation

@@ -329,7 +329,7 @@ def test_integrators(integrators: List[Integrator],
                         break
 
                 if break_integrator:
-                    break
+                    continue
 
 
                 estimate = result['estimate']

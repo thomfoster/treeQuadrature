@@ -64,6 +64,9 @@ def get_max_n_samples(D) -> int:
 def get_lsi_base_N(D) -> int:
     return int(args.lsi_base_N * (D / 3))
 
+def volume_weighting_function(container):
+    return container.volume
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 location_prefix = 'fourth_run/'
 location_postfix = ''
@@ -137,7 +140,7 @@ if __name__ == '__main__':
         integ_active = LimitedSampleIntegrator(N=lsi_N, base_N=lsi_base_N, 
                                         active_N=args.lsi_active_N, 
                                         split=split, integral=ranIntegral, 
-                                        weighting_function=lambda container: container.volume, 
+                                        weighting_function=volume_weighting_function, 
                                         sampler=sampler)
         integ_activeTQ = DistributedSampleIntegrator(lsi_base_N, args.P, max_samples, 
                                                     split, ranIntegral, sampler=sampler,

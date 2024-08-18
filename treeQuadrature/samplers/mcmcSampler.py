@@ -152,6 +152,6 @@ class McmcSampler(Sampler):
                 current_value = proposal_value
             
             xs[i] = current_sample
-            ys[i] = current_value
+            ys[i] = current_value.item()
 
         return xs[self.burning:], ys[self.burning:]

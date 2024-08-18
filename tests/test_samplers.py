@@ -6,7 +6,9 @@ samplers = [tq.samplers.UniformSampler(),
             tq.samplers.ImportanceSampler(),
             tq.samplers.McmcSampler(), 
             tq.samplers.StratifiedSampler(), 
-            tq.samplers.SobolSampler()]
+            tq.samplers.SobolSampler(),
+            tq.samplers.AdaptiveImportanceSampler(),
+            tq.samplers.LHSImportanceSampler()]
 
 @pytest.mark.parametrize('sampler', samplers)
 @pytest.mark.parametrize('D', [1, 2, 5])

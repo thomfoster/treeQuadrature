@@ -280,7 +280,8 @@ def test_integrators(integrators: List[Integrator],
                 start_time = time.time()
                     
                 with concurrent.futures.ProcessPoolExecutor() as executor:
-                    future = executor.submit(integrator_wrapper)
+                    future = executor.submit(integrator_wrapper, integrator, 
+                                             problem, specific_kwargs, verbose)
                     try:
                         result = future.result(timeout=max_time)
                         end_time = time.time()

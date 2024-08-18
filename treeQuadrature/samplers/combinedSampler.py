@@ -181,12 +181,24 @@ class LHSImportanceSampler(Sampler):
         # Evaluate the function at LHS samples
         lhs_values = np.abs(f(lhs_samples))
 
-        # Clip probabilities to avoid zeros
-        probabilities = lhs_values / np.sum(lhs_values)
-        probabilities = np.clip(probabilities, self.epsilon, None)
+        # Avoid division by zero or numerical instability
+        total_lhs_values = np.sum(lhs_values)
+        if total_lhs_values == 0 or np.isnan(total_lhs_values):
+            # Fallback to uniform sampling if the function values are too small or unstable
+            probabilities = np.ones(lhs_values.shape) / lhs_values.size
+        else:
+            probabilities = lhs_values / total_lhs_values
 
+        # Clip probabilities to avoid zeros and ensure no NaNs
+        probabilities = np.clip(probabilities, self.epsilon, None)
+        
         # Normalize probabilities to sum to 1
-        probabilities /= np.sum(probabilities)
+        total_probabilities = np.sum(probabilities)
+        if total_probabilities == 0 or np.isnan(total_probabilities):
+            # Fallback to uniform distribution if normalization fails
+            probabilities = np.ones(lhs_values.shape) / lhs_values.size
+        else:
+            probabilities /= total_probabilities
 
         # Ensure that there are enough non-zero probability samples
         non_zero_indices = np.nonzero(probabilities)[0]
@@ -197,7 +209,8 @@ class LHSImportanceSampler(Sampler):
             ys = np.concatenate([lhs_values[non_zero_indices], f(uniform_samples)])
         else:
             # Perform importance sampling
-            indices = np.random.choice(non_zero_indices, size=n, replace=False, p=probabilities.flatten())
+            indices = np.random.choice(non_zero_indices, size=n, replace=False, 
+                                       p=probabilities.flatten())
             xs = lhs_samples[indices]
             ys = lhs_values[indices]
 

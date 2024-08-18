@@ -10,6 +10,16 @@ from typing import List, Optional, Any
 from traceback import print_exc
 import os
 
+
+def integrator_wrapper(integrator, problem, specific_kwargs, verbose):
+    parameters = signature(integrator).parameters
+    if 'verbose' in parameters and verbose >= 2:
+        return integrator(problem, return_N=True, verbose=True, 
+                            **specific_kwargs)
+    else:
+        return integrator(problem, return_N=True, 
+                            **specific_kwargs)
+
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
                         plot: bool=False, verbose: int=1, 
                         xlim: Optional[List[float]]=None, 
@@ -266,21 +276,10 @@ def test_integrators(integrators: List[Integrator],
                 specific_kwargs['integrand'] = problem.integrand
 
             for repeat in range(n_repeat):
-                break_integrator = False
-                
                 np.random.seed(seed + repeat)
                 start_time = time.time()
-                parameters = signature(integrator).parameters
-
-                def integrator_wrapper():
-                    if 'verbose' in parameters and verbose >= 2:
-                        return integrator(problem, return_N=True, verbose=True, 
-                                          **specific_kwargs)
-                    else:
-                        return integrator(problem, return_N=True, 
-                                          **specific_kwargs)
                     
-                with concurrent.futures.ThreadPoolExecutor() as executor:
+                with concurrent.futures.ProcessPoolExecutor() as executor:
                     future = executor.submit(integrator_wrapper)
                     try:
                         result = future.result(timeout=max_time)
@@ -306,7 +305,8 @@ def test_integrators(integrators: List[Integrator],
                             'time_taken': f'Exceeded {max_time}s',
                             'errors': None
                         }
-                        break_integrator = True
+                        print("break integrator set to True")
+                        executor.shutdown(wait=False)
                         break
                     except Exception as e:
                         print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
@@ -325,12 +325,8 @@ def test_integrators(integrators: List[Integrator],
                             'errors': None
                         }
                         print_exc()
-                        break_integrator = True
+                        executor.shutdown(wait=False)
                         break
-
-                if break_integrator:
-                    break
-
 
                 estimate = result['estimate']
                 n_evals = result['n_evals']

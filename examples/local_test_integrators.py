@@ -14,6 +14,7 @@ parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help='List
 parser.add_argument('--n_samples', type=int, default=20, help='number of samples drawn from each container (default: 20)')
 parser.add_argument('--base_N', type=int, default=10_000, help='Base sample size for integrators when D = 3 (default: 10_000)')
 parser.add_argument('--max_samples', type=int, default=15_000, help='Maximum sample size when D = 3 (default: 15_000)')
+parser.add_argument('--gp_min_container_samples', type=int, default=10, help='minimum sample size for a container when fitting GP (default: 10)')
 parser.add_argument('--gp_max_container_samples', type=int, default=150, help='maximum sample size for a container when fitting GP (default: 150)')
 parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleIntegrator when D = 3 (default: 1_000)')
 parser.add_argument('--lsi_active_N', type=int, default=10, help='active sample size for LimitedSampleIntegrator (default: 10)')
@@ -144,7 +145,8 @@ if __name__ == '__main__':
         integ_activeTQ.name = 'ActiveTQ'
         
         integ_rbf = DistributedSampleIntegrator(base_N, args.P, max_samples, split, aRbf, sampler=sampler, 
-                                                min_container_samples=10)
+                                                min_container_samples=args.gp_min_container_samples, 
+                                                max_container_samples=args.gp_max_container_samples)
         integ_rbf.name = 'TQ with Rbf'
         
         n_iter = args.vegas_iter

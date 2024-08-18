@@ -26,8 +26,9 @@ class ImportanceSampler(Sampler):
         np.ndarray
             Samples from the distribution.
         """
-        if not isinstance(n, int):
-            raise TypeError(f"n must be an integer, got {n}")
+        if not isinstance(n, (int, np.integer)):
+            raise TypeError(f"n must be an integer, got {n} of type "
+                            f"type(n)")
         
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 
@@ -42,7 +43,7 @@ class ImportanceSampler(Sampler):
         edge_bias = 1 / (min_distance_to_edge + 1e-6)  # Avoid division by zero
         
         # Combine edge bias with the original density
-        densities = f(samples)
+        densities = np.abs(f(samples))
         biased_probabilities = densities * edge_bias
         biased_probabilities /= np.sum(biased_probabilities)  # Normalize to sum to 1
         

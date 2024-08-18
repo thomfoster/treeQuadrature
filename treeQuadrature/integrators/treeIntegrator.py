@@ -20,11 +20,9 @@ from ..visualisation import plotContainers
 
 def parallel_container_integral(integral: ContainerIntegral, 
                                 cont: Container, integrand: callable, 
-                                return_std: bool, min_cont_size: float):
+                                return_std: bool):
     params = {}
-    if isinstance(integral, AdaptiveRbfIntegral) and min_cont_size is not None:
-        params['min_cont_size'] = min_cont_size
-    elif hasattr(integral, 'get_additional_params'):
+    if hasattr(integral, 'get_additional_params'):
         params.update(integral.get_additional_params())
 
     if return_std:
@@ -179,11 +177,6 @@ class TreeIntegrator(Integrator):
             n_samples = np.sum([cont.N for cont in finished_containers])
             print(f'got {len(finished_containers)} containers with {n_samples} samples')
 
-        if isinstance(self.integral, AdaptiveRbfIntegral):
-            min_cont_size = min(cont.volume for cont in finished_containers)
-        else:
-            min_cont_size = None
-
         # uncertainty estimates
         method = getattr(self.integral, 'containerIntegral', None)
         if method:
@@ -203,21 +196,9 @@ class TreeIntegrator(Integrator):
             print('Integrating individual containers', 
                 'with standard deviation' if compute_std else '')
         
-        # for retracking containers 
-        containers = []
-        with ProcessPoolExecutor() as executor:
-            futures = {
-                executor.submit(parallel_container_integral, 
-                                self.integral, cont, problem.integrand, 
-                                compute_std, min_cont_size): cont
-                for cont in finished_containers
-            }
-
-            results = []
-            for future in as_completed(futures):
-                integral_results, modified_cont = future.result()
-                results.append(integral_results)
-                containers.append(modified_cont)
+        results, containers = self.integrate_containers(finished_containers, 
+                                                        problem,
+                                                        compute_std)
         
         if return_all:
             return results, containers
@@ -243,3 +224,24 @@ class TreeIntegrator(Integrator):
             return_values['stds'] = stds
 
         return return_values
+
+    def integrate_containers(self, containers: List[Container], 
+                             problem: Problem,
+                             compute_std: bool=False):
+        # for retracking containers 
+        modified_containers = []
+        with ProcessPoolExecutor() as executor:
+            futures = {
+                executor.submit(parallel_container_integral, 
+                                self.integral, cont, problem.integrand, 
+                                compute_std): cont
+                for cont in containers
+            }
+
+            results = []
+            for future in as_completed(futures):
+                integral_results, modified_cont = future.result()
+                results.append(integral_results)
+                modified_containers.append(modified_cont)
+
+        return results, modified_containers

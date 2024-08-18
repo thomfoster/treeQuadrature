@@ -117,8 +117,10 @@ class McmcSampler(Sampler):
         np.ndarray
             Samples from the modulus of the integrand.
         """
-        if not isinstance(n, int):
-            raise TypeError(f"n must be an integer, got {n}")
+        if not isinstance(n, (int, np.integer)):
+            raise TypeError(f"n must be an integer, got {n} of type "
+                            f"type(n)")
+        
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 
         xs = np.zeros((n+self.burning, D))
@@ -134,11 +136,16 @@ class McmcSampler(Sampler):
             current_value = np.abs(f(current_sample.reshape(1, -1)))[0]
             proposal_value = np.abs(f(proposal.reshape(1, -1)))[0]
 
-            proposal_density_forward = self.proposal.density(proposal, current_sample)
-            proposal_density_backward = self.proposal.density(current_sample, proposal)
+            if current_value == 0:
+                acceptance_ratio = 1.0
+            else:
+                proposal_density_forward = max(self.proposal.density(proposal, 
+                                                                     current_sample), 1e-10)
+                proposal_density_backward = max(self.proposal.density(current_sample, 
+                                                                      proposal), 1e-10)
 
-            acceptance_ratio = min(1, (proposal_value / current_value) * 
-                                   (proposal_density_backward / proposal_density_forward))
+                acceptance_ratio = min(1, (proposal_value / current_value) * 
+                                       (proposal_density_backward / proposal_density_forward))
             
             if np.random.rand() < acceptance_ratio:
                 current_sample = proposal

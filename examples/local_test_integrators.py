@@ -140,4 +140,5 @@ if __name__ == '__main__':
                         problems=problems, 
                         output_file=output_path,
                         max_time=args.max_time, n_repeat=args.n_repeat, 
-                        integrator_specific_kwargs={'ActiveTQ': {'integrand' : None}})
+                        integrator_specific_kwargs={'ActiveTQ': {'integrand' : None}, 
+                                                    'TQ with RBF' : {'max_iter' : 1000}})

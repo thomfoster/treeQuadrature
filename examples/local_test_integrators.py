@@ -93,18 +93,41 @@ if __name__ == '__main__':
         with open(config_path, 'w') as file:
             json.dump(args_dict, file, indent=4)
 
-        problems = [
-            SimpleGaussian(D),
-            Camel(D),
-            QuadCamel(D),
-            ExponentialProductProblem(D),
-            QuadraticProblem(D),
-            RippleProblem(D),
-            OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
-            ProductPeakProblem(D, a=10),
-            C0Problem(D, a=1.1),
-            CornerPeakProblem(D, a=10)
-        ]
+        if D > 7:
+            problems = [
+                SimpleGaussian(D),
+                Camel(D),
+                ExponentialProductProblem(D),
+                QuadraticProblem(D),
+                RippleProblem(D),
+                OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
+                ProductPeakProblem(D, a=10),
+                C0Problem(D, a=1.1),
+                CornerPeakProblem(D, a=10)
+            ]
+        elif D > 11:
+            problems = [
+                ExponentialProductProblem(D),
+                QuadraticProblem(D),
+                RippleProblem(D),
+                OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
+                ProductPeakProblem(D, a=10),
+                C0Problem(D, a=1.1),
+                CornerPeakProblem(D, a=10)
+            ]
+        else:
+            problems = [
+                SimpleGaussian(D),
+                Camel(D),
+                QuadCamel(D),
+                ExponentialProductProblem(D),
+                QuadraticProblem(D),
+                RippleProblem(D),
+                OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
+                ProductPeakProblem(D, a=10),
+                C0Problem(D, a=1.1),
+                CornerPeakProblem(D, a=10)
+            ]
 
         integ_simple = DistributedSampleIntegrator(base_N, args.P, max_samples, split, ranIntegral, 
                                                 sampler=sampler)

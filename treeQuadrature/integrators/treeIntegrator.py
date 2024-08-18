@@ -229,7 +229,7 @@ class TreeIntegrator(Integrator):
                              problem: Problem,
                              compute_std: bool=False):
         # for retracking containers 
-        containers = []
+        modified_containers = []
         with ProcessPoolExecutor() as executor:
             futures = {
                 executor.submit(parallel_container_integral, 
@@ -242,6 +242,6 @@ class TreeIntegrator(Integrator):
             for future in as_completed(futures):
                 integral_results, modified_cont = future.result()
                 results.append(integral_results)
-                containers.append(modified_cont)
+                modified_containers.append(modified_cont)
 
-        return results, containers
+        return results, modified_containers

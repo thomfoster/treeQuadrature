@@ -152,7 +152,7 @@ def test_QueueIntegrator(
 
     if "RandomIntegral" in str(integral): 
         # accounts for random samples used in container integration
-        assert base_N + ns*n_sub_splits*active_N + len(fcs)*integral.n == N
+        assert base_N + ns*n_sub_splits*active_N + len(fcs)*integral.n_samples == N
     else:
         assert base_N + ns*n_sub_splits*active_N == N
 

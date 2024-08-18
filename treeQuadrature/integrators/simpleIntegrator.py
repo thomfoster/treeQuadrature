@@ -81,7 +81,7 @@ class SimpleIntegrator(TreeIntegrator):
         List[Container]
             A list of finished containers.
         """
-        max_iter = kwargs.get('max_iter', 2000)
+        max_iter = kwargs.get('max_iter', 1500)
 
         # Construct tree
         finished_containers = []

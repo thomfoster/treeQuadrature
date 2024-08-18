@@ -18,7 +18,7 @@ parser.add_argument('--gp_max_container_samples', type=int, default=150, help='m
 parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleIntegrator when D = 3 (default: 1_000)')
 parser.add_argument('--lsi_active_N', type=int, default=10, help='active sample size for LimitedSampleIntegrator (default: 10)')
 parser.add_argument('--bmc_N', type=int, default=1200, help='Base sample size for BMC (default: 1200)')
-parser.add_argument('--P', type=int, default=40, help='Size of the largest container (default: 40)')
+parser.add_argument('--P', type=int, default=50, help='Size of the largest container (default: 50)')
 parser.add_argument('--vegas_iter', type=int, default=40, help='Number of iterations for VegasIntegrator (default: 40)')
 parser.add_argument('--max_time', type=float, default=180.0, help='Maximum allowed time for each integrator (default: 180.0)')
 parser.add_argument('--n_repeat', type=int, default=5, help='Number of repetitions for each test (default: 5)')

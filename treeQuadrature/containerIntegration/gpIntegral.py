@@ -249,7 +249,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         used for drawing samples in the container
     """
     def __init__(self, n_samples: int=15, 
-                 n_splits: int=4, max_redraw: int=4, threshold: float=10, 
+                 n_splits: int=4, max_redraw: int=4, threshold: float=0.7, 
                  threshold_direction: str='up',
                  fit_residuals: bool=True, scoring: Optional[Callable]=None,
                  GPFit: Type[GPFit]=SklearnGPFit, gp_params: dict={},
@@ -278,8 +278,6 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         f : function
             takes X : np.ndarray and return np.ndarray, 
             see pdf method of Distribution class in exampleDistributions.py
-        min_cont_size : float
-            volume of the smalelst container
         return_std : bool
             if True, returns the posterior std of integral estimate
         

@@ -11,11 +11,12 @@ from traceback import print_exc
 
 
 def integrator_wrapper(integrator, problem, specific_kwargs, verbose, result_container):
+    parameters = signature(integrator).parameters
     try:
-        if verbose >= 2:
+        if verbose >= 2 and 'verbose' in parameters:
             result = integrator(problem, return_N=True, verbose=True, **specific_kwargs)
         else:
-            result = integrator(problem, return_N=True, verbose=False, **specific_kwargs)
+            result = integrator(problem, return_N=True, **specific_kwargs)
         result_container['result'] = result
     except Exception as e:
         result_container['exception'] = e
@@ -284,6 +285,7 @@ def test_integrators(integrators: List[Integrator],
                     thread = threading.Thread(target=integrator_wrapper, 
                                               args=(integrator, problem, specific_kwargs, verbose, 
                                                     result_container))
+                    thread.daemon = True
                     thread.start()
                     thread.join(timeout=max_time)
 

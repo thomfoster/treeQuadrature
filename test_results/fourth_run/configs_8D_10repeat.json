@@ -1,22 +1,15 @@
 {
-    "dimensions": [
-        2,
-        3,
-        4,
-        5,
-        6
-    ],
-    "n_samples": 30,
-    "base_N": 10000,
+    "base_N": 26666,
     "max_samples": 40000,
     "gp_max_container_samples": 150,
-    "lsi_base_N": 1000,
+    "lsi_base_N": 2666,
     "lsi_active_N": 10,
     "bmc_N": 1200,
-    "P": 40,
+    "P": 50,
     "vegas_iter": 40,
     "max_time": 600.0,
     "n_repeat": 10,
     "sampler": "lhs",
-    "split": "minsse"
+    "split": "minsse",
+    "lsi_N": 1904
 }

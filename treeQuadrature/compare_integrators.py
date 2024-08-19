@@ -2,23 +2,24 @@ from .exampleProblems import Problem
 from .integrators import Integrator
 from .visualisation import plotContainers
 
-import warnings, time, csv, concurrent.futures
+import warnings, time, csv, os, threading
 
 from inspect import signature
 import numpy as np
 from typing import List, Optional, Any
 from traceback import print_exc
-import os
 
 
-def integrator_wrapper(integrator, problem, specific_kwargs, verbose):
+def integrator_wrapper(integrator, problem, specific_kwargs, verbose, result_container):
     parameters = signature(integrator).parameters
-    if 'verbose' in parameters and verbose >= 2:
-        return integrator(problem, return_N=True, verbose=True, 
-                            **specific_kwargs)
-    else:
-        return integrator(problem, return_N=True, 
-                            **specific_kwargs)
+    try:
+        if verbose >= 2 and 'verbose' in parameters:
+            result = integrator(problem, return_N=True, verbose=True, **specific_kwargs)
+        else:
+            result = integrator(problem, return_N=True, **specific_kwargs)
+        result_container['result'] = result
+    except Exception as e:
+        result_container['exception'] = e
 
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
                         plot: bool=False, verbose: int=1, 
@@ -278,20 +279,20 @@ def test_integrators(integrators: List[Integrator],
             for repeat in range(n_repeat):
                 np.random.seed(seed + repeat)
                 start_time = time.time()
-                    
-                with concurrent.futures.ProcessPoolExecutor() as executor:
-                    future = executor.submit(integrator_wrapper, integrator, 
-                                             problem, specific_kwargs, verbose)
-                    try:
-                        result = future.result(timeout=max_time)
-                        end_time = time.time()
-                        time_taken = end_time - start_time
-                        total_time_taken += time_taken
-                    except concurrent.futures.TimeoutError:
-                        print(
-                            f'Time limit exceeded for {integrator_name} on {problem_name}, '
-                            'increase max_time or change the problem/integrator'
-                            )
+                
+                result_container = {}
+                try:
+                    thread = threading.Thread(target=integrator_wrapper, 
+                                              args=(integrator, problem, specific_kwargs, verbose, 
+                                                    result_container))
+                    thread.daemon = True
+                    thread.start()
+                    thread.join(timeout=max_time)
+
+                    if thread.is_alive():
+                        print(f'Time limit exceeded for {integrator_name} on {problem_name}, '
+                              'increase max_time or change the problem/integrator')
+                        thread.join()  # Ensure the thread is cleaned up
                         new_result = {
                             'integrator': integrator_name,
                             'problem': problem_name,
@@ -306,33 +307,40 @@ def test_integrators(integrators: List[Integrator],
                             'time_taken': f'Exceeded {max_time}s',
                             'errors': None
                         }
-                        print("break integrator set to True")
-                        executor.shutdown(wait=False)
                         break
-                    except Exception as e:
-                        print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
-                        new_result = {
-                            'integrator': integrator_name,
-                            'problem': problem_name,
-                            'true_value': problem.answer,
-                            'estimate': None,
-                            'estimate_std': None,
-                            'error_type': e,
-                            'error': None,
-                            'error_std': None,
-                            'n_evals': None,
-                            'n_evals_std': None,
-                            'time_taken': None,
-                            'errors': None
-                        }
-                        print_exc()
-                        executor.shutdown(wait=False)
+                    elif 'exception' in result_container:
+                        print(result_container['exception'])
                         break
+                    else:
+                        result = result_container.get('result')
+                        end_time = time.time()
+                        time_taken = end_time - start_time
+                        total_time_taken += time_taken
 
-                estimate = result['estimate']
-                n_evals = result['n_evals']
-                estimates.append(estimate)
-                n_evals_list.append(n_evals)
+                        estimate = result['estimate']
+                        n_evals = result['n_evals']
+                        estimates.append(estimate)
+                        n_evals_list.append(n_evals)
+                except Exception as e:
+                    print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
+                    print_exc()
+
+                    new_result = {
+                        'integrator': integrator_name,
+                        'problem': problem_name,
+                        'true_value': problem.answer,
+                        'estimate': None,
+                        'estimate_std': None,
+                        'error_type': str(e),
+                        'error': None,
+                        'error_std': None,
+                        'n_evals': None,
+                        'n_evals_std': None,
+                        'time_taken': None,
+                        'errors': None
+                    }
+                    results.append(new_result)
+                    break
 
             if len(estimates) == n_repeat:
                 estimates = np.array(estimates)

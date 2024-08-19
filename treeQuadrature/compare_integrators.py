@@ -2,7 +2,7 @@ from .exampleProblems import Problem
 from .integrators import Integrator
 from .visualisation import plotContainers
 
-import warnings, time, csv, os, signal
+import warnings, time, csv, os, threading
 
 from inspect import signature
 import numpy as np
@@ -10,14 +10,15 @@ from typing import List, Optional, Any
 from traceback import print_exc
 
 
-def integrator_wrapper(integrator, problem, specific_kwargs, verbose):
-    parameters = signature(integrator).parameters
-    if 'verbose' in parameters and verbose >= 2:
-        return integrator(problem, return_N=True, verbose=True, 
-                            **specific_kwargs)
-    else:
-        return integrator(problem, return_N=True, 
-                            **specific_kwargs)
+def integrator_wrapper(integrator, problem, specific_kwargs, verbose, result_container):
+    try:
+        if verbose >= 2:
+            result = integrator(problem, return_N=True, verbose=True, **specific_kwargs)
+        else:
+            result = integrator(problem, return_N=True, verbose=False, **specific_kwargs)
+        result_container['result'] = result
+    except Exception as e:
+        result_container['exception'] = e
 
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
                         plot: bool=False, verbose: int=1, 
@@ -274,48 +275,54 @@ def test_integrators(integrators: List[Integrator],
             if 'integrand' in specific_kwargs:
                 specific_kwargs['integrand'] = problem.integrand
 
-            def handler(signum, frame):
-                raise TimeoutError("Integrator timed out")
-
-            signal.signal(signal.SIGALRM, handler)
-
             for repeat in range(n_repeat):
                 np.random.seed(seed + repeat)
                 start_time = time.time()
-                    
+                
+                result_container = {}
                 try:
-                    signal.alarm(int(max_time))
-                    result = integrator(problem, return_N=True, **specific_kwargs)
-                    signal.alarm(0)  # Disable the alarm
-                    end_time = time.time()
-                    time_taken = end_time - start_time
-                    total_time_taken += time_taken
+                    thread = threading.Thread(target=integrator_wrapper, 
+                                              args=(integrator, problem, specific_kwargs, verbose, 
+                                                    result_container))
+                    thread.start()
+                    thread.join(timeout=max_time)
 
-                    estimate = result['estimate']
-                    n_evals = result['n_evals']
-                    estimates.append(estimate)
-                    n_evals_list.append(n_evals)
+                    if thread.is_alive():
+                        print(f'Time limit exceeded for {integrator_name} on {problem_name}, '
+                              'increase max_time or change the problem/integrator')
+                        thread.join()  # Ensure the thread is cleaned up
+                        new_result = {
+                            'integrator': integrator_name,
+                            'problem': problem_name,
+                            'true_value': problem.answer,
+                            'estimate': None,
+                            'estimate_std': None,
+                            'error_type': 'Timeout',
+                            'error': None,
+                            'error_std': None,
+                            'n_evals': None,
+                            'n_evals_std': None,
+                            'time_taken': f'Exceeded {max_time}s',
+                            'errors': None
+                        }
+                        break
+                    elif 'exception' in result_container:
+                        print(result_container['exception'])
+                        break
+                    else:
+                        result = result_container.get('result')
+                        end_time = time.time()
+                        time_taken = end_time - start_time
+                        total_time_taken += time_taken
 
-                except TimeoutError:
-                    print(f'Time limit exceeded for {integrator_name} on {problem_name}, '
-                          'increase max_time or change the problem/integrator')
-                    new_result = {
-                        'integrator': integrator_name,
-                        'problem': problem_name,
-                        'true_value': problem.answer,
-                        'estimate': None,
-                        'estimate_std': None,
-                        'error_type': 'Timeout',
-                        'error': None,
-                        'error_std': None,
-                        'n_evals': None,
-                        'n_evals_std': None,
-                        'time_taken': f'Exceeded {max_time}s',
-                        'errors': None
-                    }
-                    break
+                        estimate = result['estimate']
+                        n_evals = result['n_evals']
+                        estimates.append(estimate)
+                        n_evals_list.append(n_evals)
                 except Exception as e:
                     print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
+                    print_exc()
+
                     new_result = {
                         'integrator': integrator_name,
                         'problem': problem_name,
@@ -330,6 +337,7 @@ def test_integrators(integrators: List[Integrator],
                         'time_taken': None,
                         'errors': None
                     }
+                    results.append(new_result)
                     break
 
             if len(estimates) == n_repeat:

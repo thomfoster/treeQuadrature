@@ -89,7 +89,7 @@ integ_rbf.name = 'TQ with RBF'
 integ4 = SimpleIntegrator(N, P, split, aRbf)
 integ4.name = 'TQ with Adaptive RBF'
 
-integ_batch = GpTreeIntegrator(N, P, split, rbfIntegral_non_iter, grid_size=0.05, 
+integ_batch = GpTreeIntegrator(N, P, split, rbfIntegral_non_iter, 
                                sampler = lhsSampler, max_n_samples=max_n_samples)
 integ_batch.name = 'Batch GP'
 

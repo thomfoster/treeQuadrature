@@ -1,7 +1,7 @@
 from treeQuadrature.integrators import SimpleIntegrator
 from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral
+from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RbfIntegral
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature import Container
 from treeQuadrature.compare_integrators import load_existing_results, write_results
@@ -17,15 +17,15 @@ Ds = range(2, 16)
 split = MinSseSplit()
 
 args['P'] = 50
-args['n_samples'] = 20
-args['max_redraw'] = 4
+args['n_samples'] = 30
+args['range'] = 500
 args['n_splits'] = 5
 args['n_repeat'] = 10
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-location_prefix = 'ablation_iterative_fitting/'
+location_prefix = 'ablation_adaptive/'
 
-integrator_names = ['Iterative GP', 'Even Sample GP']
+integrator_names = ['Adaptive Rbf', 'Rbf']
 
 if __name__ == '__main__':
     for D in Ds:
@@ -43,25 +43,23 @@ if __name__ == '__main__':
                                 f"../test_results/{location_prefix}results_{D}D_{args['n_repeat']}repeat.json")
 
         args['N'] = 7000 + D * 500
-        # threshold on R2 score
-        args['threshold'] = max(1 - D / 10, 0.3)
 
         with open(config_file, 'w') as file:
             json.dump(args, file, indent=4)
 
-        integral = AdaptiveRbfIntegral(n_samples=args['n_samples'], 
-                                                max_redraw = args['max_redraw'],
-                                                n_splits=args['n_splits'], 
-                                                threshold=args['threshold'])
-        integral_non_iter = AdaptiveRbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
+        integral_adaptive = AdaptiveRbfIntegral(n_samples=args['n_samples'], 
+                                                max_redraw = 0,
                                                 n_splits=args['n_splits'])
+        integral_rbf = RbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
+                                                n_splits=args['n_splits'], 
+                                                range=args['range'])
         integ = SimpleIntegrator(base_N=args['N'], P=args['P'], split=split, 
-                                 integral=integral, 
+                                 integral=integral_adaptive, 
                                  sampler=McmcSampler())
 
 
         def test_two_integrators(problem):
-            ### integrate iteratively 
+            ### Adaptive Rbf
             X, y = integ.sampler.rvs(integ.base_N, problem.lows, problem.highs,
                                         problem.integrand)
             
@@ -70,35 +68,32 @@ if __name__ == '__main__':
 
             print(f"integrating {integrator_names[0]}")
             start_time = time.time()
-            results, containers = integ.integrate_containers(finished_containers, problem)
+            results_0, containers_0 = integ.integrate_containers(finished_containers, problem)
             end_time = time.time()
 
-            N = sum([cont.N for cont in containers])
-            contributions = [result['integral'] for result in results]
+            N = sum([cont.N for cont in containers_0])
+            contributions = [result['integral'] for result in results_0]
             estimate = np.sum(contributions)
-            return_values = {'estimate' : estimate}
-            return_values['n_evals'] = N
-            return_values['time'] = end_time - start_time
+            return_values_0 = {'estimate' : estimate}
+            return_values_0['n_evals'] = N
+            return_values_0['time'] = end_time - start_time
 
-            ### distribute these samples evenly to non-iterative integrator
-            N_per_container = int((N - integ.base_N) / len(finished_containers))
-
-            integral_non_iter.n_samples = N_per_container
-            integ.integral = integral_non_iter
+            ### Usual Rbf
+            integ.integral = integral_rbf
 
             print(f"integrating {integrator_names[1]}")
             start_time = time.time()
-            results_non_iter, containers_non_iter = integ.integrate_containers(finished_containers, problem)
+            results_1, containers_1 = integ.integrate_containers(finished_containers, problem)
             end_time = time.time()
             
-            contributions_non_iter = [result['integral'] for result in results_non_iter]
-            estimate_non_iter = np.sum(contributions_non_iter)
-            return_values_non_iter = {'estimate' : estimate_non_iter}
-            N_non_iter = sum([cont.N for cont in containers_non_iter])
-            return_values_non_iter['n_evals'] = N_non_iter
-            return_values_non_iter['time'] = end_time - start_time
+            contributions = [result['integral'] for result in results_1]
+            estimate = np.sum(containers_1)
+            return_values_1 = {'estimate' : estimate}
+            N = sum([cont.N for cont in contributions])
+            return_values_1['n_evals'] = N
+            return_values_1['time'] = end_time - start_time
             
-            return return_values, containers, return_values_non_iter, containers_non_iter
+            return return_values_0, return_values_1
             
         existing_results = load_existing_results(output_file)
 
@@ -125,18 +120,19 @@ if __name__ == '__main__':
 
             for _ in range(args['n_repeat']):
                 try: 
-                    result, containers, result_non_iter, containers_non_iter = test_two_integrators(problem)
+                    result_0, result_1 = test_two_integrators(problem)
                 except Exception as e:
                     print(f'Error during integration on {problem_name}: {e}')
                     print_exc()
                     break
 
-                estimates[0].append(result['estimate'])
-                n_evals_list[0].append(result['n_evals'])
-                estimates[1].append(result_non_iter['estimate'])
-                n_evals_list[1].append(result_non_iter['n_evals'])
-                time_list[0].append(result['time'])
-                time_list[1].append(result_non_iter['time'])
+                estimates[0].append(result_0['estimate'])
+                n_evals_list[0].append(result_0['n_evals'])
+                time_list[0].append(result_0['time'])
+                estimates[1].append(result_1['estimate'])
+                n_evals_list[1].append(result_1['n_evals'])
+                time_list[1].append(result_1['time'])
+                
 
             if len(estimates[0]) == args['n_repeat']:
                 new_results = []

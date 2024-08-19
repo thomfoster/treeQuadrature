@@ -1,18 +1,16 @@
 from treeQuadrature.integrators import SimpleIntegrator
-from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem, Problem
+from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RbfIntegral
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature.compare_integrators import test_container_integrals
 
 import numpy as np
-from traceback import print_exc
-import os, json, time
-from typing import List
+import os, json
 
 
 args = {}
-Ds = range(1, 16)
+Ds = range(1, 10)
 
 split = MinSseSplit()
 

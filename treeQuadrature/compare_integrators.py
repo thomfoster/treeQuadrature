@@ -1,6 +1,8 @@
 from .exampleProblems import Problem
-from .integrators import Integrator
+from .integrators import TreeIntegrator, Integrator
+from .containerIntegration import ContainerIntegral
 from .visualisation import plotContainers
+from .container import Container
 
 import warnings, time, csv, os, multiprocessing
 
@@ -381,4 +383,119 @@ def test_integrators(integrators: List[Integrator],
 
     write_results(output_file, list(existing_results.values()), True, mode='w')
 
+    print(f'Results saved to {output_file}')
+
+
+
+def _test_integrals_single_problem(problem, integrals: ContainerIntegral, 
+                   integrator: TreeIntegrator):
+    """Test container integrators on the same tree"""
+    return_values = [[] for _ in range(len(integrals))]
+
+    # construct tree
+    X, y = integrator.sampler.rvs(integrator.base_N, problem.lows, 
+                                    problem.highs,
+                                    problem.integrand)
+        
+    root = Container(X, y, mins=problem.lows, maxs=problem.highs)
+    finished_containers = integrator.construct_tree(root)
+    
+    for i, integral in enumerate(integrals):
+        integrator.integral = integral
+
+        print(f"integrating {integrals[i].name}")
+        start_time = time.time()
+        results, containers = integrator.integrate_containers(finished_containers, 
+                                                              problem)
+        end_time = time.time()
+
+        N = sum([cont.N for cont in containers])
+        contributions = [result['integral'] for result in results]
+        estimate = np.sum(contributions)
+        return_values[i] = {'estimate' : estimate, 
+                            'n_evals' : N,
+                            'time' : end_time - start_time}
+    
+    return return_values
+
+
+def test_container_integrals(problems: List[Problem],  integrals: ContainerIntegral, 
+                             integrator: TreeIntegrator, output_file: str, n_repeat : int):
+    existing_results = load_existing_results(output_file)
+    n_integrals = len(integrals)
+    integral_names = [integral.name for integral in integrals]
+
+    if existing_results:
+        is_first_run = False
+    else:
+        is_first_run = True
+    
+    final_results = {}
+
+    for problem in problems:
+        problem_name = str(problem)
+        print(f'testing Probelm: {problem_name}')
+
+        key = (integral_names[0], problem_name)
+        if key in existing_results and existing_results[key]['estimate'] != '':
+            print(f'Skipping {problem_name}: already completed.')
+            final_results[key] = existing_results[key]
+            continue
+        
+        estimates = [[] for _ in range(n_integrals)]
+        n_evals_list = [[] for _ in range(n_integrals)]
+        time_list = [[] for _ in range(n_integrals)]
+
+        for _ in range(n_repeat):
+            try: 
+                results = _test_integrals_single_problem(problem, integrals, integrator)
+            except Exception as e:
+                print(f'Error during integration on {problem_name}: {e}')
+                print_exc()
+                break
+
+            for j in range(n_integrals):
+                estimates[j].append(results[j]['estimate'])
+                n_evals_list[j].append(results[j]['n_evals'])
+                time_list[j].append(results[j]['time'])
+            
+
+        if len(estimates[0]) == n_repeat:
+            new_results = []
+            for i in range(n_integrals):
+                integral_estimates = np.array(estimates[i])
+                avg_estimate = np.mean(integral_estimates)
+                avg_n_evals = int(np.mean(n_evals_list[i]))
+                    
+                errors = 100 * (
+                    integral_estimates - problem.answer) / problem.answer
+                avg_error = f'{np.median(errors):.4f} %'
+                error_std = f'{np.std(errors):.4f} %'
+                error_name = 'Signed Relative error'
+
+                new_results.append({
+                    'integrator': integral_names[i],
+                    'problem': problem_name,
+                    'true_value': problem.answer,
+                    'estimate': avg_estimate,
+                    'estimate_std': np.std(estimates),
+                    'error_type': error_name,
+                    'error': avg_error,
+                    'error_std': error_std,
+                    'n_evals': avg_n_evals,
+                    'n_evals_std': np.std(n_evals_list),
+                    'time_taken' : np.mean(time_list[i]),
+                    'errors': errors
+                })
+            
+            # Update the existing results
+            for i in range(n_integrals):
+                final_results[(integral_names[i], problem_name)] = new_results[i]
+
+            # Write results incrementally to ensure recovery
+            write_results(output_file, new_results, 
+                            is_first_run)
+        is_first_run = False
+        
+    write_results(output_file, list(final_results.values()), True, mode='w')
     print(f'Results saved to {output_file}')

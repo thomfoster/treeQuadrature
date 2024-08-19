@@ -99,18 +99,6 @@ if __name__ == '__main__':
 
         if D > 7:
             problems = [
-                SimpleGaussian(D),
-                Camel(D),
-                ExponentialProductProblem(D),
-                QuadraticProblem(D),
-                RippleProblem(D),
-                OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
-                ProductPeakProblem(D, a=10),
-                C0Problem(D, a=1.1),
-                CornerPeakProblem(D, a=10)
-            ]
-        elif D > 11:
-            problems = [
                 ExponentialProductProblem(D),
                 QuadraticProblem(D),
                 RippleProblem(D),

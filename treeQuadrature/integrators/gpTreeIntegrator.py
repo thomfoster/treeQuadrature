@@ -100,8 +100,8 @@ def find_neighbors_grid(grid: dict, node: TreeNode, grid_size: int) -> List[Tree
 
 class GpTreeIntegrator(Integrator):
     def __init__(self, base_N: int, P: int, split: Split, integral: ContainerIntegral, 
-                 base_grid_scale: float=1.0, dimension_scaling_exponent: float = 0.5,
-                 length_scaling_exponent: float = 0.5, max_n_samples: Optional[int]=None,
+                 base_grid_scale: float=1.0, dimension_scaling_exponent: float = 0.9,
+                 length_scaling_exponent: float = 0.1, max_n_samples: Optional[int]=None,
                  sampler: Sampler=default_sampler):
         '''
         An integrator that allows communications between nodes
@@ -166,7 +166,7 @@ class GpTreeIntegrator(Integrator):
         self.dimension_scaling_exponent = dimension_scaling_exponent
         self.length_scaling_exponent = length_scaling_exponent
 
-    def construct_tree(self, root: Container, verbose: bool = False, max_iter: int = 1e4) -> BinaryTree:
+    def construct_tree(self, root: Container, verbose: bool = False, max_iter: int = 4000) -> BinaryTree:
         tree = BinaryTree()
         tree.insert(root)
         q = SimpleQueue()
@@ -213,6 +213,9 @@ class GpTreeIntegrator(Integrator):
         grid = build_grid(leaf_nodes, grid_size)
         
         batches = [nodes for _, nodes in grid.items()]
+        
+        if verbose:
+            print(f"got {len(batches)} batches")
 
         if self.max_n_samples is not None:
             # Calculate remaining samples to distribute among batches
@@ -229,8 +232,6 @@ class GpTreeIntegrator(Integrator):
             containers = [node.container for node in batch]
             if n_samples is None:
                 n_samples = self.integral.n_samples
-
-            initial_N = sum([cont.N for cont in containers])
 
             # Check if hyperparameters are available and set them, otherwise use defaults
             try:
@@ -294,9 +295,6 @@ class GpTreeIntegrator(Integrator):
                 for neighbor in neighbors:
                     neighbor.hyper_params = hyper_params
 
-            # check correct number of samples being added
-            new_samples = sum([cont.N for cont in containers]) - initial_N
-
         # Parallel processing of batches
         with ThreadPoolExecutor() as executor:
             futures = [
@@ -340,6 +338,10 @@ class GpTreeIntegrator(Integrator):
         grid_size = self.base_grid_scale * (
             problem.D ** self.dimension_scaling_exponent) * (
                 avg_side_length**(-self.length_scaling_exponent))
+        
+        if verbose:
+            print(f"adaptive grid size: {grid_size}, "
+                f"average side length: {avg_side_length}")
 
         if verbose:
             print('constructing tree')
@@ -352,7 +354,7 @@ class GpTreeIntegrator(Integrator):
 
         if verbose:
             print('fitting GP to containers and passing hyper-parameters')
-        self.fit_gps(tree, problem.integrand, verbose, return_std)
+        self.fit_gps(tree, problem.integrand, verbose, return_std, grid_size)
 
         leaf_nodes = tree.get_leaf_nodes()
 

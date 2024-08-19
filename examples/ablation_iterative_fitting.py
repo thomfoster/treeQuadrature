@@ -1,5 +1,5 @@
 from treeQuadrature.integrators import SimpleIntegrator
-from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
+from treeQuadrature.exampleProblems import ProductPeakProblem, RippleProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral
 from treeQuadrature.samplers import McmcSampler
@@ -8,11 +8,15 @@ from treeQuadrature.compare_integrators import load_existing_results, write_resu
 
 import numpy as np
 from traceback import print_exc
-import os, json, time
+import os, json, time, argparse
 
+parser = argparse.ArgumentParser(description="Compare Iterative Fitting scheme and even samples for various dimensions")
+parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help="List of problem dimensions (default: [2])")
+
+args_parser = parser.parse_args()
 
 args = {}
-Ds = range(2, 16)
+Ds = args_parser.dimensions
 
 split = MinSseSplit()
 
@@ -32,8 +36,8 @@ if __name__ == '__main__':
             ProductPeakProblem(D, a=13),
             C0Problem(D, a=2),
             CornerPeakProblem(D, a=10),
-            ExponentialProductProblem(D), 
-            OscillatoryProblem(D, a=np.array(10/ np.linspace(1, D, D)))
+            OscillatoryProblem(D, a=np.array(10/ np.linspace(1, D, D))), 
+            RippleProblem(D)
         ]
 
         output_file = os.path.join(script_dir, 
@@ -67,7 +71,6 @@ if __name__ == '__main__':
             root = Container(X, y, mins=problem.lows, maxs=problem.highs)
             finished_containers = integ.construct_tree(root)
 
-            print(f"integrating {integrator_names[0]}")
             start_time = time.time()
             results, containers = integ.integrate_containers(finished_containers, problem)
             end_time = time.time()
@@ -85,7 +88,6 @@ if __name__ == '__main__':
             integral_non_iter.n_samples = N_per_container
             integ.integral = integral_non_iter
 
-            print(f"integrating {integrator_names[1]}")
             start_time = time.time()
             results_non_iter, containers_non_iter = integ.integrate_containers(finished_containers, problem)
             end_time = time.time()

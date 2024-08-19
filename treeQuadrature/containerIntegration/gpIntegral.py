@@ -56,7 +56,9 @@ class RbfIntegral(ContainerIntegral):
     iGP : IterativeGPFit
         the iterative fitter used by this instance
     """
-    def __init__(self, gp: Optional[GPFit]=None, **kwargs) -> None:
+    def __init__(self, GPFit: Type[GPFit]=SklearnGPFit, 
+                 gp_params: dict = {}, 
+                 **kwargs) -> None:
         """
         Arguments
         ---------
@@ -72,7 +74,8 @@ class RbfIntegral(ContainerIntegral):
             class description 
         """
 
-        self.gp = gp
+        self.GPFit = GPFit
+        self.gp_params = gp_params
         
         self.options : Dict[str, Any] = {
             'length': 10,
@@ -95,11 +98,6 @@ class RbfIntegral(ContainerIntegral):
 
         self.kernel = RBF(self.length, (self.length*(1/self.range), 
                                         self.length*self.range))
-        self.iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
-                                 max_redraw=self.max_redraw, 
-                                 performance_threshold=self.threshold, 
-                                 threshold_direction=self.threshold_direction,
-                                 gp=self.gp)
 
     def __str__(self):
         return 'RbfIntegral'
@@ -184,24 +182,25 @@ class RbfIntegral(ContainerIntegral):
         ### fit GP using RBF kernel
         self.kernel = RBF(self.length, (self.length*(1/self.range), 
                                    self.length*self.range))
+        
+        gp = self.GPFit(**self.gp_params)
         # set up iterative fitting scheme
-        self.iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
+        iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                  max_redraw=self.max_redraw, 
                                  performance_threshold=self.threshold, 
                                  threshold_direction=self.threshold_direction,
-                                 gp=self.gp, fit_residuals=self.fit_residuals)
-        gp_results = self.iGP.fit(f, container, self.kernel)
-        self.gp = self.iGP.gp
+                                 gp=gp, fit_residuals=self.fit_residuals)
+        gp_results = iGP.fit(f, container, self.kernel)
 
         ### GP diagnosis
         if self.check_GP:
             # TODO - decide where to plot
-            GP_diagnosis(self.iGP, container)
+            GP_diagnosis(iGP, container)
         
-        ret = kernel_integration(self.iGP, container, gp_results, 
+        ret = kernel_integration(iGP, container, gp_results, 
                                             return_std)
         
-        ret['hyper_params'] = {'length' : self.gp.hyper_params['length_scale']}
+        ret['hyper_params'] = {'length' : iGP.gp.hyper_params['length_scale']}
         ret['performance'] = gp_results['performance']
         
         return ret

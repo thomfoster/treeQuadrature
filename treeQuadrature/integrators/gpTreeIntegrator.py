@@ -2,6 +2,7 @@ from typing import List
 import warnings, time, traceback
 from queue import SimpleQueue
 from inspect import signature
+from traceback import print_exc
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 
@@ -11,7 +12,7 @@ from ..containerIntegration import ContainerIntegral
 from ..samplers import Sampler, UniformSampler
 from ..container import Container
 from ..exampleProblems import Problem
-from ..gaussianProcess import kernel_integration
+from ..gaussianProcess import kernel_integration, IterativeGPFitting
 
 
 default_sampler = UniformSampler()
@@ -203,12 +204,21 @@ class GpTreeIntegrator(Integrator):
             # Check if hyperparameters are available and set them, otherwise use defaults
             try:
                 kernel = self.integral.kernel
-                iGP = self.integral.iGP
-                threshold = self.integral.threshold
-                threshold_direction = self.integral.threshold_direction
             except AttributeError:
-                print('self.integral must have attributes `kernel`, '
-                      '`iGP`, `threshold`, `threshold_direction`') 
+                print('self.integral must have attributes `kernel`') 
+
+            try: 
+                gp = self.integral.GPFit(**self.integral.gp_params)
+                # set up iterative fitting scheme
+                iGP = IterativeGPFitting(n_samples=self.integral.n_samples, 
+                                         n_splits=self.integral.n_splits, 
+                                        max_redraw=self.integral.max_redraw, 
+                                        performance_threshold=self.integral.threshold, 
+                                        threshold_direction=self.integral.threshold_direction,
+                                        gp=gp, fit_residuals=self.integral.fit_residuals)
+            except Exception:
+                print("failed to create GPFit instance")
+                print_exc()
                 
             representative_hyper_params = None
 
@@ -228,7 +238,8 @@ class GpTreeIntegrator(Integrator):
 
             if verbose:
                 total_n = np.sum([cont.N for cont in containers])
-                print(f"Fitting a batch of containers with {total_n} data points")
+                print(f"Fitting a batch of containers with {total_n} data points "
+                      f"and {len(containers)}")
 
             try:
                 gp_results = iGP.fit(integrand, containers, kernel, add_samples=True)
@@ -267,12 +278,18 @@ class GpTreeIntegrator(Integrator):
         if verbose: 
             print('drawing initial samples')
 
-        if hasattr(problem, 'rvs'):
+        if self.sampler is not None: 
+            X, y = self.sampler.rvs(self.base_N, problem.lows, problem.highs,
+                                    problem.integrand)
+        elif hasattr(problem, 'rvs'):
             X = problem.rvs(self.base_N)
             y = problem.integrand(X)
         else:
-            X, y = self.sampler.rvs(self.base_N, problem.lows, problem.highs,
-                                    problem.integrand)
+            raise RuntimeError('cannot draw initial samples. '
+                               'Either problem should have rvs method, '
+                               'or specify self.sampler'
+                               )
+            
         assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1), (
             'the output of problem.integrand must be one-dimensional array'
             f', got shape {y.shape}'

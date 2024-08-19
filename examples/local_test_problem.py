@@ -81,20 +81,21 @@ integ_limitedGp = LimitedSamplesGpIntegrator(base_N=N, P=P, max_n_samples=max_n_
 integ_limitedGp.name = 'Limited RbfIntegrator'
 
 integ_rbf = DistributedSampleIntegrator(N, P, max_n_samples, split, aRbf, sampler=lhsSampler, 
-                                        min_n_samples=10)
+                                        min_container_samples=10)
 integ_rbf.name = 'TQ with RBF'
 
 integ4 = SimpleIntegrator(N, P, split, aRbf)
 integ4.name = 'TQ with Adaptive RBF'
 
-integ5 = GpTreeIntegrator(N, P, split, rbfIntegral, grid_size=0.01)
-integ5.name = 'Batch GP'
+integ_batch = GpTreeIntegrator(N, P, split, rbfIntegral, grid_size=0.05, 
+                               sampler = lhsSampler)
+integ_batch.name = 'Batch GP'
 
 integ_smc = SmcIntegrator(N=max_n_samples, sampler=UniformSampler())
 integ_smc.name = 'SMC'
 
 if __name__ == '__main__':
-    compare_integrators([integ_rbf], plot=True, verbose=2,
+    compare_integrators([integ_batch], plot=True, verbose=2,
                         xlim=[problem.lows[0], problem.highs[0]], ylim=[problem.lows[1], problem.highs[1]], 
                         problem=problem, dimensions=[0, 1], 
-                        n_repeat=1, integrator_specific_kwargs={'LimitedSampleIntegrator': {'integrand' : problem.integrand}})
+                        n_repeat=3, integrator_specific_kwargs={'LimitedSampleIntegrator': {'integrand' : problem.integrand}})

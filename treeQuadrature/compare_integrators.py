@@ -312,7 +312,22 @@ def test_integrators(integrators: List[Integrator],
                 else:
                     result_dict = result_queue.get()
                     if 'exception' in result_dict:
-                        raise result_dict['exception']
+                        print(result_dict['exception'])
+                        new_result = {
+                            'integrator': integrator_name,
+                            'problem': problem_name,
+                            'true_value': problem.answer,
+                            'estimate': None,
+                            'estimate_std': None,
+                            'error_type': result_dict['exception'],
+                            'error': None,
+                            'error_std': None,
+                            'n_evals': None,
+                            'n_evals_std': None,
+                            'time_taken': None, 
+                            'errors': None
+                        }
+                        break
                     else:
                         result = result_dict['result']
                         end_time = time.time()

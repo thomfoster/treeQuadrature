@@ -19,7 +19,6 @@ split = MinSseSplit()
 args['P'] = 50
 args['n_samples'] = 20
 args['max_redraw'] = 4
-args['n_splits'] = 5
 args['n_repeat'] = 10
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -51,10 +50,10 @@ if __name__ == '__main__':
 
         integral = AdaptiveRbfIntegral(n_samples=args['n_samples'], 
                                                 max_redraw = args['max_redraw'],
-                                                n_splits=args['n_splits'], 
+                                                n_splits=0, 
                                                 threshold=args['threshold'])
         integral_non_iter = AdaptiveRbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
-                                                n_splits=args['n_splits'])
+                                                n_splits=0)
         integ = SimpleIntegrator(base_N=args['N'], P=args['P'], split=split, 
                                  integral=integral, 
                                  sampler=McmcSampler())

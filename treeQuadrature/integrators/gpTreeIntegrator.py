@@ -100,7 +100,8 @@ def find_neighbors_grid(grid: dict, node: TreeNode, grid_size: int) -> List[Tree
 
 class GpTreeIntegrator(Integrator):
     def __init__(self, base_N: int, P: int, split: Split, integral: ContainerIntegral, 
-                 grid_size: int, max_n_samples: Optional[int]=None,
+                 base_grid_scale: float=1.0, dimension_scaling_exponent: float = 0.5,
+                 length_scaling_exponent: float = 0.5, max_n_samples: Optional[int]=None,
                  sampler: Sampler=default_sampler):
         '''
         An integrator that allows communications between nodes
@@ -125,6 +126,14 @@ class GpTreeIntegrator(Integrator):
             if set, samples will be distributed 
             evenly across batches
             until max_n_samples samples are used
+        base_grid_scale : float, optional 
+            the baseline scale for the grid size 
+            before any adjustments for dimensionality or domain volume.
+        dimension_scaling_exponent : float, optional
+            Exponent to scale grid size with dimension.
+        length_scaling_exponent : float, optional
+            Exponent to scale grid size with average side length.
+
         
         Methods
         -------
@@ -153,7 +162,9 @@ class GpTreeIntegrator(Integrator):
         self.P = P
         self.max_n_samples = max_n_samples
         self.integral_results = {}
-        self.grid_size = grid_size
+        self.base_grid_scale = base_grid_scale
+        self.dimension_scaling_exponent = dimension_scaling_exponent
+        self.length_scaling_exponent = length_scaling_exponent
 
     def construct_tree(self, root: Container, verbose: bool = False, max_iter: int = 1e4) -> BinaryTree:
         tree = BinaryTree()
@@ -197,9 +208,9 @@ class GpTreeIntegrator(Integrator):
         return tree
 
     def fit_gps(self, tree: BinaryTree, integrand, verbose: bool = False, 
-            return_std: bool=False):
+            return_std: bool=False, grid_size: float=0.05):
         leaf_nodes = tree.get_leaf_nodes()
-        grid = build_grid(leaf_nodes, self.grid_size)
+        grid = build_grid(leaf_nodes, grid_size)
         
         batches = [nodes for _, nodes in grid.items()]
 
@@ -279,7 +290,7 @@ class GpTreeIntegrator(Integrator):
                     return
 
                 # Pass hyper-parameters to neighbors
-                neighbors = find_neighbors_grid(grid, node, self.grid_size)
+                neighbors = find_neighbors_grid(grid, node, grid_size)
                 for neighbor in neighbors:
                     neighbor.hyper_params = hyper_params
 
@@ -322,6 +333,13 @@ class GpTreeIntegrator(Integrator):
         if verbose: 
             print('constructing root container')
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
+
+        # set grid_size 
+        avg_side_length = np.mean(problem.highs - problem.lows)
+
+        grid_size = self.base_grid_scale * (
+            problem.D ** self.dimension_scaling_exponent) * (
+                avg_side_length**(-self.length_scaling_exponent))
 
         if verbose:
             print('constructing tree')

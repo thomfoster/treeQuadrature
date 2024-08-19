@@ -3,9 +3,9 @@ import numpy as np
 
 from treeQuadrature.compare_integrators import test_integrators
 from treeQuadrature.exampleProblems import SimpleGaussian, Camel, QuadCamel, ExponentialProductProblem, QuadraticProblem, RippleProblem, OscillatoryProblem, ProductPeakProblem, CornerPeakProblem, DiscontinuousProblem, C0Problem
-from treeQuadrature.containerIntegration import RandomIntegral, IterativeRbfIntegral, AdaptiveRbfIntegral
+from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral
 from treeQuadrature.splits import MinSseSplit, KdSplit
-from treeQuadrature.integrators import DistributedSampleIntegrator, LimitedSampleIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator
+from treeQuadrature.integrators import DistributedSampleIntegrator, LimitedSampleIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator, GpTreeIntegrator
 from treeQuadrature.samplers import McmcSampler, LHSImportanceSampler, UniformSampler, ImportanceSampler
 
 # Set up argument parser
@@ -35,6 +35,8 @@ Ds = args.dimensions
 ### container Integrals 
 ranIntegral = RandomIntegral(n_samples=args.n_samples)
 aRbf = AdaptiveRbfIntegral(n_samples= args.n_samples, max_redraw=0, n_splits=0)
+non_iter_rbf = RbfIntegral(max_redraw=0, n_splits=0, 
+                            n_samples=args.n_samples)
 
 ### Splits
 if args.split == 'minsse':
@@ -140,6 +142,11 @@ if __name__ == '__main__':
                                                 max_container_samples=args.gp_max_container_samples)
         integ_rbf.name = 'TQ with Rbf'
         
+        integ_batch = GpTreeIntegrator(base_N, args.P, split, 
+                                       non_iter_rbf, grid_size=0.05, 
+                                       sampler = sampler, max_n_samples=args.max_samples)
+        integ_batch.name = 'batch GP'
+        
         n_iter = args.vegas_iter
         n_vegas = int(max_samples / n_iter)
         integ_vegas= VegasIntegrator(n_vegas, n_iter)
@@ -152,7 +159,7 @@ if __name__ == '__main__':
         integ_smc.name = 'SMC'
 
         # Now run the tests for the current dimension D
-        test_integrators([integ_simple, integ_activeTQ, integ_rbf, integ_smc, integ_vegas],
+        test_integrators([integ_simple, integ_activeTQ, integ_rbf, integ_smc, integ_vegas, integ_batch],
                         problems=problems, 
                         output_file=output_path,
                         max_time=args.max_time, n_repeat=args.n_repeat, 

@@ -7,12 +7,13 @@ from treeQuadrature.splits import MinSseSplit
 import numpy as np
 import os
 
-n_repeat = 10
+n_repeat = 1
 max_time = 500
 Ds = np.arange(2, 14, 3)
-integral = AdaptiveRbfIntegral()
+integral = AdaptiveRbfIntegral(n_splits=0, max_redraw=3, n_samples=20)
 split = MinSseSplit()
 integ = SimpleIntegrator(1000, 50, split, integral)
+integ.name = "TQ with Rbf"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     
         problem = Camel(D)
         output_path = os.path.join(script_dir, 
-                                f"../test_results/tree_params/{str(problem)}_results_{n_repeat}repeat.csv")
+                                f"../test_results/tree_params/{integ.name}_{str(problem)}_results_{n_repeat}repeat.csv")
         test_integrator_performance_with_params(integ, problem,
                                                 params, 
                                                 output_file=output_path,

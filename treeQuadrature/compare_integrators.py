@@ -12,7 +12,7 @@ from typing import List, Optional, Any
 from traceback import print_exc
 
 
-def integrator_wrapper(integrator, problem, specific_kwargs, verbose, result_queue):
+def integrator_wrapper(integrator, problem, verbose, result_queue, specific_kwargs={}):
     parameters = signature(integrator).parameters
     try:
         if verbose >= 2 and 'verbose' in parameters:
@@ -186,12 +186,10 @@ def load_existing_results(output_file: str) -> dict:
         reader = csv.DictReader(file)
         return {(row['integrator'], row['problem']): row for row in reader}
     
-def write_results(output_file: str, results: List[dict], write_header: bool, 
+def write_results(output_file: str, results: List[dict], write_header: bool, fieldnames: List[str], 
                   mode: str='a'):
     with open(output_file, mode=mode, newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=[
-            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
         if write_header:
             writer.writeheader()
         for result in results:
@@ -249,6 +247,10 @@ def test_integrators(integrators: List[Integrator],
 
     results = []
 
+    fieldnames = [
+            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors']
+
     for problem in problems:
         problem_name = str(problem)
 
@@ -286,7 +288,7 @@ def test_integrators(integrators: List[Integrator],
 
                 process = multiprocessing.Process(
                     target=integrator_wrapper, 
-                    args=(integrator, problem, specific_kwargs, verbose, result_queue)
+                    args=(integrator, problem, verbose, result_queue, specific_kwargs)
                 )
                 process.start()
                 process.join(timeout=max_time)
@@ -378,10 +380,10 @@ def test_integrators(integrators: List[Integrator],
 
             # Write results incrementally to ensure recovery
             write_results(output_file, [new_result], 
-                            is_first_run)
+                            is_first_run, fieldnames)
             is_first_run = False
 
-    write_results(output_file, list(existing_results.values()), True, mode='w')
+    write_results(output_file, list(existing_results.values()), True, fieldnames, mode='w')
 
     print(f'Results saved to {output_file}')
 
@@ -431,6 +433,10 @@ def test_container_integrals(problems: List[Problem],  integrals: ContainerInteg
         is_first_run = True
     
     final_results = {}
+
+    fieldnames = [
+            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors']
 
     for problem in problems:
         problem_name = str(problem)
@@ -494,10 +500,10 @@ def test_container_integrals(problems: List[Problem],  integrals: ContainerInteg
 
             # Write results incrementally to ensure recovery
             write_results(output_file, new_results, 
-                            is_first_run)
+                            is_first_run, fieldnames)
         is_first_run = False
         
-    write_results(output_file, list(final_results.values()), True, mode='w')
+    write_results(output_file, list(final_results.values()), True, fieldnames, mode='w')
     print(f'Results saved to {output_file}')
 
 
@@ -510,7 +516,7 @@ def test_integrator_performance_with_params(integrator: Integrator,
                                             verbose: int=1, 
                                             seed: int=2024, 
                                             n_repeat: int=10, 
-                                            integrator_specific_kwargs: Optional[dict] = None) -> None:
+                                            **kwargs: Any) -> None:
     """
     Test the performance of a single integrator on a problem 
     with varying parameter values.
@@ -536,8 +542,8 @@ def test_integrator_performance_with_params(integrator: Integrator,
         specify the randomness seed for reproducibility. Default is 2024.
     n_repeat : int, optional
         Number of times to repeat the integration and average the results. Default is 1.
-    integrator_specific_kwargs : dict, optional
-        Additional keyword arguments specific to the integrator.
+    kwargs : Any
+        arguments required for integrator.__call__ method
     """
 
     np.random.seed(seed)
@@ -551,12 +557,14 @@ def test_integrator_performance_with_params(integrator: Integrator,
 
     results = []
 
-    integrator_params = signature(integrator).parameters
+    fieldnames = [
+            'base_N', 'P', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors']
 
     # Check if the integrator has the parameters specified in param_grid
     for param in param_grid:
-        if param not in integrator_params:
-            raise ValueError(f"Integrator does not have a parameter '{param}' specified in param_grid")
+        if not hasattr(integrator, param):
+            raise ValueError(f"Integrator does not have a attribute '{param}' specified in param_grid")
 
     # Generate combinations of parameter values
     param_names = list(param_grid.keys())
@@ -571,18 +579,16 @@ def test_integrator_performance_with_params(integrator: Integrator,
                 print(f'Skipping combination {params}: already completed.')
             results.append(existing_results[key])
             continue
-
+        
         if verbose >= 1:
-            print(f'Testing Integrator: {integrator.name} with parameters {params}')
+            print(f'Testing integrator with parameters {params}')
+
+        integrator.base_N = params['base_N']
+        integrator.P = params['P']
 
         estimates = []
         n_evals_list = []
         total_time_taken = 0
-
-        specific_kwargs = integrator_specific_kwargs.get(integrator.name, {}).copy()
-
-        if 'integrand' in specific_kwargs:
-            specific_kwargs['integrand'] = problem.integrand
 
         for repeat in range(n_repeat):
             np.random.seed(seed + repeat)
@@ -592,8 +598,8 @@ def test_integrator_performance_with_params(integrator: Integrator,
 
             process = multiprocessing.Process(
                 target=integrator_wrapper, 
-                args=(integrator, problem, specific_kwargs, verbose, result_queue),
-                kwargs=params
+                args=(integrator, problem, verbose, result_queue),
+                kwargs=kwargs
             )
             process.start()
             process.join(timeout=max_time)
@@ -687,9 +693,9 @@ def test_integrator_performance_with_params(integrator: Integrator,
         existing_results[key] = new_result
 
         # Write results incrementally to ensure recovery
-        write_results(output_file, [new_result], is_first_run)
+        write_results(output_file, [new_result], is_first_run, fieldnames)
         is_first_run = False
 
-    write_results(output_file, list(existing_results.values()), True, mode='w')
+    write_results(output_file, list(existing_results.values()), True, fieldnames, mode='w')
 
     print(f'Results saved to {output_file}')

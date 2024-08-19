@@ -34,7 +34,7 @@ Ds = args.dimensions
                
 ### container Integrals 
 ranIntegral = RandomIntegral(n_samples=args.n_samples)
-aRbf = AdaptiveRbfIntegral(n_samples= args.n_samples, max_redraw=0)
+aRbf = AdaptiveRbfIntegral(n_samples= args.n_samples, max_redraw=0, n_splits=0)
 
 ### Splits
 if args.split == 'minsse':

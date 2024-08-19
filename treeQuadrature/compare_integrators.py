@@ -4,7 +4,7 @@ from .containerIntegration import ContainerIntegral
 from .visualisation import plotContainers
 from .container import Container
 
-import warnings, time, csv, os, multiprocessing
+import warnings, time, csv, os, multiprocessing, itertools
 
 from inspect import signature
 import numpy as np
@@ -12,7 +12,7 @@ from typing import List, Optional, Any
 from traceback import print_exc
 
 
-def integrator_wrapper(integrator, problem, specific_kwargs, verbose, result_queue):
+def integrator_wrapper(integrator, problem, verbose, result_queue, specific_kwargs={}):
     parameters = signature(integrator).parameters
     try:
         if verbose >= 2 and 'verbose' in parameters:
@@ -178,7 +178,7 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         print(f'----------------------------------')
 
 
-## add protection to code interruption
+## protection to code interruption
 def load_existing_results(output_file: str) -> dict:
     if not os.path.exists(output_file):
         return {}
@@ -186,12 +186,10 @@ def load_existing_results(output_file: str) -> dict:
         reader = csv.DictReader(file)
         return {(row['integrator'], row['problem']): row for row in reader}
     
-def write_results(output_file: str, results: List[dict], write_header: bool, 
+def write_results(output_file: str, results: List[dict], write_header: bool, fieldnames: List[str], 
                   mode: str='a'):
     with open(output_file, mode=mode, newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=[
-            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
-            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors'])
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
         if write_header:
             writer.writeheader()
         for result in results:
@@ -249,6 +247,10 @@ def test_integrators(integrators: List[Integrator],
 
     results = []
 
+    fieldnames = [
+            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors']
+
     for problem in problems:
         problem_name = str(problem)
 
@@ -286,7 +288,7 @@ def test_integrators(integrators: List[Integrator],
 
                 process = multiprocessing.Process(
                     target=integrator_wrapper, 
-                    args=(integrator, problem, specific_kwargs, verbose, result_queue)
+                    args=(integrator, problem, verbose, result_queue, specific_kwargs)
                 )
                 process.start()
                 process.join(timeout=max_time)
@@ -378,10 +380,10 @@ def test_integrators(integrators: List[Integrator],
 
             # Write results incrementally to ensure recovery
             write_results(output_file, [new_result], 
-                            is_first_run)
+                            is_first_run, fieldnames)
             is_first_run = False
 
-    write_results(output_file, list(existing_results.values()), True, mode='w')
+    write_results(output_file, list(existing_results.values()), True, fieldnames, mode='w')
 
     print(f'Results saved to {output_file}')
 
@@ -431,6 +433,10 @@ def test_container_integrals(problems: List[Problem],  integrals: ContainerInteg
         is_first_run = True
     
     final_results = {}
+
+    fieldnames = [
+            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors']
 
     for problem in problems:
         problem_name = str(problem)
@@ -494,8 +500,202 @@ def test_container_integrals(problems: List[Problem],  integrals: ContainerInteg
 
             # Write results incrementally to ensure recovery
             write_results(output_file, new_results, 
-                            is_first_run)
+                            is_first_run, fieldnames)
         is_first_run = False
         
-    write_results(output_file, list(final_results.values()), True, mode='w')
+    write_results(output_file, list(final_results.values()), True, fieldnames, mode='w')
+    print(f'Results saved to {output_file}')
+
+
+
+def test_integrator_performance_with_params(integrator: Integrator, 
+                                            problem: Problem, 
+                                            param_grid: dict, 
+                                            output_file: str='results.csv', 
+                                            max_time: float=60.0, 
+                                            verbose: int=1, 
+                                            seed: int=2024, 
+                                            n_repeat: int=10, 
+                                            **kwargs: Any) -> None:
+    """
+    Test the performance of a single integrator on a problem 
+    with varying parameter values.
+
+    Parameters
+    ----------
+    integrator : Integrator
+        The integrator instance to be tested.
+    problem : Problem
+        The problem instance containing the integrand and true answer.
+    param_grid : dict
+        Dictionary where keys are parameter names and values are lists of parameter values to test.
+        Example: {'base_N': [1000, 5000], 'P': [40, 60]}
+    output_file : str, optional
+        The file path to save the results as a CSV. Default is 'results.csv'.
+    max_time : float, optional
+        Maximum allowed time (in seconds) for each integration. Default is 60.0 seconds.
+    verbose : int, optional
+        if 1, print the problem and integrator being tested; 
+        if 2, print details of each integrator as well; 
+        if 0, print nothing. Default is 1.
+    seed : int, optional
+        specify the randomness seed for reproducibility. Default is 2024.
+    n_repeat : int, optional
+        Number of times to repeat the integration and average the results. Default is 1.
+    kwargs : Any
+        arguments required for integrator.__call__ method
+    """
+
+    np.random.seed(seed)
+
+    existing_results = load_existing_results(output_file)
+
+    if existing_results:
+        is_first_run = False
+    else:
+        is_first_run = True
+
+    results = []
+
+    fieldnames = [
+            'base_N', 'P', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors']
+
+    # Check if the integrator has the parameters specified in param_grid
+    for param in param_grid:
+        if not hasattr(integrator, param):
+            raise ValueError(f"Integrator does not have a attribute '{param}' specified in param_grid")
+
+    # Generate combinations of parameter values
+    param_names = list(param_grid.keys())
+    param_combinations = [dict(zip(param_names, values)) 
+                          for values in itertools.product(*param_grid.values())]
+
+    for params in param_combinations:
+        key = tuple(params.items())
+
+        if key in existing_results and existing_results[key]['estimate'] != '':
+            if verbose >= 1:
+                print(f'Skipping combination {params}: already completed.')
+            results.append(existing_results[key])
+            continue
+        
+        if verbose >= 1:
+            print(f'Testing integrator with parameters {params}')
+
+        integrator.base_N = params['base_N']
+        integrator.P = params['P']
+
+        estimates = []
+        n_evals_list = []
+        total_time_taken = 0
+
+        for repeat in range(n_repeat):
+            np.random.seed(seed + repeat)
+            start_time = time.time()
+            
+            result_queue = multiprocessing.Queue()
+
+            process = multiprocessing.Process(
+                target=integrator_wrapper, 
+                args=(integrator, problem, verbose, result_queue),
+                kwargs=kwargs
+            )
+            process.start()
+            process.join(timeout=max_time)
+
+            if process.is_alive():
+                print(f'Time limit exceeded for {integrator.name} with {params}, '
+                      'increase max_time or change the problem/integrator')
+                process.terminate()
+                process.join()  # Ensure process is fully terminated
+                new_result = {
+                    'base_N': params.get('base_N', None),
+                    'P': params.get('P', None),
+                    'problem': str(problem),
+                    'true_value': problem.answer,
+                    'estimate': None,
+                    'estimate_std': None,
+                    'error_type': 'Timeout',
+                    'error': None,
+                    'error_std': None,
+                    'n_evals': None,
+                    'n_evals_std': None,
+                    'time_taken': f'Exceeded {max_time}s',
+                    'errors': None
+                }
+                break
+            else:
+                result_dict = result_queue.get()
+                if 'exception' in result_dict:
+                    print(result_dict['exception'])
+                    new_result = {
+                        'base_N': params.get('base_N', None),
+                        'P': params.get('P', None),
+                        'problem': str(problem),
+                        'true_value': problem.answer,
+                        'estimate': None,
+                        'estimate_std': None,
+                        'error_type': result_dict['exception'],
+                        'error': None,
+                        'error_std': None,
+                        'n_evals': None,
+                        'n_evals_std': None,
+                        'time_taken': None, 
+                        'errors': None
+                    }
+                    break
+                else:
+                    result = result_dict['result']
+                    end_time = time.time()
+                    time_taken = end_time - start_time
+                    total_time_taken += time_taken
+
+                    estimate = result['estimate']
+                    n_evals = result['n_evals']
+                    estimates.append(estimate)
+                    n_evals_list.append(n_evals)
+
+        if len(estimates) == n_repeat:
+            estimates = np.array(estimates)
+            avg_estimate = np.mean(estimates)
+            avg_n_evals = np.mean(n_evals_list)
+            avg_time_taken = total_time_taken / n_repeat
+
+            if problem.answer != 0:
+                errors = 100 * (estimates - problem.answer) / problem.answer
+                avg_error = f'{np.mean(errors):.4f} %'
+                error_std = f'{np.std(errors):.4f} %'
+                error_name = 'Signed Relative error'
+            else: 
+                errors = estimates - problem.answer
+                avg_error = np.mean(errors)
+                error_std = np.std(errors)
+                error_name = 'Signed Absolute error'
+
+            new_result = {
+                'base_N': params.get('base_N', None),
+                'P': params.get('P', None),
+                'problem': str(problem),
+                'true_value': problem.answer,
+                'estimate': avg_estimate,
+                'estimate_std': np.std(estimates),
+                'error_type': error_name,
+                'error': avg_error,
+                'error_std': error_std,
+                'n_evals': avg_n_evals,
+                'n_evals_std': np.std(n_evals_list),
+                'time_taken': avg_time_taken, 
+                'errors': errors
+            }
+
+        # Update the existing results
+        existing_results[key] = new_result
+
+        # Write results incrementally to ensure recovery
+        write_results(output_file, [new_result], is_first_run, fieldnames)
+        is_first_run = False
+
+    write_results(output_file, list(existing_results.values()), True, fieldnames, mode='w')
+
     print(f'Results saved to {output_file}')

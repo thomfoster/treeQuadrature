@@ -87,7 +87,7 @@ if __name__ == '__main__':
             end_time = time.time()
             
             contributions = [result['integral'] for result in results_1]
-            estimate = np.sum(containers_1)
+            estimate = np.sum(contributions)
             return_values_1 = {'estimate' : estimate}
             N = sum([cont.N for cont in contributions])
             return_values_1['n_evals'] = N

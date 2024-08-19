@@ -7,7 +7,7 @@ from treeQuadrature import compare_integrators
 
 import numpy as np
 
-D = 2
+D = 5
 
 ### Set problem
 # problem = Camel(D=D)
@@ -23,9 +23,9 @@ problem = SimpleGaussian(D=D)
 ### set basic parameters
 n_samples = 30
 max_redraw = 4
-max_n_samples = 15_000
+max_n_samples = int(15_000 * (D/3))
 
-N = 10_000
+N = int(10_000 * (D/3))
 P = 50
 
 ### set GP fitter
@@ -37,8 +37,10 @@ rbfIntegral_mean = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3,
 rbfIntegral = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, 
                             fit_residuals=False, 
                             n_samples=n_samples)
-aRbf = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0)
-iRbf = IterativeRbfIntegral(n_samples=n_samples)
+rbfIntegral_non_iter = RbfIntegral(max_redraw=0, n_splits=0, 
+                                   n_samples=n_samples)
+aRbf = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0)
+iRbf = IterativeRbfIntegral(n_samples=n_samples, n_splits=0)
 rmeanIntegral = RandomIntegral(n_samples=n_samples)
 polyIntegral = PolyIntegral(n_samples=n_samples, degrees=[2, 3], max_redraw=0)
 
@@ -87,15 +89,16 @@ integ_rbf.name = 'TQ with RBF'
 integ4 = SimpleIntegrator(N, P, split, aRbf)
 integ4.name = 'TQ with Adaptive RBF'
 
-integ_batch = GpTreeIntegrator(N, P, split, rbfIntegral, grid_size=0.05, 
-                               sampler = lhsSampler)
+integ_batch = GpTreeIntegrator(N, P, split, rbfIntegral_non_iter, grid_size=0.05, 
+                               sampler = lhsSampler, max_n_samples=max_n_samples)
 integ_batch.name = 'Batch GP'
 
 integ_smc = SmcIntegrator(N=max_n_samples, sampler=UniformSampler())
 integ_smc.name = 'SMC'
 
 if __name__ == '__main__':
-    compare_integrators([integ_batch], plot=True, verbose=2,
+    compare_integrators([integ_batch, integ_rbf], plot=True, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], ylim=[problem.lows[1], problem.highs[1]], 
                         problem=problem, dimensions=[0, 1], 
-                        n_repeat=3, integrator_specific_kwargs={'LimitedSampleIntegrator': {'integrand' : problem.integrand}})
+                        n_repeat=3, integrator_specific_kwargs={
+                            'LimitedSampleIntegrator': {'integrand' : problem.integrand}})

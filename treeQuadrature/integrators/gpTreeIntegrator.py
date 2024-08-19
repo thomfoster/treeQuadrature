@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import warnings, time, traceback
 from queue import SimpleQueue
 from inspect import signature
@@ -100,7 +100,7 @@ def find_neighbors_grid(grid: dict, node: TreeNode, grid_size: int) -> List[Tree
 
 class GpTreeIntegrator(Integrator):
     def __init__(self, base_N: int, P: int, split: Split, integral: ContainerIntegral, 
-                 grid_size: int,
+                 grid_size: int, max_n_samples: Optional[int]=None,
                  sampler: Sampler=default_sampler):
         '''
         An integrator that allows communications between nodes
@@ -121,6 +121,10 @@ class GpTreeIntegrator(Integrator):
             a method for generating initial samples
             when problem does not have rvs method. 
             Default: UniformSampler
+        max_n_samples : int
+            if set, samples will be distributed 
+            evenly across batches
+            until max_n_samples samples are used
         
         Methods
         -------
@@ -147,6 +151,7 @@ class GpTreeIntegrator(Integrator):
         self.integral = integral
         self.sampler = sampler
         self.P = P
+        self.max_n_samples = max_n_samples
         self.integral_results = {}
         self.grid_size = grid_size
 
@@ -192,14 +197,29 @@ class GpTreeIntegrator(Integrator):
         return tree
 
     def fit_gps(self, tree: BinaryTree, integrand, verbose: bool = False, 
-                return_std: bool=False):
+            return_std: bool=False):
         leaf_nodes = tree.get_leaf_nodes()
         grid = build_grid(leaf_nodes, self.grid_size)
         
         batches = [nodes for _, nodes in grid.items()]
 
-        def fit_batch(batch):
+        if self.max_n_samples is not None:
+            # Calculate remaining samples to distribute among batches
+            used_samples = sum(node.container.N for node in leaf_nodes)
+            remaining_samples = max(0, self.max_n_samples - used_samples)
+
+            # Distribute remaining samples across batches
+            samples_per_batch = remaining_samples // len(batches)
+            extra_samples = remaining_samples % len(batches)
+        else:
+            samples_per_batch = None
+
+        def fit_batch(batch, n_samples=None):
             containers = [node.container for node in batch]
+            if n_samples is None:
+                n_samples = self.integral.n_samples
+
+            initial_N = sum([cont.N for cont in containers])
 
             # Check if hyperparameters are available and set them, otherwise use defaults
             try:
@@ -209,37 +229,32 @@ class GpTreeIntegrator(Integrator):
 
             try: 
                 gp = self.integral.GPFit(**self.integral.gp_params)
-                # set up iterative fitting scheme
-                iGP = IterativeGPFitting(n_samples=self.integral.n_samples, 
-                                         n_splits=self.integral.n_splits, 
+                iGP = IterativeGPFitting(n_samples=n_samples, 
+                                        n_splits=self.integral.n_splits, 
                                         max_redraw=self.integral.max_redraw, 
                                         performance_threshold=self.integral.threshold, 
                                         threshold_direction=self.integral.threshold_direction,
                                         gp=gp, fit_residuals=self.integral.fit_residuals)
             except Exception:
-                print("failed to create GPFit instance")
+                print("Failed to create GPFit instance")
                 print_exc()
-                
+                return
+            
+            # Set kernel parameters using a representative batch
             representative_hyper_params = None
-
-            # Select a representative hyperparameter set
-            # TODO - design a more intelligent selection? 
             for node in batch:
                 if node.hyper_params is not None:
                     representative_hyper_params = node.hyper_params
                     break
             
             if representative_hyper_params is None:
-                # If no hyperparameters are set, use the default kernel parameters
                 representative_hyper_params = kernel.get_params()
-
-            # Set the kernel parameters with the selected hyperparameters
             kernel.set_params(**representative_hyper_params)
 
             if verbose:
                 total_n = np.sum([cont.N for cont in containers])
-                print(f"Fitting a batch of containers with {total_n} data points "
-                      f"and {len(containers)}")
+                print(f"Fitting a batch of containers with {total_n} data points"
+                      f" and {len(containers)} containers")
 
             try:
                 gp_results = iGP.fit(integrand, containers, kernel, add_samples=True)
@@ -268,13 +283,22 @@ class GpTreeIntegrator(Integrator):
                 for neighbor in neighbors:
                     neighbor.hyper_params = hyper_params
 
-        # parallel processing
+            # check correct number of samples being added
+            new_samples = sum([cont.N for cont in containers]) - initial_N
+
+        # Parallel processing of batches
         with ThreadPoolExecutor() as executor:
-            executor.map(fit_batch, batches)
+            futures = [
+                executor.submit(fit_batch, batch, n_samples=samples_per_batch + (1 if i < extra_samples else 0))
+                for i, batch in enumerate(batches)
+            ]
+            for future in futures:
+                future.result()
 
     def __call__(self, problem: Problem, return_N: bool = False, 
                  return_containers: bool = False, return_std: bool = False, 
-                 verbose: bool = False, *args, **kwargs) -> dict:
+                 verbose: bool = False, 
+                 *args, **kwargs) -> dict:
         if verbose: 
             print('drawing initial samples')
 

@@ -13,7 +13,7 @@ from typing import List
 
 
 args = {}
-Ds = range(2, 16)
+Ds = range(1, 16)
 
 split = MinSseSplit()
 
@@ -21,28 +21,29 @@ args['P'] = 50
 args['n_samples'] = 30
 args['n_splits'] = 5
 args['n_repeat'] = 10
+args['range'] = 500
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-location_prefix = 'ablation_residuals/'
-
-integrator_names = ['Adaptive Rbf (mean)', 'Adaptive Rbf', 'Non Adaptive Rbf']
+location_prefix = 'ablation_adaptive/'
 
 
 def test_integrals_single_problem(problem, integrals: ContainerIntegral, 
                    integrator: Integrator):
     """Test container integrators on the same tree"""
-    return_values = []
-    for i, integral in enumerate(integrals):
-        X, y = integrator.sampler.rvs(integ.base_N, problem.lows, 
+    return_values = [[] for _ in range(len(integrals))]
+
+    # construct tree
+    X, y = integrator.sampler.rvs(integ.base_N, problem.lows, 
                                     problem.highs,
                                     problem.integrand)
         
-        root = Container(X, y, mins=problem.lows, maxs=problem.highs)
-        finished_containers = integ.construct_tree(root)
-
+    root = Container(X, y, mins=problem.lows, maxs=problem.highs)
+    finished_containers = integ.construct_tree(root)
+    
+    for i, integral in enumerate(integrals):
         integrator.integral = integral
 
-        print(f"integrating {integrator_names[i]}")
+        print(f"integrating {integrals[i].name}")
         start_time = time.time()
         results, containers = integ.integrate_containers(finished_containers, problem)
         end_time = time.time()
@@ -60,22 +61,24 @@ def test_integrals_single_problem(problem, integrals: ContainerIntegral,
 def test_container_integrals(problems: List[Problem],  integrals: ContainerIntegral, 
                              integrator: Integrator, output_file: str):
     existing_results = load_existing_results(output_file)
+    n_integrals = len(integrals)
+    integral_names = [integral.name for integral in integrals]
 
     if existing_results:
         is_first_run = False
     else:
         is_first_run = True
     
-    final_results = []
+    final_results = {}
 
     for problem in problems:
         problem_name = str(problem)
         print(f'testing Probelm: {problem_name}')
 
-        key = ('Iterative GP', problem_name)
+        key = (integral_names[0], problem_name)
         if key in existing_results and existing_results[key]['estimate'] != '':
             print(f'Skipping {problem_name}: already completed.')
-            final_results.append(existing_results[key])
+            final_results[key] = existing_results[key]
             continue
         
         estimates = [[] for _ in range(n_integrals)]
@@ -110,7 +113,7 @@ def test_container_integrals(problems: List[Problem],  integrals: ContainerInteg
                 error_name = 'Signed Relative error'
 
                 new_results.append({
-                    'integrator': integrator_names[i],
+                    'integrator': integral_names[i],
                     'problem': problem_name,
                     'true_value': problem.answer,
                     'estimate': avg_estimate,
@@ -126,7 +129,7 @@ def test_container_integrals(problems: List[Problem],  integrals: ContainerInteg
             
             # Update the existing results
             for i in range(n_integrals):
-                final_results[(integrator_names[i], problem_name)] = new_results[i]
+                final_results[(integral_names[i], problem_name)] = new_results[i]
 
             # Write results incrementally to ensure recovery
             write_results(output_file, new_results, 
@@ -160,18 +163,19 @@ if __name__ == '__main__':
         integral_mean = AdaptiveRbfIntegral(n_samples=args['n_samples'], 
                                                 max_redraw = 0,
                                                 n_splits=0)
+        integral_mean.name = 'Adaptive Rbf (mean)'
         integral = AdaptiveRbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
                                        fit_residuals=False,
                                        n_splits=0)
+        integral.name = 'Adaptive Rbf'
         integral_non_adaptive = RbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
                                                 n_splits=0, 
                                                 range=args['range'])
+        integral_non_adaptive.name = 'Non Adaptive Rbf'
         integrals = [integral_mean, integral, integral_non_adaptive]
 
-        n_integrals = len(integrals)
-
         integ = SimpleIntegrator(base_N=args['N'], P=args['P'], split=split, 
-                                 integral=integral_mean, 
+                                 integral=None, 
                                  sampler=McmcSampler())
             
         test_container_integrals(problems, integrals, integ, output_file)

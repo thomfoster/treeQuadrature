@@ -2,7 +2,7 @@ from .exampleProblems import Problem
 from .integrators import Integrator
 from .visualisation import plotContainers
 
-import warnings, time, csv, os, threading
+import warnings, time, csv, os, multiprocessing
 
 from inspect import signature
 import numpy as np
@@ -280,39 +280,41 @@ def test_integrators(integrators: List[Integrator],
                 np.random.seed(seed + repeat)
                 start_time = time.time()
                 
-                result_container = {}
-                try:
-                    thread = threading.Thread(target=integrator_wrapper, 
-                                              args=(integrator, problem, specific_kwargs, verbose, 
-                                                    result_container))
-                    thread.daemon = True
-                    thread.start()
-                    thread.join(timeout=max_time)
+                result_queue = multiprocessing.Queue()
 
-                    if thread.is_alive():
-                        print(f'Time limit exceeded for {integrator_name} on {problem_name}, '
-                              'increase max_time or change the problem/integrator')
-                        thread.join()  # Ensure the thread is cleaned up
-                        new_result = {
-                            'integrator': integrator_name,
-                            'problem': problem_name,
-                            'true_value': problem.answer,
-                            'estimate': None,
-                            'estimate_std': None,
-                            'error_type': 'Timeout',
-                            'error': None,
-                            'error_std': None,
-                            'n_evals': None,
-                            'n_evals_std': None,
-                            'time_taken': f'Exceeded {max_time}s',
-                            'errors': None
-                        }
-                        break
-                    elif 'exception' in result_container:
-                        print(result_container['exception'])
-                        break
+                process = multiprocessing.Process(
+                    target=integrator_wrapper, 
+                    args=(integrator, problem, specific_kwargs, verbose, result_queue)
+                )
+                process.start()
+                process.join(timeout=max_time)
+
+                if process.is_alive():
+                    print(f'Time limit exceeded for {integrator_name} on {problem_name}, '
+                          'increase max_time or change the problem/integrator')
+                    process.terminate()
+                    process.join()  # Ensure process is fully terminated
+                    new_result = {
+                        'integrator': integrator_name,
+                        'problem': problem_name,
+                        'true_value': problem.answer,
+                        'estimate': None,
+                        'estimate_std': None,
+                        'error_type': 'Timeout',
+                        'error': None,
+                        'error_std': None,
+                        'n_evals': None,
+                        'n_evals_std': None,
+                        'time_taken': f'Exceeded {max_time}s',
+                        'errors': None
+                    }
+                    break
+                else:
+                    result_dict = result_queue.get()
+                    if 'exception' in result_dict:
+                        raise result_dict['exception']
                     else:
-                        result = result_container.get('result')
+                        result = result_dict['result']
                         end_time = time.time()
                         time_taken = end_time - start_time
                         total_time_taken += time_taken
@@ -321,26 +323,6 @@ def test_integrators(integrators: List[Integrator],
                         n_evals = result['n_evals']
                         estimates.append(estimate)
                         n_evals_list.append(n_evals)
-                except Exception as e:
-                    print(f'Error during integration with {integrator_name} on {problem_name}: {e}')
-                    print_exc()
-
-                    new_result = {
-                        'integrator': integrator_name,
-                        'problem': problem_name,
-                        'true_value': problem.answer,
-                        'estimate': None,
-                        'estimate_std': None,
-                        'error_type': str(e),
-                        'error': None,
-                        'error_std': None,
-                        'n_evals': None,
-                        'n_evals_std': None,
-                        'time_taken': None,
-                        'errors': None
-                    }
-                    results.append(new_result)
-                    break
 
             if len(estimates) == n_repeat:
                 estimates = np.array(estimates)

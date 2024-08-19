@@ -107,7 +107,8 @@ if __name__ == '__main__':
                 OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
                 ProductPeakProblem(D, a=10),
                 C0Problem(D, a=1.1),
-                CornerPeakProblem(D, a=10)
+                CornerPeakProblem(D, a=10), 
+                DiscontinuousProblem(D, a=10)
             ]
         else:
             problems = [
@@ -120,7 +121,8 @@ if __name__ == '__main__':
                 OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
                 ProductPeakProblem(D, a=10),
                 C0Problem(D, a=1.1),
-                CornerPeakProblem(D, a=10)
+                CornerPeakProblem(D, a=10), 
+                DiscontinuousProblem(D, a=10)
             ]
 
         integ_simple = DistributedSampleIntegrator(base_N, args.P, max_samples, split, ranIntegral, 
@@ -142,10 +144,10 @@ if __name__ == '__main__':
                                                 max_container_samples=args.gp_max_container_samples)
         integ_rbf.name = 'TQ with Rbf'
         
-        integ_batch = GpTreeIntegrator(base_N, args.P, split, 
-                                       non_iter_rbf, grid_size=0.05, 
-                                       sampler = sampler, max_n_samples=args.max_samples)
-        integ_batch.name = 'batch GP'
+        # integ_batch = GpTreeIntegrator(base_N, args.P, split, 
+        #                                non_iter_rbf,
+        #                                sampler = sampler, max_n_samples=args.max_samples)
+        # integ_batch.name = 'batch GP'
         
         n_iter = args.vegas_iter
         n_vegas = int(max_samples / n_iter)
@@ -159,7 +161,7 @@ if __name__ == '__main__':
         integ_smc.name = 'SMC'
 
         # Now run the tests for the current dimension D
-        test_integrators([integ_simple, integ_activeTQ, integ_rbf, integ_smc, integ_vegas, integ_batch],
+        test_integrators([integ_simple, integ_activeTQ, integ_rbf, integ_smc, integ_vegas],
                         problems=problems, 
                         output_file=output_path,
                         max_time=args.max_time, n_repeat=args.n_repeat, 

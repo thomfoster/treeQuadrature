@@ -10,16 +10,16 @@ from typing import List, Optional, Any
 from traceback import print_exc
 
 
-def integrator_wrapper(integrator, problem, specific_kwargs, verbose, result_container):
+def integrator_wrapper(integrator, problem, specific_kwargs, verbose, result_queue):
     parameters = signature(integrator).parameters
     try:
         if verbose >= 2 and 'verbose' in parameters:
             result = integrator(problem, return_N=True, verbose=True, **specific_kwargs)
         else:
             result = integrator(problem, return_N=True, **specific_kwargs)
-        result_container['result'] = result
+        result_queue.put({'result': result})
     except Exception as e:
-        result_container['exception'] = e
+        result_queue.put({'exception': e})
 
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
                         plot: bool=False, verbose: int=1, 

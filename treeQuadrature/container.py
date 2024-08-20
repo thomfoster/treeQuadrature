@@ -3,17 +3,49 @@ import warnings
 
 
 class ArrayList:
-    def __init__(self, D):
+    """
+    A dynamic array implementation that resizes itself as elements are added.
+    
+    Attributes
+    ----------
+    D : int
+        The dimension of each data point to be stored in the array.
+    data : np.ndarray
+        The internal storage for the array elements, 
+        initialised with a default capacity.
+    capacity : int
+        The current maximum number of elements that 
+        the array can hold before needing to resize.
+    growth_factor : int
+        The factor by which the array's capacity increases when more space is needed.
+    freeSpace : int
+        The amount of unused space remaining in the array.
+    N : int
+        The current number of elements in the array.
+    
+    Methods
+    -------
+    add(xs)
+        Adds new elements to the array, resizing if necessary.
+    printer()
+        Prints the current state of the array, including its capacity, number of elements, and free space.
+    contents()
+        Returns the current elements stored in the array as a numpy array.
+    """
+    def __init__(self, D: int, growth_factor: int = 4, 
+                 initial_capacity: int=100):
         self.D = D
-        self.data = np.empty(shape=(100, self.D))
-        self.capacity = 100
-        self.freeSpace = 100  # should always have N + freeSpace = capacity
+        self.data = np.empty(shape=(initial_capacity, self.D))
+        self.capacity = initial_capacity
+        self.growth_factor = growth_factor
+        # should always have N + freeSpace = capacity
+        self.freeSpace = initial_capacity  
         self.N = 0
 
     def add(self, xs):
         n = xs.shape[0]
         if self.freeSpace < n:
-            newCapacity = 4 * (self.N + n)
+            newCapacity = max(self.growth_factor * self.capacity, self.N + n)
             newData = np.empty(shape=(newCapacity, self.D))
             newData[:self.N] = self.data[:self.N]
             self.data = newData

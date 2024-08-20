@@ -1,5 +1,5 @@
 from treeQuadrature.exampleProblems import PyramidProblem, RippleProblem, Camel, QuadCamel
-from treeQuadrature.samplers import Sampler, ImportanceSampler, McmcSampler, SobolSampler, StratifiedSampler
+from treeQuadrature.samplers import Sampler, ImportanceSampler, McmcSampler, SobolSampler, StratifiedSampler, AdaptiveImportanceSampler, LHSImportanceSampler
 from treeQuadrature import Container
 from treeQuadrature.visualisation import plotContainers
 
@@ -9,6 +9,8 @@ iSampler = ImportanceSampler()
 mcmcSampler = McmcSampler()
 sobolSampler = SobolSampler()
 stratifiedSampler = StratifiedSampler()
+aiSampler = AdaptiveImportanceSampler()
+lhsSampler = LHSImportanceSampler()
 
 def test_sampler(sampler: Sampler, N: int):
     X, y = sampler.rvs(N, mins=problem.lows, maxs=problem.highs, 
@@ -27,4 +29,4 @@ def test_sampler(sampler: Sampler, N: int):
                    xlim=[problem.lows[0], problem.highs[0]], 
                    ylim=[problem.lows[1], problem.highs[1]], plot_samples=True)
     
-test_sampler(iSampler, 10_000)
+test_sampler(aiSampler, 10_000)

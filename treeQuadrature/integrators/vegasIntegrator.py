@@ -19,13 +19,14 @@ class VegasIntegrator(Integrator):
     ----------
     N : int
         Number of samples to draw per iteration.
-    NITN : int
+    n_iter : int
         Number of adaptive iterations to perform.
     """
 
-    def __init__(self, N: int, NITN: int):
+    def __init__(self, N: int, n_iter: int, n_adaptive:int):
         self.N = N
-        self.NITN = NITN
+        self.n_iter = n_iter
+        self.n_adaptive = n_adaptive
 
     def __call__(self, problem: Problem, return_N: bool=False):
         """
@@ -45,12 +46,22 @@ class VegasIntegrator(Integrator):
             - 'estimate' (float) : estimated integral value
             - 'n_evals' (int) :  number of function estiamtions, if return_N is True
         """
-        integ = vegas.Integrator([[-1.0, 1.0]] * problem.D)
+        domain_bounds = []
+        for i in range(problem.D): 
+            domain_bounds.append([problem.lows[i], problem.highs[i]])
+
+        integ = vegas.Integrator(domain_bounds)
         # adjust the shape of output to suit vegas.Integrator
         f = ShapeAdapter(problem.integrand)
-        G = integ(f, nitn=self.NITN, neval=self.N).mean
 
-        ret = {'estimate': G}
+        # adaptive runs
+        integ(f, nitn = self.n_adaptive, neval=self.N)
+
+        result_vegas = integ(f, nitn=self.n_iter, neval=self.N)
+        print(type(result_vegas))
+        estimate = result_vegas.mean
+
+        ret = {'estimate': estimate}
         if return_N:
-            ret['n_evals'] = self.N * self.NITN
+            ret['n_evals'] = self.N * (self.n_iter + self.n_adaptive)
         return ret

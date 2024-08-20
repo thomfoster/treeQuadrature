@@ -20,11 +20,12 @@ parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample s
 parser.add_argument('--lsi_active_N', type=int, default=10, help='active sample size for LimitedSampleIntegrator (default: 10)')
 parser.add_argument('--bmc_N', type=int, default=1200, help='Base sample size for BMC (default: 1200)')
 parser.add_argument('--P', type=int, default=50, help='Size of the largest container (default: 50)')
-parser.add_argument('--vegas_iter', type=int, default=40, help='Number of iterations for VegasIntegrator (default: 40)')
+parser.add_argument('--vegas_iter', type=int, default=10, help='Number of iterations for VegasIntegrator (default: 10)')
 parser.add_argument('--max_time', type=float, default=180.0, help='Maximum allowed time for each integrator (default: 180.0)')
 parser.add_argument('--n_repeat', type=int, default=5, help='Number of repetitions for each test (default: 5)')
 parser.add_argument('--sampler', type=str, default='mcmc', help="The sampler used, must be one of 'mcmc', 'lhs', 'is' (default: mcmc)")
 parser.add_argument('--split', type=str, default='minsse', help="The splitting method used, must be one of 'minsse', 'kd' (default: 'minsse')")
+parser.add_argument('--retest', type=str, nargs='+', default=[], help='List of integrators to be retested (default: [])')
 
 # receive arguments from parser
 args = parser.parse_args()
@@ -144,13 +145,8 @@ if __name__ == '__main__':
                                                 max_container_samples=args.gp_max_container_samples)
         integ_rbf.name = 'TQ with Rbf'
         
-        # integ_batch = GpTreeIntegrator(base_N, args.P, split, 
-        #                                non_iter_rbf,
-        #                                sampler = sampler, max_n_samples=args.max_samples)
-        # integ_batch.name = 'batch GP'
-        
         n_iter = args.vegas_iter
-        n_vegas = int(max_samples / n_iter)
+        n_vegas = int(max_samples / (n_iter + 5))  # 5 accounts for adaptive iterations
         integ_vegas= VegasIntegrator(n_vegas, n_iter)
         integ_vegas.name = 'Vegas'
         
@@ -166,4 +162,5 @@ if __name__ == '__main__':
                         output_file=output_path,
                         max_time=args.max_time, n_repeat=args.n_repeat, 
                         integrator_specific_kwargs={'ActiveTQ': {'integrand' : None}, 
-                                                    'TQ with RBF' : {'max_iter' : 1000}})
+                                                    'TQ with RBF' : {'max_iter' : 1000}}, 
+                                                    retest_integrators=args.retest)

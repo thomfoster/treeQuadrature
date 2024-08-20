@@ -202,7 +202,8 @@ def test_integrators(integrators: List[Integrator],
                      verbose: int=1, 
                      seed: int=2024, 
                      n_repeat: int=1, 
-                     integrator_specific_kwargs: Optional[dict] = None) -> None:
+                     integrator_specific_kwargs: Optional[dict] = None, 
+                     retest_integrators: List[str]=[]) -> None:
     """
     Test different integrators on a list of problems 
     and save the results to a CSV file.
@@ -234,6 +235,8 @@ def test_integrators(integrators: List[Integrator],
         Number of times to repeat the integration and 
         average the results.
         Default is 1
+    retest_integrators: List[str], optional
+        Names of integrators that needs to be retested.
     """
 
     np.random.seed(seed)
@@ -262,7 +265,9 @@ def test_integrators(integrators: List[Integrator],
 
             # Check if the result already exists and is valid
             key = (integrator_name, problem_name)
-            if key in existing_results and existing_results[key]['estimate'] != '':
+            if key in existing_results and existing_results[key]['estimate'] != '' and (
+                existing_results[key]['integrator'] not in retest_integrators
+            ):
                 if verbose >= 1:
                     print(f'Skipping {integrator_name} for {problem_name}: already completed.')
                 results.append(existing_results[key])

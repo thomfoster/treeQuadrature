@@ -487,9 +487,9 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
         plt.legend(fontsize=legend_font_size)
         plt.grid(grid)
         if filename_prefix:
-            plt.savefig(f'figures/{filename_prefix}_{genre}_error_plot.png')
+            plt.savefig(f'figures/{filename_prefix}{genre}_error_plot.png')
             plt.close()
-            print(f'Figure saved to figures/{filename_prefix}_{genre}_error_plot.png')
+            print(f'Figure saved to figures/{filename_prefix}{genre}_error_plot.png')
         else:
             plt.savefig(f'figures/{genre}_error_plot.png')
             plt.close()

@@ -1,0 +1,8 @@
+{
+    "P": 50,
+    "n_samples": 20,
+    "max_redraw": 4,
+    "n_repeat": 10,
+    "N": 12000,
+    "threshold": 0.3
+}

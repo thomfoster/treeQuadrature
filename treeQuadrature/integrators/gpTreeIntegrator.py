@@ -297,10 +297,17 @@ class GpTreeIntegrator(Integrator):
 
         # Parallel processing of batches
         with ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(fit_batch, batch, n_samples=samples_per_batch + (1 if i < extra_samples else 0))
-                for i, batch in enumerate(batches)
-            ]
+            if self.max_n_samples is not None:
+                futures = [
+                    executor.submit(fit_batch, batch, 
+                                    n_samples=samples_per_batch + (1 if i < extra_samples else 0))
+                    for i, batch in enumerate(batches)
+                ]
+            else:
+                futures = [
+                    executor.submit(fit_batch, batch)
+                    for batch in batches
+                ]
             for future in futures:
                 future.result()
 
@@ -359,7 +366,8 @@ class GpTreeIntegrator(Integrator):
         leaf_nodes = tree.get_leaf_nodes()
 
         if return_std:
-            if hasattr(self.integral, 'return_std'):
+            parameters = signature(self.integral.containerIntegral).parameters
+            if 'return_std' in parameters:
                 contributions = [self.integral_results[node]['integral'] for node in leaf_nodes]
                 stds = [self.integral_results[node]['std'] for node in leaf_nodes]
             else:

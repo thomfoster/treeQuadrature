@@ -110,6 +110,10 @@ if __name__ == '__main__':
         
         results = []
 
+        fieldnames = [
+            'integrator', 'problem', 'true_value', 'estimate', 'estimate_std', 'error_type', 
+            'error', 'error_std', 'n_evals', 'n_evals_std', 'time_taken', 'errors']
+
         for problem in problems:
             problem_name = str(problem)
             print(f'testing Probelm: {problem_name}')
@@ -173,8 +177,8 @@ if __name__ == '__main__':
 
                 # Write results incrementally to ensure recovery
                 write_results(output_file, new_results, 
-                                is_first_run)
+                                is_first_run, fieldnames)
             is_first_run = False
             
-        write_results(output_file, list(existing_results.values()), True, mode='w')
+        write_results(output_file, list(existing_results.values()), True, fieldnames, mode='w')
         print(f'Results saved to {output_file}')

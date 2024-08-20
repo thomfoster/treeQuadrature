@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Optional
 import warnings, time, traceback
 from queue import SimpleQueue
 from inspect import signature
+from traceback import print_exc
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 
@@ -11,7 +12,7 @@ from ..containerIntegration import ContainerIntegral
 from ..samplers import Sampler, UniformSampler
 from ..container import Container
 from ..exampleProblems import Problem
-from ..gaussianProcess import kernel_integration
+from ..gaussianProcess import kernel_integration, IterativeGPFitting
 
 
 default_sampler = UniformSampler()
@@ -99,7 +100,8 @@ def find_neighbors_grid(grid: dict, node: TreeNode, grid_size: int) -> List[Tree
 
 class GpTreeIntegrator(Integrator):
     def __init__(self, base_N: int, P: int, split: Split, integral: ContainerIntegral, 
-                 grid_size: int,
+                 base_grid_scale: float=1.0, dimension_scaling_exponent: float = 0.9,
+                 length_scaling_exponent: float = 0.1, max_n_samples: Optional[int]=None,
                  sampler: Sampler=default_sampler):
         '''
         An integrator that allows communications between nodes
@@ -120,6 +122,18 @@ class GpTreeIntegrator(Integrator):
             a method for generating initial samples
             when problem does not have rvs method. 
             Default: UniformSampler
+        max_n_samples : int
+            if set, samples will be distributed 
+            evenly across batches
+            until max_n_samples samples are used
+        base_grid_scale : float, optional 
+            the baseline scale for the grid size 
+            before any adjustments for dimensionality or domain volume.
+        dimension_scaling_exponent : float, optional
+            Exponent to scale grid size with dimension.
+        length_scaling_exponent : float, optional
+            Exponent to scale grid size with average side length.
+
         
         Methods
         -------
@@ -146,10 +160,13 @@ class GpTreeIntegrator(Integrator):
         self.integral = integral
         self.sampler = sampler
         self.P = P
+        self.max_n_samples = max_n_samples
         self.integral_results = {}
-        self.grid_size = grid_size
+        self.base_grid_scale = base_grid_scale
+        self.dimension_scaling_exponent = dimension_scaling_exponent
+        self.length_scaling_exponent = length_scaling_exponent
 
-    def construct_tree(self, root: Container, verbose: bool = False, max_iter: int = 1e4) -> BinaryTree:
+    def construct_tree(self, root: Container, verbose: bool = False, max_iter: int = 4000) -> BinaryTree:
         tree = BinaryTree()
         tree.insert(root)
         q = SimpleQueue()
@@ -191,44 +208,65 @@ class GpTreeIntegrator(Integrator):
         return tree
 
     def fit_gps(self, tree: BinaryTree, integrand, verbose: bool = False, 
-                return_std: bool=False):
+            return_std: bool=False, grid_size: float=0.05):
         leaf_nodes = tree.get_leaf_nodes()
-        grid = build_grid(leaf_nodes, self.grid_size)
+        grid = build_grid(leaf_nodes, grid_size)
         
         batches = [nodes for _, nodes in grid.items()]
+        
+        if verbose:
+            print(f"got {len(batches)} batches")
 
-        def fit_batch(batch):
+        if self.max_n_samples is not None:
+            # Calculate remaining samples to distribute among batches
+            used_samples = sum(node.container.N for node in leaf_nodes)
+            remaining_samples = max(0, self.max_n_samples - used_samples)
+
+            # Distribute remaining samples across batches
+            samples_per_batch = remaining_samples // len(batches)
+            extra_samples = remaining_samples % len(batches)
+        else:
+            samples_per_batch = None
+
+        def fit_batch(batch, n_samples=None):
             containers = [node.container for node in batch]
+            if n_samples is None:
+                n_samples = self.integral.n_samples
 
             # Check if hyperparameters are available and set them, otherwise use defaults
             try:
                 kernel = self.integral.kernel
-                iGP = self.integral.iGP
-                threshold = self.integral.threshold
-                threshold_direction = self.integral.threshold_direction
             except AttributeError:
-                print('self.integral must have attributes `kernel`, '
-                      '`iGP`, `threshold`, `threshold_direction`') 
-                
-            representative_hyper_params = None
+                print('self.integral must have attributes `kernel`') 
 
-            # Select a representative hyperparameter set
-            # TODO - design a more intelligent selection? 
+            try: 
+                gp = self.integral.GPFit(**self.integral.gp_params)
+                iGP = IterativeGPFitting(n_samples=n_samples, 
+                                        n_splits=self.integral.n_splits, 
+                                        max_redraw=self.integral.max_redraw, 
+                                        performance_threshold=self.integral.threshold, 
+                                        threshold_direction=self.integral.threshold_direction,
+                                        gp=gp, fit_residuals=self.integral.fit_residuals)
+            except Exception:
+                print("Failed to create GPFit instance")
+                print_exc()
+                return
+            
+            # Set kernel parameters using a representative batch
+            representative_hyper_params = None
             for node in batch:
                 if node.hyper_params is not None:
                     representative_hyper_params = node.hyper_params
                     break
             
             if representative_hyper_params is None:
-                # If no hyperparameters are set, use the default kernel parameters
                 representative_hyper_params = kernel.get_params()
-
-            # Set the kernel parameters with the selected hyperparameters
             kernel.set_params(**representative_hyper_params)
 
             if verbose:
                 total_n = np.sum([cont.N for cont in containers])
-                print(f"Fitting a batch of containers with {total_n} data points")
+                print(f"Fitting a batch of containers with {total_n} data points"
+                      f" and {len(containers)} containers")
 
             try:
                 gp_results = iGP.fit(integrand, containers, kernel, add_samples=True)
@@ -253,26 +291,38 @@ class GpTreeIntegrator(Integrator):
                     return
 
                 # Pass hyper-parameters to neighbors
-                neighbors = find_neighbors_grid(grid, node, self.grid_size)
+                neighbors = find_neighbors_grid(grid, node, grid_size)
                 for neighbor in neighbors:
                     neighbor.hyper_params = hyper_params
 
-        # parallel processing
+        # Parallel processing of batches
         with ThreadPoolExecutor() as executor:
-            executor.map(fit_batch, batches)
+            futures = [
+                executor.submit(fit_batch, batch, n_samples=samples_per_batch + (1 if i < extra_samples else 0))
+                for i, batch in enumerate(batches)
+            ]
+            for future in futures:
+                future.result()
 
     def __call__(self, problem: Problem, return_N: bool = False, 
                  return_containers: bool = False, return_std: bool = False, 
-                 verbose: bool = False, *args, **kwargs) -> dict:
+                 verbose: bool = False, 
+                 *args, **kwargs) -> dict:
         if verbose: 
             print('drawing initial samples')
 
-        if hasattr(problem, 'rvs'):
+        if self.sampler is not None: 
+            X, y = self.sampler.rvs(self.base_N, problem.lows, problem.highs,
+                                    problem.integrand)
+        elif hasattr(problem, 'rvs'):
             X = problem.rvs(self.base_N)
             y = problem.integrand(X)
         else:
-            X, y = self.sampler.rvs(self.base_N, problem.lows, problem.highs,
-                                    problem.integrand)
+            raise RuntimeError('cannot draw initial samples. '
+                               'Either problem should have rvs method, '
+                               'or specify self.sampler'
+                               )
+            
         assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1), (
             'the output of problem.integrand must be one-dimensional array'
             f', got shape {y.shape}'
@@ -281,6 +331,17 @@ class GpTreeIntegrator(Integrator):
         if verbose: 
             print('constructing root container')
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
+
+        # set grid_size 
+        avg_side_length = np.mean(problem.highs - problem.lows)
+
+        grid_size = self.base_grid_scale * (
+            problem.D ** self.dimension_scaling_exponent) * (
+                avg_side_length**(-self.length_scaling_exponent))
+        
+        if verbose:
+            print(f"adaptive grid size: {grid_size}, "
+                f"average side length: {avg_side_length}")
 
         if verbose:
             print('constructing tree')
@@ -293,7 +354,7 @@ class GpTreeIntegrator(Integrator):
 
         if verbose:
             print('fitting GP to containers and passing hyper-parameters')
-        self.fit_gps(tree, problem.integrand, verbose, return_std)
+        self.fit_gps(tree, problem.integrand, verbose, return_std, grid_size)
 
         leaf_nodes = tree.get_leaf_nodes()
 

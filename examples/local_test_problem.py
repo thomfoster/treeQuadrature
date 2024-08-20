@@ -1,4 +1,4 @@
-from treeQuadrature.exampleProblems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem
+from treeQuadrature.exampleProblems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem, ExponentialProductProblem
 from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator, LimitedSamplesGpIntegrator, SmcIntegrator, DistributedSampleIntegrator, VegasIntegrator
 from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
 from treeQuadrature.splits import MinSseSplit, KdSplit
@@ -18,7 +18,7 @@ D = 5
 # problem = C0Problem(D, np.array([1.1] * D))
 # problem = CornerPeakProblem(D=D, a=np.array([10]*D))
 # problem = ProductPeakProblem(D=D, a=np.array([10]*D))
-
+problem = ExponentialProductProblem(D)
 
 ### set basic parameters
 n_samples = 30

@@ -390,7 +390,7 @@ def test_integrators(integrators: List[Integrator],
 
 
 def _test_integrals_single_problem(problem, integrals: ContainerIntegral, 
-                   integrator: TreeIntegrator):
+                   integrator: TreeIntegrator, verbose: int):
     """Test container integrators on the same tree"""
     return_values = [[] for _ in range(len(integrals))]
 
@@ -405,11 +405,14 @@ def _test_integrals_single_problem(problem, integrals: ContainerIntegral,
     for i, integral in enumerate(integrals):
         integrator.integral = integral
 
-        print(f"integrating {integrals[i].name}")
+        if verbose >= 2:
+            print(f"integrating {integrals[i].name}")
         start_time = time.time()
         results, containers = integrator.integrate_containers(finished_containers, 
                                                               problem)
         end_time = time.time()
+        if verbose >= 2:
+            print(f"completed, took {end_time - start_time}s")
 
         N = sum([cont.N for cont in containers])
         contributions = [result['integral'] for result in results]
@@ -417,12 +420,14 @@ def _test_integrals_single_problem(problem, integrals: ContainerIntegral,
         return_values[i] = {'estimate' : estimate, 
                             'n_evals' : N,
                             'time' : end_time - start_time}
+        
     
     return return_values
 
 
 def test_container_integrals(problems: List[Problem],  integrals: ContainerIntegral, 
-                             integrator: TreeIntegrator, output_file: str, n_repeat : int):
+                             integrator: TreeIntegrator, output_file: str, n_repeat : int, 
+                             verbose: int=1):
     existing_results = load_existing_results(output_file)
     n_integrals = len(integrals)
     integral_names = [integral.name for integral in integrals]
@@ -440,11 +445,13 @@ def test_container_integrals(problems: List[Problem],  integrals: ContainerInteg
 
     for problem in problems:
         problem_name = str(problem)
-        print(f'testing Probelm: {problem_name}')
+        if verbose >= 1:
+            print(f'testing Probelm: {problem_name}')
 
         key = (integral_names[0], problem_name)
         if key in existing_results and existing_results[key]['estimate'] != '':
-            print(f'Skipping {problem_name}: already completed.')
+            if verbose >= 1:
+                print(f'Skipping {problem_name}: already completed.')
             final_results[key] = existing_results[key]
             continue
         
@@ -452,9 +459,11 @@ def test_container_integrals(problems: List[Problem],  integrals: ContainerInteg
         n_evals_list = [[] for _ in range(n_integrals)]
         time_list = [[] for _ in range(n_integrals)]
 
-        for _ in range(n_repeat):
+        for repeat in range(n_repeat):
+            if verbose >= 2:
+                print(f"Repeat {repeat}")
             try: 
-                results = _test_integrals_single_problem(problem, integrals, integrator)
+                results = _test_integrals_single_problem(problem, integrals, integrator, verbose)
             except Exception as e:
                 print(f'Error during integration on {problem_name}: {e}')
                 print_exc()

@@ -1,0 +1,8 @@
+{
+    "P": 50,
+    "n_samples": 30,
+    "n_splits": 5,
+    "n_repeat": 10,
+    "range": 500,
+    "N": 9000
+}

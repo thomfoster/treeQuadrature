@@ -56,17 +56,23 @@ def test_treeIntegrator_io(integrator_instance):
     assert len(res['contributions']) == len(res['containers'])
 
 @pytest.mark.parametrize("integrator_instance", [
-    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.RbfIntegral()),
-    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.MedianIntegral()),
-    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), tq.containerIntegration.RandomIntegral()),
+    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), 
+                                    tq.containerIntegration.AdaptiveRbfIntegral(n_splits=0)),
+    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), 
+                                    tq.containerIntegration.MedianIntegral()),
+    tq.integrators.SimpleIntegrator(200, 40, tq.splits.KdSplit(), 
+                                    tq.containerIntegration.RandomIntegral()),
     tq.integrators.BayesMcIntegrator(200),
-    tq.integrators.SmcIntegrator(200)
+    tq.integrators.SmcIntegrator(200),
+    tq.integrators.GpTreeIntegrator(200, 40, tq.splits.KdSplit(), 
+                                    tq.containerIntegration.RbfIntegral(n_splits=0))
 ])
 def test_return_std(integrator_instance):
     problem = tq.exampleProblems.SimpleGaussian(1)
 
     res = integrator_instance(problem, return_std=True)
-    if "SimpleIntegrator" in str(integrator_instance):
+    if "SimpleIntegrator" in str(integrator_instance) or (
+        "GpTreeIntegrator" in str(integrator_instance)):
         for std in res['stds']:
             assert isinstance(std, float)
             assert std >= 0

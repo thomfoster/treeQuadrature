@@ -6,11 +6,15 @@ from treeQuadrature.samplers import McmcSampler
 from treeQuadrature.compare_integrators import test_container_integrals
 
 import numpy as np
-import os, json
+import os, json, argparse
 
+
+parser = argparse.ArgumentParser(description="Compare Iterative Fitting scheme and even samples for various dimensions")
+parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help="List of problem dimensions (default: [2])")
+args_parser = parser.parse_args()
+Ds = args_parser.dimensions
 
 args = {}
-Ds = range(1, 10)
 
 split = MinSseSplit()
 

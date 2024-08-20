@@ -24,7 +24,8 @@ def integrator_wrapper(integrator, problem, verbose, result_queue, specific_kwar
         result_queue.put({'exception': e})
 
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
-                        plot: bool=False, verbose: int=1, 
+                        plot: bool=False, plot_samples: bool=True,
+                        verbose: int=1, 
                         xlim: Optional[List[float]]=None, 
                         ylim: Optional[List[float]]=None,
                         dimensions: Optional[List[float]]=None,
@@ -57,6 +58,10 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
     plot : bool, optional
         Whether to plot the contributions of the integrators.
         Default is False.
+    plot_samples : bool, optional
+        Whether to plot samples on the figure produced
+        Default is True.
+        Will be ignored if plot = False
     verbose : int, optional
         If 0, print no message;
         if 1, print the test runrs;
@@ -169,7 +174,7 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
                 plotContainers(containers, contributions, 
                                xlim=xlim, ylim=ylim,
                                integrand=problem.integrand, 
-                               title=title, plot_samples=True, 
+                               title=title, plot_samples=plot_samples, 
                                dimensions=dimensions)
         elif plot: 
             warnings.warn('Result of integrator has no containers to plot', 

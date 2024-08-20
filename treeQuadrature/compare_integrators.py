@@ -437,7 +437,30 @@ def _test_integrals_single_problem(problem, integrals: ContainerIntegral,
 
 def test_container_integrals(problems: List[Problem],  integrals: ContainerIntegral, 
                              integrator: TreeIntegrator, output_file: str, n_repeat : int, 
-                             verbose: int=1):
+                             verbose: int=1) -> None:
+    """
+    Test different container integrals on a list of problems 
+    and save the results to a CSV file.
+
+    Parameters
+    ----------
+    problems : List[Problem]
+        A list of problem instances containing 
+        the integrand and true answer.
+    integrals : ContainerIntegral
+        A list of container integrals to be tested.
+    integrator : TreeIntegrator
+        The integrator instance used to perform the integrations.
+    output_file : str
+        The file path to save the results as a CSV.
+    n_repeat : int
+        Number of times to repeat the integration and average the results.
+    verbose : int, optional
+        Level of verbosity (default is 1):
+            0 - print no messages.
+            1 - print basic progress messages.
+            2 - print detailed progress messages, including each repetition.
+    """
     existing_results = load_existing_results(output_file)
     n_integrals = len(integrals)
     integral_names = [integral.name for integral in integrals]

@@ -1,6 +1,7 @@
 {
     "base_N": 36666,
     "max_samples": 55000,
+    "gp_min_container_samples": 10,
     "gp_max_container_samples": 150,
     "lsi_base_N": 3666,
     "lsi_active_N": 10,

@@ -46,6 +46,7 @@ class VegasIntegrator(Integrator):
             - 'n_evals' (int) :  number of function estiamtions, if return_N is True
         """
         integ = vegas.Integrator([[-1.0, 1.0]] * problem.D)
+        # adjust the shape of output to suit vegas.Integrator
         f = ShapeAdapter(problem.integrand)
         G = integ(f, nitn=self.NITN, neval=self.N).mean
 

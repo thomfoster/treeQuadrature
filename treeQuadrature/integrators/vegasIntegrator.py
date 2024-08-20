@@ -23,7 +23,7 @@ class VegasIntegrator(Integrator):
         Number of adaptive iterations to perform.
     """
 
-    def __init__(self, N: int, n_iter: int, n_adaptive:int):
+    def __init__(self, N: int, n_iter: int, n_adaptive:int=5):
         self.N = N
         self.n_iter = n_iter
         self.n_adaptive = n_adaptive
@@ -58,7 +58,6 @@ class VegasIntegrator(Integrator):
         integ(f, nitn = self.n_adaptive, neval=self.N)
 
         result_vegas = integ(f, nitn=self.n_iter, neval=self.N)
-        print(type(result_vegas))
         estimate = result_vegas.mean
 
         ret = {'estimate': estimate}

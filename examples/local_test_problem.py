@@ -7,7 +7,7 @@ from treeQuadrature import compare_integrators
 
 import numpy as np
 
-D = 3
+D = 6
 
 ### Set problem
 # problem = Camel(D=D)
@@ -23,7 +23,8 @@ problem = SimpleGaussian(D=D)
 ### set basic parameters
 n_samples = 30
 max_redraw = 4
-max_n_samples = int(15_000 * (D/3))
+max_n_samples = int(15_000 * (D/2))
+min_container_samples = 32
 
 N = int(10_000 * (D/3))
 P = 50
@@ -40,7 +41,9 @@ rbfIntegral = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3,
 rbfIntegral_non_iter = RbfIntegral(max_redraw=0, n_splits=0, 
                                    n_samples=n_samples)
 aRbf = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0, keep_samples=False)
-aRbf_iniital = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0)
+aRbf_iniital = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0, keep_samples=True)
+aRbf_qmc = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0, keep_samples=False,
+                               sampler=SobolSampler())
 iRbf = IterativeRbfIntegral(n_samples=n_samples, n_splits=0)
 rmeanIntegral = RandomIntegral(n_samples=n_samples)
 polyIntegral = PolyIntegral(n_samples=n_samples, degrees=[2, 3], max_redraw=0)
@@ -83,12 +86,18 @@ integ_limitedGp = LimitedSamplesGpIntegrator(base_N=N, P=P, max_n_samples=max_n_
                                             max_container_samples=100)
 integ_limitedGp.name = 'Limited RbfIntegrator'
 
+
+
 integ_rbf = DistributedSampleIntegrator(N, P, max_n_samples, split, aRbf, sampler=mcmcSampler, 
-                                        min_container_samples=10)
-integ_rbf.name = 'TQ with RBF, not keeping initial samples'
+                                        min_container_samples=min_container_samples)
+integ_rbf.name = 'TQ with RBF'
+
+integ_rbf_qmc = DistributedSampleIntegrator(N, P, max_n_samples, split, aRbf_qmc, sampler=mcmcSampler, 
+                                        min_container_samples=min_container_samples)
+integ_rbf_qmc.name = 'TQ with RBF with QMC container sampler'
 
 integ_rbf_initial = DistributedSampleIntegrator(N, P, max_n_samples, split, aRbf_iniital, sampler=mcmcSampler, 
-                                        min_container_samples=10)
+                                        min_container_samples=min_container_samples)
 integ_rbf_initial.name = 'TQ with RBF, keeping initial samples'
 
 integ4 = SimpleIntegrator(N, P, split, aRbf)
@@ -114,14 +123,14 @@ integ_vegas_adaptive.name = 'Adaptive Vegas'
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
+    compare_integrators([integ_rbf_qmc, integ_rbf, integ_vegas_adaptive], plot=True, verbose=1,
+                        xlim=[problem.lows[0], problem.highs[0]], 
+                        ylim=[problem.lows[1], problem.highs[1]], 
+                        problem=problem, dimensions=[0, 1], 
+                        n_repeat=5, integrator_specific_kwargs={
+                            'LimitedSampleIntegrator': {'integrand' : problem.integrand}})
     # compare_integrators([integ_rbf, integ_rbf_initial], plot=False, verbose=1,
     #                     xlim=[problem.lows[0], problem.highs[0]], 
-    #                     ylim=[problem.lows[1], problem.highs[1]], 
     #                     problem=problem, dimensions=[0, 1], 
-    #                     n_repeat=4, integrator_specific_kwargs={
+    #                     n_repeat=3, integrator_specific_kwargs={
     #                         'LimitedSampleIntegrator': {'integrand' : problem.integrand}})
-    compare_integrators([integ_rbf, integ_rbf_initial], plot=False, verbose=1,
-                        xlim=[problem.lows[0], problem.highs[0]], 
-                        problem=problem, dimensions=[0, 1], 
-                        n_repeat=3, integrator_specific_kwargs={
-                            'LimitedSampleIntegrator': {'integrand' : problem.integrand}})

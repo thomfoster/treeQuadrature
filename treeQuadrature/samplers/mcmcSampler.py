@@ -14,7 +14,7 @@ class McmcSampler(Sampler):
         Arguments
         ---------
         n_walkers : int, Optional
-            Number of walkers in the MCMC sampling.
+            Minimum number of walkers in the MCMC sampling.
             Default is 10.
         burning : int, Optional
             Number of initial samples to discard.
@@ -44,6 +44,8 @@ class McmcSampler(Sampler):
         """
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 
+        n_walkers = max(self.n_walkers, D * 2)
+
         def log_prob(x):
             # Calculate the log probability, using abs(f) for sampling
             within_bounds = np.all((x >= mins) & (x <= maxs))
@@ -59,13 +61,13 @@ class McmcSampler(Sampler):
             return np.log(f_val[0])
 
         # Initialize walkers
-        p0 = np.random.uniform(mins, maxs, size=(self.n_walkers, D))
+        p0 = np.random.uniform(mins, maxs, size=(n_walkers, D))
 
         # Calculate how many steps we need to take to get exactly n samples
-        nsteps = (n // self.n_walkers) + self.burning
+        nsteps = (n // n_walkers) + self.burning
 
         # Initialize and run the sampler
-        sampler = EnsembleSampler(self.n_walkers, D, log_prob)
+        sampler = EnsembleSampler(n_walkers, D, log_prob)
         sampler.run_mcmc(p0, nsteps, progress=False)
 
         # Extract exactly n samples after burn-in

@@ -23,10 +23,8 @@ class Integrator(ABC):
         Returns
         -------
         dict
-            estimate : float
-                estimated integral value
-            n_evals : int
-                number of function estiamtions
-            and other necessary details
+            - estimate (float) : estimated integral value
+            - n_evals (int) : number of function estiamtions
+            - other necessary details
         """
         pass

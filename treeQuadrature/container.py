@@ -169,7 +169,7 @@ class Container:
         if (y.ndim != 2 or y.shape[1] != 1) and y.ndim != 1:
             raise ValueError(
                 "y must be a 1-dimensional array, or 2-dimensional array"
-                f" with shape (N, 1), got {y.ndim}"
+                f" with shape (N, 1), got shape {y.shape}"
             )
         if X.shape[0] != y.shape[0]:
             raise ValueError(f"The number of samples in X and y must be the same, got {X.shape[0]} and {y.shape[0]}")

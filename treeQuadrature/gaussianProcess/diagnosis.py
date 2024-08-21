@@ -38,10 +38,10 @@ def GP_diagnosis(igp: IterativeGPFitting, container: Container,
     n = xs.shape[0]
 
     # Make predictions
-    y_pred = igp.gp.predict(xs)
+    y_pred, sigma = igp.gp.predict(xs, return_std=True)
 
     # Check R-squared and MSE
-    score = igp.scoring(ys, y_pred)
+    score = igp.scoring(ys, y_pred, sigma)
     mse = mean_squared_error(ys, y_pred)
 
     if is_poor_fit(score, igp.performance_threshold, 

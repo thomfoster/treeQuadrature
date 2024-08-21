@@ -1,5 +1,5 @@
-from treeQuadrature.exampleProblems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem
-from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator, LimitedSamplesGpIntegrator, SmcIntegrator, DistributedSampleIntegrator
+from treeQuadrature.exampleProblems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem, ExponentialProductProblem
+from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator, LimitedSamplesGpIntegrator, SmcIntegrator, DistributedSampleIntegrator, VegasIntegrator
 from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
 from treeQuadrature.splits import MinSseSplit, KdSplit
 from treeQuadrature.samplers import ImportanceSampler, UniformSampler, McmcSampler, SobolSampler, LHSImportanceSampler
@@ -11,14 +11,14 @@ D = 5
 
 ### Set problem
 # problem = Camel(D=D)
-problem = SimpleGaussian(D=D)
+# problem = SimpleGaussian(D=D)
 # problem = RippleProblem(D=D)
 # problem = QuadraticProblem(D=D)
 # problem = OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D)))
 # problem = C0Problem(D, np.array([1.1] * D))
 # problem = CornerPeakProblem(D=D, a=np.array([10]*D))
 # problem = ProductPeakProblem(D=D, a=np.array([10]*D))
-
+problem = ExponentialProductProblem(D)
 
 ### set basic parameters
 n_samples = 30
@@ -96,9 +96,21 @@ integ_batch.name = 'Batch GP'
 integ_smc = SmcIntegrator(N=max_n_samples, sampler=UniformSampler())
 integ_smc.name = 'SMC'
 
+n_iter = 10
+adaptive_iter = 0
+vegas_n = int(max_n_samples / (n_iter + adaptive_iter))
+integ_vegas = VegasIntegrator(vegas_n, n_iter, adaptive_iter)
+integ_vegas.name = 'Vegas'
+
+adaptive_iter = 5
+vegas_n = int(max_n_samples / (n_iter + adaptive_iter))
+integ_vegas_adaptive = VegasIntegrator(vegas_n, n_iter, adaptive_iter)
+integ_vegas_adaptive.name = 'Adaptive Vegas'
+
 if __name__ == '__main__':
-    compare_integrators([integ_batch, integ_rbf], plot=True, verbose=1,
-                        xlim=[problem.lows[0], problem.highs[0]], ylim=[problem.lows[1], problem.highs[1]], 
+    compare_integrators([integ_vegas, integ_vegas_adaptive], plot=True, verbose=1,
+                        xlim=[problem.lows[0], problem.highs[0]], 
+                        ylim=[problem.lows[1], problem.highs[1]], 
                         problem=problem, dimensions=[0, 1], 
                         n_repeat=3, integrator_specific_kwargs={
                             'LimitedSampleIntegrator': {'integrand' : problem.integrand}})

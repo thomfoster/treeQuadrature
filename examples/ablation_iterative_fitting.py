@@ -14,9 +14,10 @@ parser = argparse.ArgumentParser(description="Compare Iterative Fitting scheme a
 parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help="List of problem dimensions (default: [2])")
 
 args_parser = parser.parse_args()
+Ds = args_parser.dimensions
 
 args = {}
-Ds = args_parser.dimensions
+
 
 split = MinSseSplit()
 

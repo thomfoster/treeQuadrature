@@ -7,10 +7,13 @@
     "lsi_active_N": 10,
     "bmc_N": 1200,
     "P": 50,
-    "vegas_iter": 40,
+    "vegas_iter": 10,
     "max_time": 600.0,
     "n_repeat": 10,
     "sampler": "lhs",
     "split": "minsse",
+    "retest": [
+        "Vegas"
+    ],
     "lsi_N": 1111
 }

@@ -242,7 +242,7 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         # Adjust allocations if too many samples were assigned
         if total_assigned > remaining_samples:
             excess = total_assigned - remaining_samples
-            for cont in finished_containers:
+            for cont in sorted(finished_containers, key=lambda c: c.volume):
                 if excess <= 0:
                     break
                 reduce_by = min(excess, samples_distribution[cont] - 
@@ -253,7 +253,7 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         # Re-check and distribute any leftover samples if less were assigned
         if total_assigned < remaining_samples:
             remainder_samples = remaining_samples - total_assigned
-            for cont in finished_containers:
+            for cont in sorted(finished_containers, key=lambda c: -c.volume):
                 if remainder_samples <= 0:
                     break
                 if samples_distribution[cont] < max_container_samples:

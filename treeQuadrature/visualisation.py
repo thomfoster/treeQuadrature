@@ -8,8 +8,8 @@ import pandas as pd
 
 import numpy as np
 from typing import Optional, List, Callable
+import warnings
 
-from .utils import scale
 from .container import Container
 
 def plotContainers(containers: List[Container], contributions: List[float], 
@@ -310,7 +310,8 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
                 plot_title: bool = True, 
                 grid: bool = True, 
                 filename_prefix: Optional[str] = None, 
-                integrators: Optional[List[str]] = None) -> None:
+                integrators: Optional[List[str]] = None, 
+                display_names: Optional[List[str]] = None) -> None:
     """
     Plot errors and error_std for each genre and integrator
     and save it to a file figures/filename_prefix_genre_error_plot.csv. 
@@ -352,10 +353,13 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
     filename_prefix : str, optional
         The prefix for the filenames where plots will be saved.
         If not given, no prefix, 
-    integrators : List[str], optional
+    integrators : List[str, optional
         List of integrators to include in the plots. 
         If not specified, all integrators will be plotted
-
+    display_names : List[str], optional
+        an option to change the names of integrators
+        displayed on the plots
+        
     Notes
     -----
     The data should contain columns 'problem', 'integrator', 'error', 
@@ -378,6 +382,9 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
         for integrator in integrators:
             if integrator not in all_integrators:
                 raise ValueError(f"Integrator {integrator} not found in data")
+    
+    if display_names and len(display_names) != len(integrators):
+        raise ValueError("'display_names' should have the same length as integrators")
 
     plt.rcParams.update({'font.size': font_size})
 
@@ -404,6 +411,10 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
             continue
 
         dimensions = genre_data['Dimension'].unique()
+        if len(dimensions) == 0:
+            warnings.warn(f"no data available for problem {genre}, will be skipped")
+            continue
+        
         dimensions.sort()
 
         plt.figure(figsize=(14, 10))
@@ -465,7 +476,8 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
                     plt.errorbar(x_offset, errors, yerr=error_stds,
                                  fmt='o', capsize=5)    
 
-            plt.plot(x_offset, errors, label=integrator, marker='o', color=color)
+            label = display_names[idx] if display_names else integrator
+            plt.plot(x_offset, errors, label=label, marker='o', color=color)
         
         if y_lim is not None:
             plt.ylim(y_lim)
@@ -499,7 +511,7 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
 def plot_times(data: pd.DataFrame, genres: List[str], 
                font_size: int = 10, filename_prefix: Optional[str] = None, 
                integrators: Optional[list]=None, title: bool=True, 
-               same_figure: bool=False) -> None:
+               same_figure: bool=False, display_names: Optional[List[str]] = None) -> None:
     """
     Plot the time taken for each genre and integrator, 
     and save it to a file 
@@ -522,6 +534,9 @@ def plot_times(data: pd.DataFrame, genres: List[str],
         If not specified, all integrators will be plotted
     title : bool, optional
         If true, plot the title
+    display_names : List[str], optional
+        an option to change the names of integrators
+        displayed on the plots
 
     Notes
     -----
@@ -544,17 +559,23 @@ def plot_times(data: pd.DataFrame, genres: List[str],
         for integrator in integrators:
             if integrator not in all_integrators:
                 raise ValueError(f"Integrator {integrator} not found in data")
+            
+    if len(display_names) != len(integrators):
+        raise ValueError("'display_names' should have the same length as integrators")
 
     data['Dimension'] = data['problem'].str.extract(r'D=(\d+)').astype(int)
 
     for genre in genres:
         genre_data = data[data['problem'].str.contains(genre)]
         dimensions = genre_data['Dimension'].unique()
+        if len(dimensions) == 0:
+            warnings.warn(f"no data available for problem {genre}, will be skipped")
+            continue
         dimensions.sort()
 
         plt.figure(figsize=(14, 10))
     
-        for integrator in integrators:
+        for i, integrator in enumerate(integrators):
             genre_integrator_data = genre_data[genre_data['integrator'] == integrator]
             times = []
             
@@ -571,8 +592,10 @@ def plot_times(data: pd.DataFrame, genres: List[str],
                     times.append(float('nan'))
             
             plt.gca().xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+            label = display_names[i] if display_names else integrator
+
             if same_figure:
-                plt.plot(dimensions, times, marker='o', label=integrator)
+                plt.plot(dimensions, times, marker='o', label=label)
             else:
                 plt.plot(dimensions, times, marker='o')
 

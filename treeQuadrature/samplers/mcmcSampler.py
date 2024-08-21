@@ -1,157 +1,80 @@
-from abc import ABC, abstractmethod
+from typing import Tuple
 import numpy as np
-from typing import Optional, Any, Tuple
-
+from emcee import EnsembleSampler
 from .sampler import Sampler
 
-class Proposal(ABC):
-    @abstractmethod
-    def propose(self, current_sample: np.ndarray, 
-                lows: np.ndarray, highs: np.ndarray) -> np.ndarray:
-        """
-        Generate a new sample based on the current sample.
-        
-        Parameters
-        ----------
-        current_sample : np.ndarray
-            The current sample.
-        lows, highs: np.ndarray
-            the lower and upper boundaries of sampling region
-        
-        Returns
-        -------
-        np.ndarray
-            The proposed new sample.
-            same shape as current_sample
-        """
-        pass
-
-    @abstractmethod
-    def density(self, new_sample: np.ndarray, 
-                current_sample: np.ndarray) -> float:
-        """
-        Calculate the proposal density of transitioning 
-        from current_sample to new_sample.
-        
-        Parameters
-        ----------
-        new_sample : np.ndarray
-            The new proposed sample.
-        current_sample : np.ndarray
-            The current sample.
-        
-        Returns
-        -------
-        float
-            The density of proposing `new_sample` from `current_sample`.
-        """
-        pass
-
-class GaussianProposal(Proposal):
-    """
-    Gaussian proposal which avoids generating samples at the boundaries 
-    """
-    def __init__(self, std: float):
-        self.std = std
-
-    def propose(self, current_sample: np.ndarray, 
-                lows: np.ndarray, highs: np.ndarray) -> np.ndarray:
-        proposal = current_sample + np.random.normal(
-            0, self.std, size=current_sample.shape
-            )
-        # Clip to avoid boundary issues
-        proposal = np.clip(proposal, lows + 1e-6, 
-                           highs - 1e-6)
-        return proposal
-
-    def density(self, new_sample: np.ndarray, 
-                current_sample: np.ndarray) -> float:
-        # factor outside exponent will be cancelled in acceptance ratio
-        exponent = -np.sum((new_sample - current_sample) ** 2
-                           ) / (2 * self.std ** 2)
-        return np.exp(exponent)
-    
 class McmcSampler(Sampler):
     """
     MCMC sampler that generates samples from 
-    the modulus of f
-    using the Metropolis-Hastings algorithm.
+    the modulus of f using the `emcee` package.
     """
 
-    def __init__(self, proposal: Optional[Proposal]=None,
-                 burning: int=100):
+    def __init__(self, n_walkers: int = 10, burning: int = 0):
         """
         Arguments
         ---------
-        proposal : Proposal, Optional
-            Default: GaussianProposal(std=0.5)
+        n_walkers : int, Optional
+            Minimum number of walkers in the MCMC sampling.
+            Default is 10.
         burning : int, Optional
-            Number of initial samples to discard
-            Defaults to 100
+            Number of initial samples to discard.
+            Defaults to 0.
         """
-        if proposal is not None:
-            self.proposal = proposal
-        else:
-            self.proposal = GaussianProposal(std=0.5)
-
+        self.n_walkers = n_walkers
         self.burning = burning
 
     def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray,
-            f: callable,
-            **kwargs: Any) -> Tuple[np.ndarray, np.ndarray]:
+            f: callable, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Generate MCMC samples.
+        Generate exactly n MCMC samples using the EnsembleSampler.
 
         Parameters
         ----------
         n : int 
-            Number of samples.
+            Number of samples to generate.
         mins, maxs : np.ndarray
-            1 dimensional arrays of the lower bounds
-            and upper bounds
-        f : function
-            the integrand
+            1-dimensional arrays of the lower and upper bounds.
+        f : callable
+            The integrand function from which to sample.
 
         Returns
         -------
-        np.ndarray
-            Samples from the modulus of the integrand.
+        Tuple[np.ndarray, np.ndarray]
+            The generated samples and their corresponding function values.
         """
-        if not isinstance(n, (int, np.integer)):
-            raise TypeError(f"n must be an integer, got {n} of type "
-                            f"type(n)")
-        
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 
-        xs = np.zeros((n+self.burning, D))
-        ys = np.zeros((n+self.burning))
-        current_sample = np.random.uniform(low=mins, 
-                                           high=maxs, size=D)
-        
-        for i in range(n+self.burning):
-            proposal = self.proposal.propose(current_sample, 
-                                             mins, maxs)
-            proposal = np.clip(proposal, mins, maxs)
-            
-            current_value = np.abs(f(current_sample.reshape(1, -1)))[0]
-            proposal_value = np.abs(f(proposal.reshape(1, -1)))[0]
+        n_walkers = max(self.n_walkers, D * 2)
 
-            if current_value == 0:
-                acceptance_ratio = 1.0
-            else:
-                proposal_density_forward = max(self.proposal.density(proposal, 
-                                                                     current_sample), 1e-10)
-                proposal_density_backward = max(self.proposal.density(current_sample, 
-                                                                      proposal), 1e-10)
+        def log_prob(x):
+            # Calculate the log probability, using abs(f) for sampling
+            within_bounds = np.all((x >= mins) & (x <= maxs))
+            if not within_bounds:
+                return -np.inf  # log(0) = -inf
 
-                acceptance_ratio = min(1, (proposal_value / current_value) * 
-                                       (proposal_density_backward / proposal_density_forward))
+            f_val = np.abs(f(x.reshape(1, -1)))
             
-            if np.random.rand() < acceptance_ratio:
-                current_sample = proposal
-                current_value = proposal_value
+            # Avoid log of zero or negative values
+            if f_val[0] <= 0:
+                return -np.inf
             
-            xs[i] = current_sample
-            ys[i] = current_value.item()
+            return np.log(f_val[0])
 
-        return xs[self.burning:], ys[self.burning:]
+        # Initialize walkers
+        p0 = np.random.uniform(mins, maxs, size=(n_walkers, D))
+
+        # Calculate how many steps we need to take to get exactly n samples
+        nsteps = (n // n_walkers) + self.burning
+
+        # Initialize and run the sampler
+        sampler = EnsembleSampler(n_walkers, D, log_prob)
+        sampler.run_mcmc(p0, nsteps, progress=False)
+
+        # Extract exactly n samples after burn-in
+        flat_samples = sampler.get_chain(discard=self.burning, flat=True)
+        samples = flat_samples[:n]
+
+        # Evaluate the function on the final samples
+        final_values = np.abs(f(samples))
+
+        return samples, final_values

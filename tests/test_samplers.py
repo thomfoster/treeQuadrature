@@ -21,11 +21,7 @@ def test_sampler(sampler, D):
     X, y = sampler.rvs(N, mins=problem.lows, maxs=problem.highs, 
                     f = problem.integrand)
 
-    if 'SobolSampler' in str(sampler):
-        # number of samples in LowDiscrepancySampler must be power of 2
-        assert X.shape[0] <= N
-    else:
-        assert X.shape[0] == N
+    assert X.shape[0] == N
 
     root = tq.Container(X, y, mins=problem.lows, maxs=problem.highs)
     assert (root.X >= problem.lows).all() and (root.X <= problem.highs).all()

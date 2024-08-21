@@ -7,7 +7,7 @@ from treeQuadrature.splits import MinSseSplit
 import numpy as np
 import os
 
-n_repeat = 1
+n_repeat = 10
 max_time = 500
 Ds = np.arange(2, 14, 3)
 integral = AdaptiveRbfIntegral(n_splits=0, max_redraw=3, n_samples=20)

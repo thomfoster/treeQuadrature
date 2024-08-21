@@ -26,14 +26,21 @@ class SobolSampler(Sampler):
         -------
         np.ndarray
             Samples from the distribution.
-        """        
+        """
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
-
-        n_adjusted = 2 ** np.floor(np.log2(n)).astype(int)
-        sampler = Sobol(d=D, scramble=False)
+        
+        # Find the next power of two greater than or equal to n
+        n_adjusted = 2 ** np.ceil(np.log2(n)).astype(int)
+        sampler = qmc.Sobol(d=D, scramble=False)
+        
+        # Generate more samples than needed if necessary
         xs = sampler.random(n_adjusted)
         
         # Map xs from [0, 1] to the integration domain
         xs = xs * (maxs - mins) + mins
+        
+        # If more samples were generated, truncate to the desired amount
+        if n < n_adjusted:
+            xs = xs[:n]
         
         return xs, f(xs)

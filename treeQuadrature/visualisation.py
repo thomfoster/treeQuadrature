@@ -498,7 +498,8 @@ def plot_errors(data: pd.DataFrame, genres: List[str],
 
 def plot_times(data: pd.DataFrame, genres: List[str], 
                font_size: int = 10, filename_prefix: Optional[str] = None, 
-               integrators: Optional[list]=None, title: bool=True) -> None:
+               integrators: Optional[list]=None, title: bool=True, 
+               same_figure: bool=False) -> None:
     """
     Plot the time taken for each genre and integrator, 
     and save it to a file 
@@ -570,19 +571,42 @@ def plot_times(data: pd.DataFrame, genres: List[str],
                     times.append(float('nan'))
             
             plt.gca().xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-            plt.plot(dimensions, times, marker='o')
+            if same_figure:
+                plt.plot(dimensions, times, marker='o', label=integrator)
+            else:
+                plt.plot(dimensions, times, marker='o')
+
+            if not same_figure:
+                if title:
+                    plt.title(f'Time Taken for {genre} \n {integrator}')
+                plt.xlim(min(dimensions)-1, max(dimensions)+1)
+                plt.xlabel('Dimension')
+                plt.ylabel('Time Taken (seconds)')
+                plt.grid(True)
+                plt.tight_layout()
+                if filename_prefix:
+                    plt.savefig(f'figures/{filename_prefix}{genre}_time_plot_{integrator}.png')
+                    plt.close()
+                    print(f'Figure saved to figures/{filename_prefix}{genre}_time_plot_{integrator}.png')
+                else:
+                    plt.savefig(f'figures/{genre}_time_plot_{integrator}.png')
+                    plt.close()
+                    print(f'Figure saved to figures/{genre}_time_plot_{integrator}.png')
+
+        if same_figure:
             if title:
-                plt.title(f'Time Taken for {genre} \n {integrator}')
+                plt.title(f'Time Taken for {genre}')
             plt.xlim(min(dimensions)-1, max(dimensions)+1)
             plt.xlabel('Dimension')
             plt.ylabel('Time Taken (seconds)')
+            plt.legend()
             plt.grid(True)
             plt.tight_layout()
             if filename_prefix:
-                plt.savefig(f'figures/{filename_prefix}_{genre}_time_plot_{integrator}.png')
+                plt.savefig(f'figures/{filename_prefix}{genre}_time_plot.png')
                 plt.close()
-                print(f'Figure saved to figures/{filename_prefix}_{genre}_time_plot_{integrator}.png')
+                print(f'Figure saved to figures/{filename_prefix}{genre}_time_plot.png')
             else:
-                plt.savefig(f'figures/{genre}_time_plot_{integrator}.png')
+                plt.savefig(f'figures/{genre}_time_plot.png')
                 plt.close()
-                print(f'Figure saved to figures/{genre}_time_plot_{integrator}.png')
+                print(f'Figure saved to figures/{genre}_time_plot.png')

@@ -9,7 +9,7 @@ import numpy as np
 import os, json, argparse
 
 
-parser = argparse.ArgumentParser(description="Compare Iterative Fitting scheme and even samples for various dimensions")
+parser = argparse.ArgumentParser(description="Compare three container integrals for various dimensions on the selected benchmark problems")
 parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help="List of problem dimensions (default: [2])")
 args_parser = parser.parse_args()
 Ds = args_parser.dimensions

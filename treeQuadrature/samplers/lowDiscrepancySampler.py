@@ -31,7 +31,7 @@ class SobolSampler(Sampler):
         
         # Find the next power of two greater than or equal to n
         n_adjusted = 2 ** np.ceil(np.log2(n)).astype(int)
-        sampler = qmc.Sobol(d=D, scramble=False)
+        sampler = Sobol(d=D, scramble=False)
         
         # Generate more samples than needed if necessary
         xs = sampler.random(n_adjusted)

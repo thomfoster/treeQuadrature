@@ -385,6 +385,7 @@ class IterativeGPFitting:
             the kernel used to fit GP
         add_sample : bool, optional (default=True)
             if true, add samples to the container(s)
+            iniital_samples will NOT be added
         initial_samples: tuple, optional
             if given, start the fit using initial_samples
             (xs, ys)
@@ -392,29 +393,26 @@ class IterativeGPFitting:
         Return
         ------
         dict
-            - performance (float) the performance of best GP model under KFold CV
+            - performance (float) the performance of the best GP model under KFold CV
             - y_mean (float) mean of the final training samples
+            - new_samples (list) if add_samples is False, a list of the new samples drawn
         """
         iteration = 0
-
         all_xs, all_ys = None, None
+        new_xs, new_ys = [], []
 
         while iteration <= self.max_redraw:
             # Draw samples
             if initial_samples and iteration == 0:
-                if isinstance(initial_samples, tuple) and (
-                    len(initial_samples) == 2):
+                if isinstance(initial_samples, tuple) and len(initial_samples) == 2:
                     xs = initial_samples[0]
                     ys = initial_samples[1]
                     samples = [(xs, ys, container)]
                 else:
-                    raise ValueError(
-                        "initial_samples should be a tuple of length 2"
-                        )
+                    raise ValueError("initial_samples should be a tuple of length 2")
             else:
                 if isinstance(container, list):
-                    samples = self.draw_samples_from_containers(container, 
-                                                                    self.n_samples, f)
+                    samples = self.draw_samples_from_containers(container, self.n_samples, f)
                 else:
                     xs = container.rvs(self.n_samples)
                     ys = f(xs)
@@ -449,10 +447,14 @@ class IterativeGPFitting:
             else:
                 raise ValueError('n_splits cannot be negative')
 
-            if add_samples:
-                # Add samples to respective containers
-                for (xs, ys, c) in samples:
-                    c.add(xs, ys)
+            # Add samples to respective containers
+            if not (initial_samples and iteration == 0):
+                if add_samples:
+                    for (xs, ys, c) in samples:
+                        c.add(xs, ys)
+                else:
+                    new_xs.append(xs)
+                    new_ys.append(ys)
 
             if not is_poor_fit(performance, self.performance_threshold, 
                                self.threshold_direction):
@@ -464,10 +466,19 @@ class IterativeGPFitting:
         if self.n_splits > 0:
             self.gp.fit(all_xs, residuals, kernel)
 
-        return {
+        result = {
             'performance': performance,
             'y_mean': mean_y
         }
+
+        if not add_samples:
+            if new_xs and new_ys:
+                result['new_samples'] = (np.vstack(new_xs), np.vstack(new_ys))
+            else:
+                D = container.D if isinstance(container, Container) else container[0].D
+                result['new_samples'] = (np.empty((0, D)), np.empty((0, 1)))
+
+        return result
     
     def draw_samples_from_containers(self, containers: List[Container], n: int, 
                                  f: Callable) -> List[Tuple[np.ndarray, 

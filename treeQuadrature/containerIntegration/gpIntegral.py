@@ -194,7 +194,6 @@ class RbfIntegral(ContainerIntegral):
 
         ### GP diagnosis
         if self.check_GP:
-            # TODO - decide where to plot
             GP_diagnosis(iGP, container)
         
         ret = kernel_integration(iGP, container, gp_results, 
@@ -246,13 +245,20 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         instead of samples
     sampler : Sampler
         used for drawing samples in the container
+    keep_samples : bool
+        whether keep the original samples used 
+        to build tree or not when fitting GP
+    check_GP: bool
+        if True, generate the GP diagnostic plots
     """
     def __init__(self, n_samples: int=15, 
                  n_splits: int=4, max_redraw: int=4, threshold: float=0.7, 
                  threshold_direction: str='up',
                  fit_residuals: bool=True, scoring: Optional[Callable]=None,
                  GPFit: Type[GPFit]=SklearnGPFit, gp_params: dict={},
-                 sampler: Sampler=UniformSampler()) -> None:
+                 sampler: Sampler=UniformSampler(), 
+                 keep_samples: bool=False, 
+                 check_GP: bool=False) -> None:
         if n_samples < 1:
             raise ValueError('min_n_samples must be at least 1')
         self.n_samples = n_samples
@@ -265,6 +271,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.gp_params = gp_params
         self.fit_residuals = fit_residuals
         self.sampler = sampler
+        self.keep_samples = keep_samples
+        self.check_GP = check_GP
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
@@ -330,9 +338,23 @@ class AdaptiveRbfIntegral(ContainerIntegral):
                                  performance_threshold=self.threshold, 
                                  threshold_direction=self.threshold_direction,
                                  gp=gp, fit_residuals=self.fit_residuals)
+        
         # only fit using the samples drawn here
-        gp_results = iGP.fit(f, container, self.kernel, 
-                                  initial_samples=(xs, ys))
+        if self.keep_samples:
+            container.add(xs, ys)
+            gp_results = iGP.fit(f, container, self.kernel, 
+                                  initial_samples=(np.vstack([xs, container.X]), 
+                                                   np.vstack([ys, container.y])), 
+                                                   add_samples=False)
+            container.add(gp_results['new_samples'][0], gp_results['new_samples'][1])
+        else:
+            container.add(xs, ys)
+            gp_results = iGP.fit(f, container, self.kernel, 
+                                    initial_samples=(xs, ys))
+            
+        ### GP diagnosis
+        if self.check_GP:
+            GP_diagnosis(iGP, container, plot=True)
 
         ret = kernel_integration(iGP, container, gp_results, 
                                              return_std)
@@ -472,6 +494,8 @@ class PolyIntegral(ContainerIntegral):
                                       max_redraw=self.max_redraw, 
                                       performance_threshold=self.threshold, 
                                       gp=gp, fit_residuals=self.fit_residuals)
+
+        container.add(xs, ys)
         gp_results = iGP.fit(f, container, self.kernel, initial_samples=(xs, ys))
 
         # Perform kernel integration with polynomial kernel

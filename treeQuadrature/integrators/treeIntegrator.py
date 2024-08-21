@@ -45,7 +45,6 @@ class TreeIntegrator(Integrator):
     Abstract base class for tree integrators.
     """
 
-    @abstractmethod
     def __init__(self, split: Split,
             integral: ContainerIntegral, base_N: int, 
             sampler: Optional[Sampler]=None,
@@ -228,6 +227,9 @@ class TreeIntegrator(Integrator):
     def integrate_containers(self, containers: List[Container], 
                              problem: Problem,
                              compute_std: bool=False):
+        if len(containers) == 0:
+            raise ValueError("Got no container")
+
         # for retracking containers 
         modified_containers = []
         with ProcessPoolExecutor() as executor:

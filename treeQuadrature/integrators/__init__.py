@@ -9,3 +9,4 @@ from .bayesMcIntegrator import BayesMcIntegrator
 from .gpTreeIntegrator import GpTreeIntegrator
 from .limitedSampleGpIntegrator import LimitedSamplesGpIntegrator
 from .distributedSampleIntegrator import DistributedSampleIntegrator
+from .vegasTreeIntegrator import VegasTreeIntegrator

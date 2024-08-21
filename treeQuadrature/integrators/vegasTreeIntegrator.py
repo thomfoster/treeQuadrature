@@ -1,16 +1,17 @@
 import vegas
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 import numpy as np
 from inspect import signature
+import matplotlib.pyplot as plt
 
-from treeQuadrature.container import Container
-
+from ..container import Container
 from .treeIntegrator import TreeIntegrator
 from .simpleIntegrator import SimpleIntegrator
 from ..exampleProblems import Problem
 from ..samplers import Sampler
 from ..splits import Split
 from ..containerIntegration import ContainerIntegral
+from ..visualisation import plotIntegrand
 
 class TransformedProblem(Problem):
     def __init__(self, D: int, map: vegas.AdaptiveMap, 
@@ -21,21 +22,54 @@ class TransformedProblem(Problem):
         self.original_integrand = original_integrand
 
     def integrand(self, xs) -> np.ndarray:
+        xs = self.handle_input(xs)
+    
         # Transform Y to X using the VEGAS map
         X_mapped = np.empty_like(xs)
         jac = np.empty(xs.shape[0])
-        self.map.map(xs, X_mapped, jac)  # Transform y-space to x-space
+        self.map.map(xs, X_mapped, jac)  # Transform samples
         
-        # Evaluate the original integrand in x-space
         f_vals = self.original_integrand(X_mapped)
         
         # Ensure the output shape is (N, 1)
         if f_vals.ndim == 1:
-            f_vals = f_vals[:, np.newaxis]  # Reshape to (N, 1) if necessary
+            f_vals = f_vals[:, np.newaxis]
         
         # Multiply by the Jacobian and return
-        return (f_vals * jac[:, np.newaxis])
+        return f_vals * jac[:, np.newaxis]
+
     
+    def __str__(self) -> str:
+        return 'Transformed Problem under Vegas Map'
+
+
+def generate_uniform_grid(n_samples):
+    # Generate a uniform grid of samples in [0, 1]^2
+    x = np.linspace(0, 1, n_samples)
+    y = np.linspace(0, 1, n_samples)
+    X, Y = np.meshgrid(x, y)
+    samples = np.vstack([X.ravel(), Y.ravel()]).T
+    return samples
+
+def plot_transformed_samples(vegas_integrator, n_samples):
+    samples = generate_uniform_grid(n_samples)
+
+    # Ensure samples are C-contiguous
+    samples = np.ascontiguousarray(samples)
+
+    # Transform the uniform samples using vegas_integrator.map.map
+    X_mapped = np.empty_like(samples)
+    jac = np.empty(samples.shape[0])
+    vegas_integrator.map.map(samples, X_mapped, jac)
+
+    # Plot the transformed samples
+    plt.figure(figsize=(8, 6))
+    plt.scatter(X_mapped[:, 0], X_mapped[:, 1], c='blue', marker='o', alpha=0.5)
+    plt.xlabel('X dimension 1')
+    plt.ylabel('X dimension 2')
+    plt.title('Transformed Samples in X-space')
+    plt.grid(True)
+    plt.show()
 
 class VegasTreeIntegrator(TreeIntegrator):
     def __init__(self, base_N: int, P: int, split: Split,
@@ -90,6 +124,8 @@ class VegasTreeIntegrator(TreeIntegrator):
         vegas_n = int(self.base_N // self.vegas_iter)
         vegas_integrator(batch_integrand, nitn=self.vegas_iter, 
                          neval=vegas_n)
+        
+        plot_transformed_samples(vegas_integrator, 100)
 
         # Step 2: Transform the space using Vegas map
         X_transformed = np.vstack(y_list)
@@ -103,6 +139,9 @@ class VegasTreeIntegrator(TreeIntegrator):
         problem_transformed = TransformedProblem(problem.D, 
                                                  vegas_integrator.map, 
                                                  problem.integrand)
+        
+        plotIntegrand(problem_transformed.integrand, problem.D, 
+                      xlim = [0, 1], ylim=[0, 1], levels=30)
 
         results, modified_containers = self.integrate_containers(finished_containers, 
                                                                  problem_transformed, 

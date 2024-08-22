@@ -44,7 +44,7 @@ if __name__ == '__main__':
         output_file = os.path.join(script_dir, 
                                 f"../test_results/{location_prefix}results_{D}D_{args['n_repeat']}repeat.csv")
         config_file = os.path.join(script_dir, 
-                                f"../test_results/{location_prefix}results_{D}D_{args['n_repeat']}repeat.json")
+                                f"../test_results/{location_prefix}configs_{D}D_{args['n_repeat']}repeat.json")
 
         args['N'] = 7000 + D * 500
         # threshold on R2 score

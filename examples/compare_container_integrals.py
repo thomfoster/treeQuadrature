@@ -1,7 +1,7 @@
 from treeQuadrature.integrators import SimpleIntegrator
-from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
+from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem, RippleProblem, Camel
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RbfIntegral
+from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, MidpointIntegral, RandomIntegral
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature.compare_integrators import test_container_integrals
 
@@ -18,21 +18,22 @@ args = {}
 
 split = MinSseSplit()
 
-args['P'] = 50
+args['P'] = 40
 args['n_samples'] = 30
-args['n_splits'] = 5
-args['n_repeat'] = 10
+args['n_repeat'] = 20
 args['range'] = 500
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-location_prefix = 'ablation_adaptive/'
+location_prefix = 'container_integrals/'
     
 
 if __name__ == '__main__':
     for D in Ds:
         problems = [
-            ProductPeakProblem(D, a=13),
-            C0Problem(D, a=2),
+            ProductPeakProblem(D, a=10),
+            C0Problem(D, a=10),
+            Camel(D),
+            RippleProblem(D),
             CornerPeakProblem(D, a=10),
             ExponentialProductProblem(D), 
             OscillatoryProblem(D, a=np.array(10/ np.linspace(1, D, D)))
@@ -45,22 +46,21 @@ if __name__ == '__main__':
 
         args['N'] = 7000 + D * 500
 
+        # save configuration
         with open(config_file, 'w') as file:
             json.dump(args, file, indent=4)
 
-        integral_mean = AdaptiveRbfIntegral(n_samples=args['n_samples'], 
+        integral_rbf = AdaptiveRbfIntegral(n_samples=args['n_samples'], 
                                                 max_redraw = 0,
                                                 n_splits=0)
-        integral_mean.name = 'Adaptive Rbf (mean)'
-        integral = AdaptiveRbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
-                                       fit_residuals=False,
-                                       n_splits=0)
-        integral.name = 'Adaptive Rbf'
-        integral_non_adaptive = RbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
-                                                n_splits=0, 
-                                                range=args['range'])
-        integral_non_adaptive.name = 'Non Adaptive Rbf'
-        integrals = [integral_mean, integral, integral_non_adaptive]
+        integral_rbf.name = 'Rbf'
+
+        integral_mean = RandomIntegral(n_samples= args['n_samples'])
+        integral_mean.name = 'Mean'
+
+        integral_midpoint = MidpointIntegral()
+        integral_midpoint.name = 'Midpoint'
+        integrals = [integral_rbf, integral_mean, integral_midpoint]
 
         integ = SimpleIntegrator(base_N=args['N'], P=args['P'], split=split, 
                                  integral=None, 

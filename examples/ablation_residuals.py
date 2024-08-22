@@ -11,24 +11,27 @@ import os, json, argparse
 
 parser = argparse.ArgumentParser(description="Compare three container integrals for various dimensions on the selected benchmark problems")
 parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help="List of problem dimensions (default: [2])")
-args_parser = parser.parse_args()
-Ds = args_parser.dimensions
+parser.add_argument('--P', type=int, default=50, help='Size of the largest container (default: 50)')
+parser.add_argument('--n_samples', type=int, default=30, help='number of samples drawn from each container (default: 30)')
+parser.add_argument('--n_repeat', type=int, default=20, help='Number of repetitions for each test (default: 20)')
+parser.add_argument('--range', type=float, default=500, help='Search range of non-adaptive Rbf Integral, as a factor of initial length scale (default: 50)')
 
-args = {}
-
-split = MinSseSplit()
-
-args['P'] = 50
-args['n_samples'] = 30
-args['n_splits'] = 5
-args['n_repeat'] = 10
-args['range'] = 500
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-location_prefix = 'ablation_adaptive/'
-    
 
 if __name__ == '__main__':
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    location_prefix = 'ablation_adaptive/'
+    
+    args = parser.parse_args()
+    Ds = args.dimensions
+
+    args_dict = vars(args).copy()
+
+    # remove attributes already displayed in file names
+    del args_dict['dimensions']
+    del args_dict['n_repeat']
+
+    split = MinSseSplit()
+
     for D in Ds:
         problems = [
             ProductPeakProblem(D, a=13),
@@ -39,32 +42,32 @@ if __name__ == '__main__':
         ]
 
         output_file = os.path.join(script_dir, 
-                                f"../test_results/{location_prefix}results_{D}D_{args['n_repeat']}repeat.csv")
+                                f"../test_results/{location_prefix}results_{D}D_{args.n_repeat}repeat.csv")
         config_file = os.path.join(script_dir, 
-                                f"../test_results/{location_prefix}configs_{D}D_{args['n_repeat']}repeat.json")
+                                f"../test_results/{location_prefix}configs_{D}D_{args.n_repeat}repeat.json")
 
-        args['N'] = 7000 + D * 500
+        args_dict['N'] = 7000 + D * 500
 
         with open(config_file, 'w') as file:
-            json.dump(args, file, indent=4)
+            json.dump(args_dict, file, indent=4)
 
-        integral_mean = AdaptiveRbfIntegral(n_samples=args['n_samples'], 
+        integral_mean = AdaptiveRbfIntegral(n_samples=args.n_samples, 
                                                 max_redraw = 0,
                                                 n_splits=0)
         integral_mean.name = 'Adaptive Rbf (mean)'
-        integral = AdaptiveRbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
+        integral = AdaptiveRbfIntegral(n_samples= args.n_samples, max_redraw=0, 
                                        fit_residuals=False,
                                        n_splits=0)
         integral.name = 'Adaptive Rbf'
-        integral_non_adaptive = RbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
+        integral_non_adaptive = RbfIntegral(n_samples= args.n_samples, max_redraw=0, 
                                                 n_splits=0, 
-                                                range=args['range'])
+                                                range=args.range)
         integral_non_adaptive.name = 'Non Adaptive Rbf'
         integrals = [integral_mean, integral, integral_non_adaptive]
 
-        integ = SimpleIntegrator(base_N=args['N'], P=args['P'], split=split, 
+        integ = SimpleIntegrator(base_N=args_dict['N'], P=args.P, split=split, 
                                  integral=None, 
                                  sampler=McmcSampler())
             
         test_container_integrals(problems, integrals, integ, output_file, 
-                                 n_repeat=args['n_repeat'])
+                                 n_repeat=args.n_repeat)

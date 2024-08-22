@@ -12,19 +12,12 @@ import os, json, time, argparse
 
 parser = argparse.ArgumentParser(description="Compare Iterative Fitting scheme and even samples for various dimensions")
 parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help="List of problem dimensions (default: [2])")
-
-args_parser = parser.parse_args()
-Ds = args_parser.dimensions
-
-args = {}
-
+parser.add_argument('--P', type=int, default=50, help='Size of the largest container (default: 50)')
+parser.add_argument('--n_samples', type=int, default=30, help='number of samples drawn from each container (default: 30)')
+parser.add_argument('--max_redraw', type=int, default=5, help='Maximum number of times to redraw samples (default: 5)')
+parser.add_argument('--n_repeat', type=int, default=20, help='Number of repetitions for each test (default: 20)')
 
 split = MinSseSplit()
-
-args['P'] = 50
-args['n_samples'] = 20
-args['max_redraw'] = 4
-args['n_repeat'] = 10
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 location_prefix = 'ablation_iterative_fitting/'
@@ -32,6 +25,15 @@ location_prefix = 'ablation_iterative_fitting/'
 integrator_names = ['Iterative GP', 'Even Sample GP']
 
 if __name__ == '__main__':
+    args = parser.parse_args()
+    Ds = args.dimensions 
+    # convert to dictionary for saving
+    args_dict = vars(args).copy()
+
+    # remove attributes already displayed in file names
+    del args_dict['dimensions']
+    del args_dict['n_repeat']
+
     for D in Ds:
         problems = [
             ProductPeakProblem(D, a=13),
@@ -42,24 +44,24 @@ if __name__ == '__main__':
         ]
 
         output_file = os.path.join(script_dir, 
-                                f"../test_results/{location_prefix}results_{D}D_{args['n_repeat']}repeat.csv")
+                                f"../test_results/{location_prefix}results_{D}D_{args.n_repeat}repeat.csv")
         config_file = os.path.join(script_dir, 
-                                f"../test_results/{location_prefix}configs_{D}D_{args['n_repeat']}repeat.json")
+                                f"../test_results/{location_prefix}configs_{D}D_{args.n_repeat}repeat.json")
 
-        args['N'] = 7000 + D * 500
+        args_dict['N'] = 7000 + D * 500
         # threshold on R2 score
-        args['threshold'] = max(1 - D / 10, 0.3)
+        args_dict['threshold'] = max(1 - D / 10, 0.4)
 
         with open(config_file, 'w') as file:
-            json.dump(args, file, indent=4)
+            json.dump(args_dict, file, indent=4)
 
-        integral = AdaptiveRbfIntegral(n_samples=args['n_samples'], 
-                                                max_redraw = args['max_redraw'],
+        integral = AdaptiveRbfIntegral(n_samples=args.n_samples, 
+                                                max_redraw = args.max_redraw,
                                                 n_splits=0, 
-                                                threshold=args['threshold'])
-        integral_non_iter = AdaptiveRbfIntegral(n_samples= args['n_samples'], max_redraw=0, 
+                                                threshold=args_dict['threshold'])
+        integral_non_iter = AdaptiveRbfIntegral(n_samples= args.n_samples, max_redraw=0, 
                                                 n_splits=0)
-        integ = SimpleIntegrator(base_N=args['N'], P=args['P'], split=split, 
+        integ = SimpleIntegrator(base_N=args_dict['N'], P=args.P, split=split, 
                                  integral=integral, 
                                  sampler=McmcSampler())
 
@@ -129,7 +131,7 @@ if __name__ == '__main__':
             n_evals_list = [[], []]
             time_list = [[], []]
 
-            for _ in range(args['n_repeat']):
+            for _ in range(args.n_repeat):
                 try: 
                     result, containers, result_non_iter, containers_non_iter = test_two_integrators(problem)
                 except Exception as e:
@@ -144,7 +146,7 @@ if __name__ == '__main__':
                 time_list[0].append(result['time'])
                 time_list[1].append(result_non_iter['time'])
 
-            if len(estimates[0]) == args['n_repeat']:
+            if len(estimates[0]) == args.n_repeat:
                 new_results = []
                 for i in range(2):
                     integral_estimates = np.array(estimates[i])

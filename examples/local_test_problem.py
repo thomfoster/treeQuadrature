@@ -7,7 +7,7 @@ from treeQuadrature import compare_integrators, Container
 
 import numpy as np
 
-D = 2
+D = 10
 
 ### Set problem
 # problem = Camel(D=D)
@@ -56,7 +56,12 @@ sobolSampler = SobolSampler()
 lhsSampler = LHSImportanceSampler()
 
 ### set split
+def side_lengths(container: Container):
+    return container.maxs - container.mins
+
 split = MinSseSplit()
+split_random = MinSseSplit(dimension_weights=side_lengths,
+                    dimension_proportion=0.5)
 # split = KdSplit()
 
 integ1 = SimpleIntegrator(N, P, split, rbfIntegral_mean)
@@ -64,6 +69,10 @@ integ1.name = 'TQ with RBF, fitting to mean'
 
 integ_mean = DistributedSampleIntegrator(N, P, max_n_samples, split, rmeanIntegral, sampler=mcmcSampler)
 integ_mean.name = 'TQ with mean estimator'
+
+integ_mean_random_split = DistributedSampleIntegrator(N, P, max_n_samples, split_random, rmeanIntegral, 
+                                         sampler=mcmcSampler)
+integ_mean_random_split.name = 'TQ with mean estimator and random splitting'
 
 integ_is = SimpleIntegrator(N, P, split, aRbf, sampler=iSampler)
 integ_is.name = 'Importance sampler'
@@ -119,26 +128,11 @@ integ_vegas.name = 'Vegas'
 adaptive_iter = 5
 vegas_n = int(max_n_samples / (n_iter + adaptive_iter))
 integ_vegas_adaptive = VegasIntegrator(vegas_n, n_iter, adaptive_iter)
-integ_vegas_adaptive.name = 'Adaptive Vegas'
-
-def maximum_side_length(container: Container):
-    return np.max(container.maxs - container.mins)
-
-def stop_minimum_size(container: Container, min_size: int=3):
-    return container.N < min_size
-
-integ_active_max_side = QueueIntegrator(N, split, rmeanIntegral, 
-                                       weighting_function=maximum_side_length, 
-                                       sampler=mcmcSampler, max_splits=1000,
-                                       stopping_condition=stop_minimum_size)
-integ_max_side = DistributedSampleIntegrator(N, P, max_n_samples, split, rmeanIntegral, 
-                                             sampler=mcmcSampler,
-                                             construct_tree_method=integ_active_max_side.construct_tree)
-integ_max_side.name = 'Active TQ max_side'              
+integ_vegas_adaptive.name = 'Adaptive Vegas'    
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_max_side, integ_activeTQ], plot=False, verbose=1,
+    compare_integrators([integ_mean_random_split, integ_mean], plot=False, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]], 
                         problem=problem, dimensions=[0, 1], 

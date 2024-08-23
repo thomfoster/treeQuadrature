@@ -180,8 +180,10 @@ class SklearnGPFit(GPFit):
         if self.ignore_warning:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", ConvergenceWarning)
+                warnings.simplefilter("ignore", UserWarning) 
                 gp.fit(xs, ys)
                 warnings.simplefilter("default", ConvergenceWarning)
+                warnings.simplefilter("default", UserWarning) 
         else:
             gp.fit(xs, ys)
 
@@ -199,7 +201,15 @@ class SklearnGPFit(GPFit):
                 "The Gaussian Process model is not trained. Please call 'fit_gp' before 'predict'."
                 )
         else: 
-            return self.gp.predict(xs, return_std)
+            if self.ignore_warning:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning) 
+                    predictions = self.gp.predict(xs, return_std)
+                    warnings.simplefilter("default", UserWarning) 
+            else:
+                predictions = self.gp.predict(xs, return_std)
+                
+            return predictions
         
     @property
     def X_train_(self) -> ArrayLike:
@@ -422,7 +432,7 @@ class IterativeGPFitting:
             xs = np.vstack([s[0] for s in samples])
             ys = np.vstack([s[1] for s in samples])
 
-            # Fit the GP model
+            # Collect samples
             if all_xs is None:
                 all_xs = xs
                 all_ys = ys
@@ -437,9 +447,12 @@ class IterativeGPFitting:
                 mean_y = 0
                 residuals = all_ys
 
+            # fit GP 
             if self.n_splits == 0: # no cross validation
                 self.gp.fit(all_xs, residuals, kernel)
+                warnings.filterwarnings("ignore", category=UserWarning)
                 ys_pred, sigma = self.gp.predict(all_xs, return_std=True)
+                warnings.filterwarnings("default", category=UserWarning)
                 performance = self.scoring(residuals, ys_pred, sigma)
             elif self.n_splits > 0:
                 performance = gp_kfoldCV(xs=all_xs, ys=residuals, kernel=kernel, gp=self.gp, 

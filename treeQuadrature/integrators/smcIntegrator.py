@@ -47,8 +47,12 @@ class SmcIntegrator(Integrator):
         if isinstance(problem, BayesProblem):
             xs = problem.p.rvs(self.N)
             ys = problem.integrand(xs)
+        elif self.sampler is not None:
+            xs, ys = self.sampler.rvs(self.N, problem.lows, problem.highs, 
+                                      problem.integrand)
         else:
-            raise ValueError('problem is not BayesProblem')
+            raise ValueError('problem is not BayesProblem, and '
+                             'integrator does not have sampler')
         # Evaluate the likelihood at these samples
         G = np.mean(ys)
         std_G = np.std(ys) / np.sqrt(self.N)  # Standard deviation of the mean

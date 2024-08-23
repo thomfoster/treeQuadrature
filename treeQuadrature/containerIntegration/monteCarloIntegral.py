@@ -17,15 +17,15 @@ class RandomIntegral(ContainerIntegral):
     Parameters
     ----------
     n_samples : int
-        number of samples to be redrawn for evaluating the integral
-        default : 10
+        number of samples to be redrawn for evaluating the integral. 
+        Default : 10
     eval : function
         Should take a np.ndarray (samples of integrand) 
-        and return a float (aggregated value) 
+        and return a float (aggregated value). 
         Default is mean 
     error_estimate : function
-        must be provided when eval is not mean nor median
-        obtain an estimate of the uncertainty
+        must be provided when eval is not mean nor median.
+        Used to obtain an estimate of the uncertainty
     sampler : Sampler
         The sampler used to draw samples in the container
         Default is UniformSampler

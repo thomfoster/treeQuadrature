@@ -132,31 +132,12 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         if len(finished_containers) == 0:
             raise RuntimeError('No container obtained from construct_tree')
         
+        n_samples = np.sum([cont.N for cont in finished_containers])
+        if n_samples > self.base_N:
+            raise RuntimeError('construct_tree_method uses more samples than base_N! ')
+        
         if verbose:
-            n_samples = np.sum([cont.N for cont in finished_containers])
             print(f'Got {len(finished_containers)} containers with {n_samples} samples')
-
-        # Determine the number of remaining samples to distribute
-        used_samples = np.sum([cont.N for cont in finished_containers])
-        remaining_samples = self.max_n_samples - used_samples
-
-        if used_samples + len(finished_containers) * self.min_container_samples > self.max_n_samples:
-            raise RuntimeError("too many samples to distribute. "
-                               "either decrease 'min_container_samples' "
-                               "or increase 'max_n_samples'")
-
-        if remaining_samples > 0:
-            samples_distribution = self._distribute_samples(finished_containers, 
-                                           remaining_samples, 
-                                           self.min_container_samples, 
-                                           self.max_container_samples, 
-                                           problem.D)
-
-        total_samples = sum(samples_distribution.values())
-        if total_samples > remaining_samples:
-            raise RuntimeError("allocated too many samples"
-                               f"upper limit: {remaining_samples}"
-                               f"allocated samples: {total_samples}")
 
         # Uncertainty estimates
         method = getattr(self.integral, 'containerIntegral', None)
@@ -165,35 +146,17 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         else:
             raise TypeError("self.integral must have 'containerIntegral' method")
         compute_std = return_std and has_return_std
-        if not has_return_std and return_std:
+        if not has_return_std and compute_std:
             warnings.warn(
                 f'{str(self.integral)}.containerIntegral does not have '
                 'parameter return_std, will be ignored', 
                 UserWarning
             )
             compute_std = False
-
-        if verbose: 
-            print('Integrating individual containers', 
-                'with standard deviation' if compute_std else '')
-            print(f"largest container distribution: {max(samples_distribution.values())}")
-            print(f"smallest container distribution: {min(samples_distribution.values())}")
-
-        # for retracking containers 
-        containers = []
-        with ProcessPoolExecutor() as executor:
-            futures = {
-                executor.submit(parallel_container_integral, 
-                                self.integral, cont, problem.integrand, 
-                                compute_std, n_samples=samples_distribution.get(cont)): cont
-                for cont in finished_containers
-            }
-
-            results = []
-            for future in as_completed(futures):
-                integral_results, modified_cont = future.result()
-                results.append(integral_results)
-                containers.append(modified_cont)
+        
+        # integrate containers
+        results, containers = self.integrate_containers(finished_containers, problem, 
+                                                        compute_std, verbose)
         
         if return_all:
             return results, containers
@@ -218,6 +181,56 @@ class DistributedSampleIntegrator(SimpleIntegrator):
             return_values['stds'] = stds
 
         return return_values
+    
+    def integrate_containers(self, containers: List[Container], 
+                             problem: Problem,
+                             compute_std: bool=False, 
+                             verbose: bool=False):
+        # Determine the number of remaining samples to distribute
+        used_samples = np.sum([cont.N for cont in containers])
+        remaining_samples = self.max_n_samples - used_samples
+
+        if used_samples + len(containers) * self.min_container_samples > self.max_n_samples:
+            raise RuntimeError("too many samples to distribute. "
+                               "either decrease 'min_container_samples' "
+                               "or increase 'max_n_samples'")
+
+        if remaining_samples > 0:
+            samples_distribution = self._distribute_samples(containers, 
+                                           remaining_samples, 
+                                           self.min_container_samples, 
+                                           self.max_container_samples, 
+                                           problem.D)
+
+        total_samples = sum(samples_distribution.values())
+        if total_samples > remaining_samples:
+            raise RuntimeError("allocated too many samples"
+                               f"upper limit: {remaining_samples}"
+                               f"allocated samples: {total_samples}")
+
+        if verbose: 
+            print('Integrating individual containers', 
+                'with standard deviation' if compute_std else '')
+            print(f"largest container distribution: {max(samples_distribution.values())}")
+            print(f"smallest container distribution: {min(samples_distribution.values())}")
+
+        # for retracking containers 
+        modified_containers = []
+        with ProcessPoolExecutor() as executor:
+            futures = {
+                executor.submit(parallel_container_integral, 
+                                self.integral, cont, problem.integrand, 
+                                compute_std, n_samples=samples_distribution.get(cont)): cont
+                for cont in containers
+            }
+
+            results = []
+            for future in as_completed(futures):
+                integral_results, modified_cont = future.result()
+                results.append(integral_results)
+                modified_containers.append(modified_cont)
+
+        return results, modified_containers
 
 
     def _distribute_samples(self, finished_containers, remaining_samples, 

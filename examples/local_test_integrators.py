@@ -12,9 +12,9 @@ from treeQuadrature.samplers import McmcSampler, LHSImportanceSampler, UniformSa
 parser = argparse.ArgumentParser(description="Run integrator tests with various configurations.")
 parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help='List of problem dimensions (default: [2])')
 parser.add_argument('--n_samples', type=int, default=20, help='number of samples drawn from each container (default: 20)')
-parser.add_argument('--base_N', type=int, default=10_000, help='Base sample size for integrators when D = 3 (default: 10_000)')
-parser.add_argument('--max_samples', type=int, default=15_000, help='Maximum sample size when D = 3 (default: 15_000)')
-parser.add_argument('--gp_min_container_samples', type=int, default=10, help='minimum sample size for a container when fitting GP (default: 10)')
+parser.add_argument('--base_N', type=int, default=7_500, help='Base sample size for integrators when D = 3 (default: 75_000)')
+parser.add_argument('--max_samples', type=int, default=15_000, help='Maximum sample size when D = 2 (default: 15_000)')
+parser.add_argument('--gp_min_container_samples', type=int, default=20, help='minimum sample size for a container when fitting GP (default: 20)')
 parser.add_argument('--gp_max_container_samples', type=int, default=150, help='maximum sample size for a container when fitting GP (default: 150)')
 parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleIntegrator when D = 3 (default: 1_000)')
 parser.add_argument('--lsi_active_N', type=int, default=10, help='active sample size for LimitedSampleIntegrator (default: 10)')
@@ -59,10 +59,10 @@ else:
 
 ## change base_N and max_n_samples with dimension
 def get_base_N(D) -> int:
-    return int(args.base_N * (D / 3))
+    return max(int(args.base_N * (D / 3)), 6000)
 
 def get_max_n_samples(D) -> int:
-    return int(args.max_samples * (D / 3))
+    return max(int(args.max_samples * (D / 2)), 12_000)
 
 def get_lsi_base_N(D) -> int:
     return int(args.lsi_base_N * (D / 3))
@@ -71,7 +71,7 @@ def volume_weighting_function(container):
     return container.volume
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-location_prefix = 'fourth_run/'
+location_prefix = 'fifth_run/'
 location_postfix = ''
 
 if __name__ == '__main__':
@@ -157,7 +157,7 @@ if __name__ == '__main__':
         integ_smc.name = 'SMC'
 
         # Now run the tests for the current dimension D
-        test_integrators([integ_simple, integ_activeTQ, integ_rbf, integ_smc, integ_vegas],
+        test_integrators([integ_simple, integ_activeTQ, integ_rbf, integ_vegas],
                         problems=problems, 
                         output_file=output_path,
                         max_time=args.max_time, n_repeat=args.n_repeat, 

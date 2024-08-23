@@ -49,7 +49,7 @@ if __name__ == '__main__':
         integral_rbf.name = 'Rbf'
 
         # quadratic kernel
-        integral_poly = PolyIntegral(n_samples= args.n_samples, degrees=[2])
+        integral_poly = PolyIntegral(n_samples= args.n_samples, degrees=[2], n_splits=0, max_redraw=0)
         integral_poly.name = 'Quadratic'
 
         integrals = [integral_rbf, integral_poly]

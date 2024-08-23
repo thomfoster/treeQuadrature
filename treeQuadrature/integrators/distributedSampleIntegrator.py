@@ -132,8 +132,11 @@ class DistributedSampleIntegrator(SimpleIntegrator):
         if len(finished_containers) == 0:
             raise RuntimeError('No container obtained from construct_tree')
         
+        n_samples = np.sum([cont.N for cont in finished_containers])
+        if n_samples > self.base_N:
+            raise RuntimeError('construct_tree_method uses more samples than base_N! ')
+        
         if verbose:
-            n_samples = np.sum([cont.N for cont in finished_containers])
             print(f'Got {len(finished_containers)} containers with {n_samples} samples')
 
         # Uncertainty estimates
@@ -142,7 +145,7 @@ class DistributedSampleIntegrator(SimpleIntegrator):
             has_return_std = 'return_std' in signature(method).parameters
         else:
             raise TypeError("self.integral must have 'containerIntegral' method")
-        compute_std = compute_std and has_return_std
+        compute_std = return_std and has_return_std
         if not has_return_std and compute_std:
             warnings.warn(
                 f'{str(self.integral)}.containerIntegral does not have '

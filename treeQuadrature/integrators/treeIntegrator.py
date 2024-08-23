@@ -12,7 +12,7 @@ from .integrator import Integrator
 from ..container import Container
 from ..exampleProblems import Problem
 from ..splits import Split
-from ..containerIntegration import ContainerIntegral, AdaptiveRbfIntegral
+from ..containerIntegration import ContainerIntegral
 from ..samplers import Sampler
 from ..visualisation import plotContainers
 

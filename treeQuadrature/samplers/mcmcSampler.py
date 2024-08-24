@@ -7,9 +7,10 @@ class McmcSampler(Sampler):
     """
     MCMC sampler that generates samples from 
     the modulus of f using the `emcee` package.
+    Allows sampling from a heated version of |f|.
     """
 
-    def __init__(self, n_walkers: int = 10, burning: int = 0):
+    def __init__(self, n_walkers: int = 10, burning: int = 0, temperature: float = 1.0):
         """
         Arguments
         ---------
@@ -19,9 +20,16 @@ class McmcSampler(Sampler):
         burning : int, Optional
             Number of initial samples to discard.
             Defaults to 0.
+        temperature : float, Optional
+            Temperature parameter to control the "heating" of the function |f|.
+            A temperature of 1.0 means no heating (sampling directly from |f|).
+            Higher temperatures (>1) will flatten the distribution, 
+            while lower temperatures (<1) will concentrate samples more around peaks.
+            Default is 1.0.
         """
         self.n_walkers = n_walkers
         self.burning = burning
+        self.temperature = temperature
 
     def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray,
             f: callable, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
@@ -58,7 +66,8 @@ class McmcSampler(Sampler):
             if f_val[0] <= 0:
                 return -np.inf
             
-            return np.log(f_val[0])
+            # Apply heating to the log probability
+            return np.log(f_val[0]) / self.temperature
 
         # Initialize walkers
         p0 = np.random.uniform(mins, maxs, size=(n_walkers, D))

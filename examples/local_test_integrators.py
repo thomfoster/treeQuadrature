@@ -17,7 +17,7 @@ parser.add_argument('--max_samples', type=int, default=15_000, help='Maximum sam
 parser.add_argument('--gp_min_container_samples', type=int, default=20, help='minimum sample size for a container when fitting GP (default: 20)')
 parser.add_argument('--gp_max_container_samples', type=int, default=150, help='maximum sample size for a container when fitting GP (default: 150)')
 parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleIntegrator when D = 3 (default: 1_000)')
-parser.add_argument('--lsi_active_N', type=int, default=10, help='active sample size for LimitedSampleIntegrator (default: 10)')
+parser.add_argument('--lsi_active_N', type=int, default=0, help='active sample size for LimitedSampleIntegrator (default: 0)')
 parser.add_argument('--bmc_N', type=int, default=1200, help='Base sample size for BMC (default: 1200)')
 parser.add_argument('--P', type=int, default=50, help='Size of the largest container (default: 50)')
 parser.add_argument('--vegas_iter', type=int, default=10, help='Number of iterations for VegasIntegrator (default: 10)')
@@ -100,8 +100,10 @@ if __name__ == '__main__':
         with open(config_path, 'w') as file:
             json.dump(args_dict, file, indent=4)
 
-        if D > 7:
+        if D > 6:
             problems = [
+                SimpleGaussian(D),
+                Camel(D),
                 ExponentialProductProblem(D),
                 QuadraticProblem(D),
                 RippleProblem(D),

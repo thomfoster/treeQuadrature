@@ -5,3 +5,4 @@ from .mcmcSampler import McmcSampler
 from .lowDiscrepancySampler import SobolSampler
 from .stratifiedSampler import StratifiedSampler
 from .combinedSampler import AdaptiveImportanceSampler, LHSImportanceSampler
+from .mixedSampler import MixedSampler

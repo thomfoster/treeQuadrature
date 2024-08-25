@@ -148,6 +148,20 @@ class RippleProblem(Problem):
         """
         Ripple integrand function.
 
+        Mathematically, the integrand function is defined as:
+
+        .. math::
+            f(x) = \exp\left(-\frac{\|x\|^2}{2}\right) \cdot \cos^2\left(a \|x\|^2\right)
+
+        where:
+        - \( x = (x_1, x_2, \dots, x_D) \) is the input vector.
+        - \( \|x\| \) is the Euclidean norm of the vector \( x \), 
+           given by \( \|x\| = \sqrt{\sum_{i=1}^D x_i^2} \).
+        - \( a \) is a scalar that controls the frequency of the ripples.
+
+        The function exhibits a combination of exponential decay and 
+        oscillatory ripple patterns as \( \|x\| \) varies.
+
         Parameters
         ----------
         X : numpy.ndarray
@@ -244,6 +258,21 @@ class OscillatoryProblem(Problem):
         """
         Oscillatory integrand function.
 
+        Mathematically, the integrand function is defined as:
+
+        .. math::
+            f(x) = \cos\left(2\pi u + \sum_{i=1}^D a_i x_i\right)
+
+        where:
+        - \( x = (x_1, x_2, \dots, x_D) \) is the input vector.
+        - \( u \) is a scalar that shifts the phase of the cosine function.
+        - \( a = (a_1, a_2, \dots, a_D) \) is a vector that controls the frequency of 
+           oscillation along each dimension.
+        - \( D \) is the dimension of the input space.
+
+        The function exhibits oscillatory behavior as \( x \) varies, with the 
+        frequency of oscillation determined by the values in the vector \( a \).
+
         Parameters
         ----------
         X : numpy.ndarray
@@ -308,6 +337,18 @@ class ProductPeakProblem(Problem):
         """
         Product Peak integrand function.
 
+        Mathematically, the integrand function is defined as:
+
+        .. math::
+            f(x) = \frac{1}{\prod_{i=1}^D \left(a_i^{-2} + (x_i - u_i)^2 \right)}
+
+        where:
+        - \( x = (x_1, x_2, \dots, x_D) \) is the input vector.
+        - \( u = (u_1, u_2, \dots, u_D) \) is a vector representing the peak location.
+        - \( a = (a_1, a_2, \dots, a_D) \) is a vector controlling the 
+            sharpness of the peak along each dimension.
+        - \( D \) is the dimension of the input space.
+
         Parameters
         ----------
         X : numpy.ndarray
@@ -368,10 +409,19 @@ class CornerPeakProblem(Problem):
         """
         Corner Peak integrand function.
 
+        .. math::
+        f(x) = \left(1 + \sum_{i=1}^{D} a_i \cdot x_i\right)^{-(D+1)}
+
+        where:
+        - :math:`x` is a vector of input values,
+        - :math:`a` is a coefficient vector,
+        - :math:`D` is the dimensionality of the input space.
+
         Parameters
         ----------
         X : numpy.ndarray
-            Each row is an input vector.
+            Each row is an input vector of shape (N, D), 
+            where N is the number of samples, and D is the dimensionality.
 
         Returns
         -------
@@ -431,6 +481,19 @@ class C0Problem(Problem):
     def integrand(self, X) -> np.ndarray:
         """
         C0 integrand function.
+
+        .. math::
+        f(X) = \exp\left(-\sum_{i=1}^{D} a_i \cdot |x_i - u_i|\right)
+    
+        where:
+        
+        - \(X = (x_1, x_2, \dots, x_D)\) is the input vector,
+        - \(a = (a_1, a_2, \dots, a_D)\) is a vector of coefficients,
+        - \(u = (u_1, u_2, \dots, u_D)\) is the vector of center points.
+        
+        The function represents an exponential decay based on the 
+        sum of weighted absolute differences between each component 
+        of the input vector and the corresponding component of the center vector.
 
         Parameters
         ----------
@@ -492,6 +555,21 @@ class DiscontinuousProblem(Problem):
     def integrand(self, X) -> np.ndarray:
         """
         Discontinuous integrand function.
+
+        The Discontinuous integrand function is defined as:
+    
+        .. math::
+            f(X) = 
+            \begin{cases} 
+            \exp\left(\sum_{i=1}^{D} a_i \cdot x_i\right) & \text{if } X \text{ lies in the specified region}, \\
+            0 & \text{otherwise}
+            \end{cases}
+        
+        where:
+        
+        - \(X = (x_1, x_2, \dots, x_D)\) is the input vector,
+        - \(a = (a_1, a_2, \dots, a_D)\) is a vector of coefficients,
+        - \(u_1, u_2\) are predefined thresholds.
 
         Parameters
         ----------

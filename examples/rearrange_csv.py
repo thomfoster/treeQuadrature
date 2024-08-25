@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 # Specify the directory containing the CSV files
-directory = 'test_results/ablation_iterative_fitting'  
+directory = 'test_results/fifth_run'  
 
 # Load the CSV files
 file_paths = [os.path.join(directory, f) for f in sorted(os.listdir(directory)) if f.endswith('.csv')]
@@ -12,10 +12,17 @@ data = {f"{i+2}D": pd.read_csv(file) for i, file in enumerate(file_paths)}
 
 # Define the problem genres
 problem_genres = {
+    'SimpleGaussian': [],
+    'QuadCamel': [],
+    'Camel': [], 
+    'ExponentialProductProblem': [],
+    'QuadraticProblem': [],
+    'Ripple': [],
+    'Oscillatory': [],
     'ProductPeak': [],
     'C0function': [],
-    'Ripple': [],
-    'Oscillatory': []
+    'CornerPeak': [],
+    'Discontinuous': []
 }
 
 # Function to categorize the data by problem genre

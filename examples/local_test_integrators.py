@@ -108,8 +108,8 @@ if __name__ == '__main__':
                 QuadraticProblem(D),
                 RippleProblem(D),
                 OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
-                ProductPeakProblem(D, a=10),
                 C0Problem(D, a=1.1),
+                ProductPeakProblem(D, a=10),
                 CornerPeakProblem(D, a=10), 
                 DiscontinuousProblem(D, a=10)
             ]

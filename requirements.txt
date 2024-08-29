@@ -4,7 +4,7 @@ numpy
 pytest
 tqdm
 matplotlib
-scipy
+scipy>=1.13.0
 vegas
 pandas
 scikit-learn

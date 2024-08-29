@@ -8,3 +8,4 @@ scipy
 vegas
 pandas
 scikit-learn
+emcee

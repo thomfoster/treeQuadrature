@@ -583,7 +583,7 @@ class IterativeRbfIntegral(IterativeGpIntegral):
     sample drawing and fitting of the Gaussian Process model.
     This is specifically used for integrators where 
     containers should be coordinating together.
-    e.g. DistributedSampleGpIntegrator
+    e.g. DistributedGpTreeIntegrator
 
     Attributes
     -----------

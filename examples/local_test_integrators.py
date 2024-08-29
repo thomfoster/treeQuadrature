@@ -7,7 +7,7 @@ from treeQuadrature.exampleProblems import SimpleGaussian, Camel, QuadCamel, Exp
 from treeQuadrature.containerIntegration import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral
 from treeQuadrature.integrators.treeIntegrator import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit
-from treeQuadrature.integrators import DistributedSampleIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator, BatchGpIntegrator
+from treeQuadrature.integrators import DistributedTreeIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator, BatchGpIntegrator
 from treeQuadrature.samplers import McmcSampler, LHSImportanceSampler, UniformSampler, ImportanceSampler
 from treeQuadrature.trees import LimitedSampleTree
 
@@ -131,18 +131,17 @@ if __name__ == '__main__':
                 DiscontinuousProblem(D, a=10)
             ]
 
-        integ_simple = DistributedSampleIntegrator(base_N, args.P, max_samples, split, ranIntegral, 
+        integ_simple = DistributedTreeIntegrator(base_N, args.P, max_samples, split, ranIntegral, 
                                                 sampler=sampler)
         integ_simple.name = 'TQ with mean'
         
         active_tree = LimitedSampleTree(N=lsi_N, active_N=args.lsi_active_N,
                                                              split=split, weighting_function=volume_weighting_function)
-        integ_activeTQ = DistributedSampleIntegrator(lsi_base_N, args.P, max_samples, 
-                                                    split, ranIntegral, sampler=sampler,
-                                                    construct_tree_method=integ_active.construct_tree)
+        integ_activeTQ = DistributedTreeIntegrator(lsi_base_N, max_samples, ranIntegral, sampler=sampler,
+                                                    tree=active_tree)
         integ_activeTQ.name = 'ActiveTQ'
         
-        integ_rbf = DistributedSampleIntegrator(base_N, args.P, max_samples, split, aRbf, sampler=sampler, 
+        integ_rbf = DistributedTreeIntegrator(base_N, args.P, max_samples, split, aRbf, sampler=sampler, 
                                                 min_container_samples=args.gp_min_container_samples, 
                                                 max_container_samples=args.gp_max_container_samples)
         integ_rbf.name = 'TQ with Rbf'

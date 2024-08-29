@@ -201,9 +201,9 @@ def test_LimitedSampleIntegrator(
 @pytest.mark.parametrize("max_samples", [15000, 20000])
 @pytest.mark.parametrize("split", splits)
 @pytest.mark.parametrize("integral", integrals)
-def test_DistributedSampleIntegrator(D, max_samples, split, integral):
+def test_DistributedTreeIntegrator(D, max_samples, split, integral):
     problem = tq.exampleProblems.SimpleGaussian(D)
-    integ = tq.integrators.DistributedSampleIntegrator(7500, max_samples, integral,
+    integ = tq.integrators.DistributedTreeIntegrator(7500, max_samples, integral,
                                                        max_container_samples=50)
     
     # UniformSplit generates too many containers

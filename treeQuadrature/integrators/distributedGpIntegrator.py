@@ -1,4 +1,4 @@
-from .distributedSampleIntegrator import DistributedSampleIntegrator
+from .distributedTreentegrator import DistributedTreeIntegrator
 from ..samplers import Sampler
 from ..containerIntegration.gpIntegral import IterativeGpIntegral
 from ..container import Container
@@ -70,7 +70,7 @@ def individual_container_integral(integral: IterativeGpIntegral,
     return integral_results, cont, new_samples
 
 
-class DistributedSampleGpIntegrator(DistributedSampleIntegrator):
+class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
     """
     Integrator for gaussian process container integrals
     that distribute samples dynamically based on performance gain.

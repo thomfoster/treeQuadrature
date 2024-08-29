@@ -24,7 +24,7 @@ def individual_container_integral(integral: ContainerIntegral,
         _ = integral.n_samples
     except AttributeError:
         raise AttributeError("self.integral does not have attribute "
-                             "n_samples, cannot use DistributedSampleIntegrator")
+                             "n_samples, cannot use DistributedTreeIntegrator")
 
     integral.n_samples = n_samples
     
@@ -46,7 +46,7 @@ def individual_container_integral(integral: ContainerIntegral,
         
     return integral_results, cont
 
-class DistributedSampleIntegrator(TreeIntegrator):
+class DistributedTreeIntegrator(TreeIntegrator):
     def __init__(self, base_N: int, max_n_samples: int, 
                  integral: Optional[ContainerIntegral]=None, 
                  sampler: Optional[Sampler]=None, 
@@ -56,7 +56,7 @@ class DistributedSampleIntegrator(TreeIntegrator):
                  max_container_samples: int = 200, 
                  parallel: bool=True) -> None:
         """
-        An integrator that constructs a tree and then distributes the 
+        A TreeIntegrator that constructs a tree and then distributes the 
         remaining samples among the containers obtained 
         according to the volume of containers.
 

@@ -1,6 +1,6 @@
 from curses.ascii import SI
 from treeQuadrature.exampleProblems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem, ExponentialProductProblem, QuadCamel
-from treeQuadrature.integrators import BatchGpIntegrator, DistributedSampleGpIntegrator, SmcIntegrator, DistributedSampleIntegrator, VegasIntegrator
+from treeQuadrature.integrators import BatchGpIntegrator, DistributedGpTreeIntegrator, SmcIntegrator, DistributedTreeIntegrator, VegasIntegrator
 from treeQuadrature.containerIntegration import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
 from treeQuadrature.integrators.treeIntegrator import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit
@@ -24,7 +24,7 @@ problem = SimpleGaussian(D=D)
 # problem = ExponentialProductProblem(D)
 
 ### set basic parameters
-n_samples = 30
+n_samples = 20
 max_redraw = 4
 max_n_samples = int(30_000 * (D/2))
 min_container_samples = 32
@@ -32,6 +32,10 @@ random_split_proportion = 0.3
 
 N = int(12_000 * (D/3))
 P = 50
+
+# for activeTQ
+lsi_N = 10000 + 1000*D
+active_N = 10
 
 ### Set ContainerIntegral
 rbfIntegral_mean = KernelIntegral(max_redraw=max_redraw, threshold=0.9, n_splits=3, 
@@ -42,7 +46,7 @@ rbfIntegral = KernelIntegral(max_redraw=max_redraw, threshold=0.9, n_splits=3,
 rbfIntegral_non_iter = KernelIntegral(max_redraw=0, n_splits=0, 
                                    n_samples=n_samples)
 
-aRbf = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0, keep_samples=False)
+aRbf = AdaptiveRbfIntegral(n_samples=n_samples, max_redraw=0, n_splits=0, keep_samples=False)
 aRbf_iniital = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0, keep_samples=True)
 aRbf_qmc = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0, keep_samples=False,
                                sampler=SobolSampler())
@@ -72,8 +76,7 @@ simple_tree = SimpleTree(split=split, P=P)
 
 random_tree = SimpleTree(split=split_random, P=P)
 
-lsi_N = int(max_n_samples / (n_samples + 1))
-active_tree = LimitedSampleTree(N=lsi_N, active_N=10, split=split, weighting_function=lambda container: container.volume)
+active_tree = LimitedSampleTree(N=lsi_N, active_N=active_N, split=split, weighting_function=lambda container: container.volume)
 
 ### Set integrators
 integ_mean_uncontrolled = TreeIntegrator(N, tree=simple_tree, integral=rmeanIntegral, sampler=mcmcSampler)
@@ -88,37 +91,37 @@ integ_unif.name = 'MCMC sampler'
 integ_poly = TreeIntegrator(N, tree=simple_tree, integral=polyIntegral, sampler=mcmcSampler)
 integ_poly.name = 'TQ with polynomial'
 
-integ_mean = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+integ_mean = DistributedTreeIntegrator(N, max_n_samples=max_n_samples, 
                                              integral=rmeanIntegral, sampler=mcmcSampler, tree=simple_tree)
 integ_mean.name = 'TQ with mean'
 
-integ_mean_random_split = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+integ_mean_random_split = DistributedTreeIntegrator(N, max_n_samples=max_n_samples, 
                                              integral=rmeanIntegral, sampler=mcmcSampler, tree=random_tree)
 integ_mean_random_split.name = 'TQ with mean and random splitting'
 
 
-integ_activeTQ = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+integ_activeTQ = DistributedTreeIntegrator(N, max_n_samples=max_n_samples, 
                                              integral=rmeanIntegral, sampler=mcmcSampler, tree=active_tree)
 integ_activeTQ.name = 'ActiveTQ'
 
-integ_limitedGp = DistributedSampleGpIntegrator(base_N=N, P=P, max_n_samples=max_n_samples,
-                                            split=split, integral=iRbf, sampler=lhsSampler, 
+integ_limitedGp = DistributedGpTreeIntegrator(N, max_n_samples=max_n_samples,
+                                            integral=iRbf, sampler=lhsSampler, tree=simple_tree,
                                             max_container_samples=100)
 integ_limitedGp.name = 'Distributed Rbf Integrator'
 
 
 
-integ_rbf = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+integ_rbf = DistributedTreeIntegrator(N, max_n_samples=max_n_samples, 
                                              integral=aRbf, sampler=mcmcSampler, tree=simple_tree, 
                                              min_container_samples=min_container_samples)
 integ_rbf.name = 'TQ with RBF'
 
-integ_rbf_qmc = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+integ_rbf_qmc = DistributedTreeIntegrator(N, max_n_samples=max_n_samples, 
                                              integral=aRbf_qmc, sampler=mcmcSampler, tree=simple_tree, 
                                              min_container_samples=min_container_samples)
 integ_rbf_qmc.name = 'TQ with RBF with QMC container sampler'
 
-integ_rbf_initial = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+integ_rbf_initial = DistributedTreeIntegrator(N, max_n_samples=max_n_samples, 
                                              integral=aRbf_iniital, sampler=mcmcSampler, tree=simple_tree, 
                                              min_container_samples=min_container_samples)
 integ_rbf_initial.name = 'TQ with RBF, keeping initial samples'
@@ -146,7 +149,7 @@ integ_vegas_adaptive.name = 'Adaptive Vegas'
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_activeTQ], plot=True, verbose=2,
+    compare_integrators([integ_activeTQ], plot=True, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]], 
                         problem=problem, dimensions=[0, 1], 

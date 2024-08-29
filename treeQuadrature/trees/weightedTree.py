@@ -87,7 +87,7 @@ class WeightedTree(Tree):
         self.queue = queue if queue is not None else ReservoirQueue(accentuation_factor=100)
 
     def construct_tree(self, root: Container, integrand: Callable[[np.ndarray], float], 
-                       **kwargs) -> List[Container]:
+                       verbose: bool=False) -> List[Container]:
         """
         Construct the tree using a weighted queue mechanism.
 
@@ -97,11 +97,11 @@ class WeightedTree(Tree):
             The root container with all initial samples. 
         integrand : callable
             The integrand function to be integrated.
+        verbose : bool, optional
+            Whether to print verbose output, by default False.
         """
         if self.active_N == 0:
             self._check_root(root)
-
-        verbose = kwargs.get('verbose', False)
 
         self.n_splits = 0
         finished_containers = []

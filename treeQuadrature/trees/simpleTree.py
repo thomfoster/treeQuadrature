@@ -34,7 +34,8 @@ class SimpleTree(Tree):
         self.max_iter = max_iter
         
 
-    def construct_tree(self, root: Container, **kwargs) -> List[Container]:
+    def construct_tree(self, root: Container, verbose: bool=False, 
+                       max_iter=1e3) -> List[Container]:
         """
         Construct a tree of containers.
 
@@ -54,9 +55,6 @@ class SimpleTree(Tree):
             A list of finished containers.
         """
         self._check_root(root)
-
-        max_iter = kwargs.get('max_iter', 2000)
-        verbose = kwargs.get('verbose', False)
 
         # Construct tree
         finished_containers = []

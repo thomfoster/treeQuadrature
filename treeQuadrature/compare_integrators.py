@@ -99,6 +99,14 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         integrator_params = signature(integrator.__call__).parameters
         applicable_kwargs = {k: v for k, v in kwargs.items() if k in integrator_params}
 
+        if hasattr(integrator, 'tree'):
+            construct_tree_params = signature(integrator.tree.construct_tree).parameters
+            applicable_kwargs.update({k: v for k, v in kwargs.items() if k in construct_tree_params})
+
+        if hasattr(integrator, 'integral'):
+            container_params = signature(integrator.integral.containerIntegral).parameters
+            applicable_kwargs.update({k: v for k, v in kwargs.items() if k in container_params})
+
         # Prepare common arguments
         integration_args = {'return_N': True}
 

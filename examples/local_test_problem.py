@@ -28,14 +28,15 @@ n_samples = 20
 max_redraw = 4
 max_n_samples = int(30_000 * (D/2))
 min_container_samples = 32
-random_split_proportion = 0.3
+random_split_proportion = 0.5
 
 N = int(12_000 * (D/3))
 P = 50
 
 # for activeTQ
-lsi_N = 10000 + 1000*D
+lsi_N = 10000
 active_N = 10
+max_iter = 1000 + 100 * D
 
 ### Set ContainerIntegral
 rbfIntegral_mean = KernelIntegral(max_redraw=max_redraw, threshold=0.9, n_splits=3, 
@@ -76,7 +77,8 @@ simple_tree = SimpleTree(split=split, P=P)
 
 random_tree = SimpleTree(split=split_random, P=P)
 
-active_tree = LimitedSampleTree(N=lsi_N, active_N=active_N, split=split, weighting_function=lambda container: container.volume)
+active_tree = LimitedSampleTree(N=lsi_N, active_N=active_N, split=split, 
+                                weighting_function=lambda container: container.volume)
 
 ### Set integrators
 integ_mean_uncontrolled = TreeIntegrator(N, tree=simple_tree, integral=rmeanIntegral, sampler=mcmcSampler)
@@ -152,14 +154,12 @@ if __name__ == '__main__':
     compare_integrators([integ_activeTQ], plot=True, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]], 
-                        problem=problem, dimensions=[0, 1], 
-                        n_repeat=1, integrator_specific_kwargs={
-                            'ActiveTQ': {'integrand' : problem.integrand, 
-                                                        'max_iter' : 300}}, 
-                            plot_samples=False, title='')
+                        problem=problem, dimensions=[0, 1], integrator_specific_kwargs=
+                        {'ActiveTQ': {'max_iter' : max_iter}},
+                        n_repeat=1, plot_samples=False, title='')
     # compare_integrators([integ_rbf_non_adaptive], plot=True, verbose=1,
     #                     xlim=[problem.lows[0], problem.highs[0]], 
     #                     problem=problem, dimensions=[0, 1], 
     #                     n_repeat=1, integrator_specific_kwargs={
-    #                         'ActiveTQ': {'integrand' : problem.integrand}}, 
+    #                         'ActiveTQ': {'max_iter' : max_iter}}, 
     #                         plot_samples=False, font_size=13)

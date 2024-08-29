@@ -26,7 +26,8 @@ class LimitedSampleTree(Tree):
         weighting_function : function
             Function to compute the weight of a container.
         queue : class
-            Queue class to manage the containers, default is PriorityQueue.
+            Queue class to manage the containers, 
+            default is PriorityQueue.
         """
         super().__init__(*args, **kwargs)
         self.N = N
@@ -37,7 +38,7 @@ class LimitedSampleTree(Tree):
         
 
     def construct_tree(self, root: Container, integrand: Callable, 
-                       verbose: bool = False, **kwargs) -> List[Container]:
+                       verbose: bool = False, max_iter=1e3) -> List[Container]:
         """
         Actively refine the containers with samples.
 
@@ -49,9 +50,13 @@ class LimitedSampleTree(Tree):
             The integrand function.
         max_iter : int, optional
             Maximum number of iterations, 
-            by default 1e4
+            by default 1e4.
         verbose : bool, optional
-            Whether to print verbose output, by default False.
+            Whether to print verbose output, 
+            by default False.
+        max_iter : int, optional
+            Maximum number of binary splits,
+            by default 2000.
 
         Returns
         -------
@@ -60,8 +65,6 @@ class LimitedSampleTree(Tree):
         """
         if self.active_N == 0:
             self._check_root(root)
-
-        max_iter = kwargs.get('max_iter', 1e4)
 
         base_N = root.N
 

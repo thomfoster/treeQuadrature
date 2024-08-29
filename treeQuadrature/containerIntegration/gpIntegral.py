@@ -1,9 +1,8 @@
-from typing import Dict, Any, Callable, Optional, Union, List, Type, Tuple
+from typing import Dict, Any, Callable, Optional, List, Type, Tuple
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.metrics import pairwise_distances
 import numpy as np
 import warnings
-from traceback import print_exc
 from abc import abstractmethod
 
 from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, kernel_integration, GPFit, SklearnGPFit
@@ -14,9 +13,9 @@ from ..gaussianProcess.kernels import Polynomial
 from ..gaussianProcess.scorings import r2
 from ..samplers import Sampler, UniformSampler
 
-class RbfIntegral(ContainerIntegral):
+class KernelIntegral(ContainerIntegral):
     """
-    use Gaussian process with RBF kernel 
+    use Gaussian process with RBF kernel by default
     to estimate the integral value on a container
     assumes uniform prior used
 
@@ -57,14 +56,21 @@ class RbfIntegral(ContainerIntegral):
         the iterative fitter used by this instance
     """
     def __init__(self, GPFit: Type[GPFit]=SklearnGPFit, 
-                 gp_params: dict = {}, 
+                 gp_params: dict = {}, kernel: Any = None,
                  **kwargs) -> None:
         """
         Arguments
         ---------
         gp : GPFit, optional
             the gaussian process model fitter
-            default using sklearn
+            default using SklearnGPFit
+        gp_params : dict
+            parameters required to initiliase GPFit
+        kernel: Any, optional
+            the kernel required
+            By default, use the default kernel of
+            GPFit.create_kernel. 
+            For SklearnGPFit and GPyGPFit, the default is RBF kernel
         **kwargs : Any
             length, range, n_samples, 
             n_splits, max_redraw, threshold,
@@ -76,10 +82,10 @@ class RbfIntegral(ContainerIntegral):
 
         self.GPFit = GPFit
         self.gp_params = gp_params
+        self.kernel = kernel
+        self.gp = None
         
         self.options : Dict[str, Any] = {
-            'length': 10,
-            'range': 1e3,
             'n_samples': 15,
             'n_splits' : 5,
             'max_redraw': 5,
@@ -90,30 +96,24 @@ class RbfIntegral(ContainerIntegral):
         }
         self.options.update(kwargs)
 
-        RbfIntegral._validate_options(self.options)
+        KernelIntegral._validate_options(self.options)
 
         # set options correspondingly
         for key, value in self.options.items():
             setattr(self, key, value)
 
-        self.kernel = RBF(self.length, (self.length*(1/self.range), 
-                                        self.length*self.range))
+    # Lazy initilliasation for parallel processing
+    def _initialize_gp(self):
+        if self.gp is None:
+            self.gp = self.GPFit(**self.gp_params)
+            if self.kernel is None:
+                self.kernel = self.gp.create_kernel(self.gp_params)
 
     def __str__(self):
-        return 'RbfIntegral'
+        return 'KernelIntegral'
 
     @staticmethod
     def _validate_options(options):
-        length = options['length']
-        if not isinstance(length, (int, float)):
-            raise TypeError(
-                f'length must be an int or float, got {length}'
-                )
-        range = options['range']
-        if not isinstance(range, (int, float)):
-            raise TypeError(
-                f'range must be an int or float, got {length}'
-                )
         n_samples = options['n_samples']
         if not isinstance(n_samples, int):
             raise TypeError(
@@ -135,7 +135,7 @@ class RbfIntegral(ContainerIntegral):
             raise TypeError('fit_residuals must be a bool')
 
     def containerIntegral(self, container: Container, f: Callable,
-                          return_std: bool=False,
+                          return_std: bool=False, 
                           **kwargs: Any):
         """
         Gaussian Process is fitted iteratively 
@@ -160,6 +160,8 @@ class RbfIntegral(ContainerIntegral):
             - hyper_params (dict) hyper-parameters of the fitted kernel
             - performance (float) GP goodness of fit score
         """
+        self._initialize_gp()
+
         if self.n_samples < 2:
             raise RuntimeError("Cannot perform GP Integral with less than 2 samples"
                                "please increase 'n_samples'")
@@ -174,16 +176,13 @@ class RbfIntegral(ContainerIntegral):
                 'due to high values of max_iter and n_samples'
                 )
 
-        RbfIntegral._validate_options(options)
+        KernelIntegral._validate_options(options)
 
         for key, value in options.items():
             setattr(self, key, value)
-
-        ### fit GP using RBF kernel
-        self.kernel = RBF(self.length, (self.length*(1/self.range), 
-                                   self.length*self.range))
         
         gp = self.GPFit(**self.gp_params)
+        
         # set up iterative fitting scheme
         iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                  max_redraw=self.max_redraw, 
@@ -199,7 +198,14 @@ class RbfIntegral(ContainerIntegral):
         ret = kernel_integration(iGP, container, gp_results, 
                                             return_std)
         
-        ret['hyper_params'] = {'length' : iGP.gp.hyper_params['length_scale']}
+        hyper_params = iGP.gp.hyper_params
+        if 'length_scale' in hyper_params:
+            length = hyper_params['length_scale']
+        elif 'lengthscale' in hyper_params:
+            length = hyper_params['lengthscale']
+        else:
+            raise KeyError("Neither 'length_scale' nor 'lengthscale' found in hyperparameters.")
+        
         ret['performance'] = gp_results['performance']
         
         return ret
@@ -330,9 +336,11 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
         bounds = (lower_bound, upper_bound)
 
-        self.kernel = RBF(initial_length, bounds)
 
         gp = self.GPFit(**self.gp_params)
+        # kernel type forced to be RBF here
+        self.kernel = gp.create_kernel({'kernel_type': 'RBF', 
+                                        'length': initial_length, 'bounds': bounds})
         iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                  max_redraw=self.max_redraw, scoring=self.scoring,
                                  performance_threshold=self.threshold, 

@@ -81,20 +81,20 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
         method to split the tree
     integral : IterativeGpIntegral
         an integrator that takes previous_samples
-        and is able to extend from there. 
+        and is able to extend from there. \n
         Note: integral.n_samples will be ignored
     base_N : int
         number of initial samples used to construct the tree
     P : int
-        stopping criteria for building tree
+        stopping criteria for building tree. \n
         largest container should not have more than P samples
     sampler : Sampler
         sampler to use when problem does nove have method rvs
     max_container_samples : int
         maximum number of samples to allocate to a container
     min_container_samples : int
-        minimum number of samples to allocate to a container
-        this is also used for the initial round
+        minimum number of samples to allocate to a container. \n
+        This is also used for the initial round
     max_iterations_per_container : int
         maximum number of iterations to allocate to a container
     """

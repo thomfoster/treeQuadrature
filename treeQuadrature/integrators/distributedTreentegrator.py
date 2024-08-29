@@ -66,21 +66,21 @@ class DistributedTreeIntegrator(TreeIntegrator):
             Total number of initial samples.
         integral : ContainerIntegral 
             Method to evaluate the integral of f on a container.\n
-            Default is RandomIntegral.
+            Default: RandomIntegral.
         sampler : Sampler, optional
             Method for generating initial samples, 
             when the problem does not have an rvs method.
         tree : Tree, optional
             Method to construct the tree of containers.
-            Default is SimpleTree.
+            Default: SimpleTree.
         max_n_samples : int
             Total number of evaluations available.
         min_container_samples, max_container_samples: int, optional
-            The minimum and maximum number of samples to allocate to each container 
-            Defaults are 2 and 200
+            The minimum and maximum number of samples to allocate to each container. \n
+            Default: 2 and 200
         scaling_factor : float, optional
-            A scaling factor to control the aggressiveness of sample distribution 
-            (default is 1e-6).
+            A scaling factor to control the aggressiveness of sample distribution. \n
+            Default: 1e-6
         parallel : bool, optional
             whether to use parallel computing for container integration
 

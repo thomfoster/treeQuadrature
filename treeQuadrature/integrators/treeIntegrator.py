@@ -77,12 +77,12 @@ class TreeIntegrator(Integrator):
         Arguments
         ---------
         integral : ContainerIntegral, optional
-            the method to integrate the containers
-            default is RandomIntegral (mean of uniform samples redrawn)
+            the method to integrate the containers. \n
+            Default: RandomIntegral (mean of uniform samples redrawn)
         base_N : int
             number of initial samples for tree construction
         tree : Tree, optional
-            the tree structure to use,
+            the tree structure to use, 
             default is SimpleTree
         sampler : Sampler, optional
             a method for generating initial samples

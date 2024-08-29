@@ -116,11 +116,11 @@ class BatchGpIntegrator(Integrator):
         split : Split
             a method to split a container (for tree construction)
         integral : ContainerIntegral 
-            a method to evaluate the integral of f on a container
-            it must have return_hyper_params option
+            a method to evaluate the integral of f on a container. \n
+            It must have return_hyper_params option
         sampler : Sampler
             a method for generating initial samples
-            when problem does not have rvs method. 
+            when problem does not have rvs method. \n
             Default: UniformSampler
         max_n_samples : int
             if set, samples will be distributed 

@@ -1,20 +1,18 @@
-from ..splits import Split
+from .distributedSampleIntegrator import DistributedSampleIntegrator
 from ..samplers import Sampler
 from ..containerIntegration.gpIntegral import IterativeGpIntegral
 from ..container import Container
-from .integrator import Integrator
+from ..trees import Tree
 from ..exampleProblems import Problem
 
 from typing import Optional, List
-from queue import SimpleQueue
 import numpy as np
-import time, warnings
 
 # parallel computing
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
-def parallel_container_integral(integral: IterativeGpIntegral, 
+def individual_container_integral(integral: IterativeGpIntegral, 
                                 cont: Container, integrand: callable, 
                                 return_std: bool, n_samples: int, 
                                 previous_samples: Optional[dict] = None):
@@ -71,9 +69,11 @@ def parallel_container_integral(integral: IterativeGpIntegral,
     # Return integral results, modified container, and the new samples
     return integral_results, cont, new_samples
 
-class LimitedSamplesGpIntegrator(Integrator):
+
+class DistributedSampleGpIntegrator(DistributedSampleIntegrator):
     """
     Integrator for gaussian process container integrals
+    that distribute samples dynamically based on performance gain.
 
     Attributes
     ---------
@@ -81,7 +81,8 @@ class LimitedSamplesGpIntegrator(Integrator):
         method to split the tree
     integral : IterativeGpIntegral
         an integrator that takes previous_samples
-        and is able to extend from there
+        and is able to extend from there. 
+        Note: integral.n_samples will be ignored
     base_N : int
         number of initial samples used to construct the tree
     P : int
@@ -89,104 +90,29 @@ class LimitedSamplesGpIntegrator(Integrator):
         largest container should not have more than P samples
     sampler : Sampler
         sampler to use when problem does nove have method rvs
+    max_container_samples : int
+        maximum number of samples to allocate to a container
+    min_container_samples : int
+        minimum number of samples to allocate to a container
+        this is also used for the initial round
+    max_iterations_per_container : int
+        maximum number of iterations to allocate to a container
     """
-    def __init__(self, base_N: int, max_n_samples: int, P: int, split: Split, 
-                 integral: IterativeGpIntegral,
+    def __init__(self, base_N: int, max_n_samples: int, integral: IterativeGpIntegral,
+                 tree: Optional[Tree]=None, 
                  sampler: Optional[Sampler]=None, 
-                 max_container_samples: int=200):
-        self.split = split
-        self.base_N = base_N
-        self.integral = integral
-        self.P = P
-        self.max_n_samples = max_n_samples
-        self.sampler = sampler
-        self.n_samples = integral.n_samples
-        self.max_container_samples = max_container_samples
-
-    def construct_tree(self, root: Container, verbose: bool=False, 
-                       **kwargs) -> List[Container]:
-        """
-        Construct a simple tree 
-
-        Arguments
-        ---------
-        root: Container
-            the root container
-        verbose : bool, optional (default = False)
-            whether print queue status every 100 iterations 
-            or not
-        max_iter : float, optional (default = 1e4)
-            maximum number of iterations 
-        """
-        max_iter = kwargs.get('max_iter', 1e4)
-        tree_containers = []
-        q = SimpleQueue()
-        q.put(root)
-        start_time = time.time()
-        iteration_count = 0
-
-        while not q.empty() and iteration_count < max_iter:
-            iteration_count += 1
-            c = q.get()
-            if c.N <= self.P:
-                tree_containers.append(c)
-            else:
-                children = self.split.split(c)
-                for child in children:
-                    q.put(child)
-            
-            if iteration_count % 100 == 0 and verbose:
-                elapsed_time = time.time() - start_time
-                print(f"Iteration {iteration_count}: Queue size = {q.qsize()}, "
-                      f"number of containers = {len(tree_containers)}, "
-                      f"Elapsed time = {elapsed_time:.2f}s")
-
-        if iteration_count == max_iter:
-            warnings.warn('Maximum iterations reached for constructing the tree. '
-                          'Increase max_iter or check split and samples.', RuntimeWarning)
-            while not q.empty():
-                tree_containers.append(q.get())
-
-        return tree_containers
-
-    def __call__(self, problem: Problem, 
-                 return_N: bool=False, return_containers: bool=False, 
-                 return_std: bool=False, verbose: bool=False,
-                 return_all: bool=False, max_iterations_per_container: int = 5,
-                 **kwargs) -> dict:
-
-        if verbose: 
-            print('drawing initial samples')
-        # Draw samples
-        if self.sampler is not None:
-            X, y = self.sampler.rvs(self.base_N, problem.lows, problem.highs,
-                                    problem.integrand)
-        elif hasattr(problem, 'rvs'):
-            X = problem.rvs(self.base_N)
-            y = problem.integrand(X)
-        else:
-            raise RuntimeError('cannot draw initial samples. '
-                               'Either problem should have rvs method, '
-                               'or specify self.sampler')
-
-        assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1), (
-            'the output of problem.integrand must be one-dimensional array'
-            f', got shape {y.shape}'
-        )
-
-        if verbose: 
-            print('constructing root container')
-        root = Container(X, y, mins=problem.lows, maxs=problem.highs)
-
-        # Construct tree
-        containers = self.construct_tree(root, verbose=verbose, **kwargs)
-
-        if len(containers) == 0:
-            raise RuntimeError('No container obtained from construct_tree')
-        
+                 max_container_samples: int=200, 
+                 min_container_samples: int=20,
+                 max_iterations_per_container: int = 5):
+        super().__init__(base_N=base_N, integral=integral, sampler=sampler, tree=tree, max_n_samples=max_n_samples,
+                         max_container_samples=max_container_samples, min_container_samples=min_container_samples)
+        self.max_iterations_per_container: max_iterations_per_container
+    
+    def integrate_containers(self, containers: List[Container], 
+                             problem: Problem,
+                             compute_std: bool=False, 
+                             verbose: bool=False):
         n_samples = np.sum([cont.N for cont in containers])
-        if verbose:
-            print(f'got {len(containers)} containers with {n_samples} samples')
 
         # Initialize previous_samples dictionary
         previous_samples = {}
@@ -197,7 +123,7 @@ class LimitedSamplesGpIntegrator(Integrator):
         all_containers = []
         all_results = []
 
-        sample_allocation = [self.n_samples for _ in range(len(containers))]
+        sample_allocation = [self.min_container_samples for _ in range(len(containers))]
         if total_samples + sum(sample_allocation) > self.max_n_samples:
             raise ValueError('not enough samples to fit first run of GP'
                                 'please reduce base_N or increase max_n_samples')
@@ -207,24 +133,38 @@ class LimitedSamplesGpIntegrator(Integrator):
                 print(f"largest container allocation {max(sample_allocation)}")
 
             container_sample_map = {id(cont): sample_allocation[i] for i, cont in enumerate(containers)}
-            with ProcessPoolExecutor() as executor:
-                futures = {
-                    executor.submit(parallel_container_integral, 
-                                    self.integral, cont, problem.integrand, 
-                                    return_std, container_sample_map[id(cont)],
-                                    previous_samples=previous_samples): id(cont)
-                    for cont in containers
-                }
+            if self.parallel:
+                with ProcessPoolExecutor() as executor:
+                    futures = {
+                        executor.submit(individual_container_integral, 
+                                        self.integral, cont, problem.integrand, 
+                                        compute_std, container_sample_map[id(cont)],
+                                        previous_samples=previous_samples): id(cont)
+                        for cont in containers
+                    }
 
+                    results = []
+                    new_samples_dict = {}
+                    for future in as_completed(futures):
+                        container_id = futures[future]
+                        integral_results, container, new_samples = future.result()
+                        results.append((integral_results, container))
+                        new_samples_dict[container] = new_samples
+
+                        total_samples += container_sample_map[container_id]
+            else:
                 results = []
                 new_samples_dict = {}
-                for future in as_completed(futures):
-                    container_id = futures[future]
-                    integral_results, container, new_samples = future.result()
+                for cont in containers:
+                    integral_results, container, new_samples = individual_container_integral(
+                        self.integral, cont, problem.integrand, 
+                        compute_std, container_sample_map[id(cont)],
+                        previous_samples=previous_samples
+                    )
                     results.append((integral_results, container))
                     new_samples_dict[container] = new_samples
 
-                    total_samples += container_sample_map[container_id]
+                    total_samples += container_sample_map[id(cont)]
 
             if verbose:
                 print(f"Total samples used: {total_samples}/{self.max_n_samples}")
@@ -255,11 +195,11 @@ class LimitedSamplesGpIntegrator(Integrator):
 
             # Allocate samples dynamically based on performance gain
             available_samples = min(self.max_n_samples - total_samples, 
-                                    self.n_samples * len(containers))
+                                    self.min_container_samples * len(containers))
             sample_allocation = self._allocate_samples(ranked_containers_results=ranked_containers_results, 
                                                        available_samples=available_samples,
                                                        container_iterations=container_iterations,
-                                                       max_iterations_per_container=max_iterations_per_container, 
+                                                       max_iterations_per_container=self.max_iterations_per_container, 
                                                        container_performances=container_performances,
                                                        max_per_container=self.max_container_samples)
             
@@ -287,32 +227,6 @@ class LimitedSamplesGpIntegrator(Integrator):
         all_containers.extend(containers)
         all_results.extend([result for result, _ in ranked_containers_results if result not in all_results])
 
-        if len(all_containers) != len(all_results):
-            raise RuntimeError(f'number of containers ({len(all_containers)}) not the same as '
-                               f'number of integral results ({len(all_results)})')
-
-        if return_all:
-            return all_results, all_containers
-
-        contributions = [result['integral'] for result in all_results]
-        if return_std:
-            stds = [result['std'] for result in all_results]
-        else:
-            stds = None
-
-        G = np.sum(contributions)
-        N = sum([cont.N for cont in all_containers])
-
-        return_values = {'estimate' : G}
-        if return_N:
-            return_values['n_evals'] = N
-        if return_containers:
-            return_values['containers'] = all_containers
-            return_values['contributions'] = contributions
-        if return_std:
-            return_values['stds'] = stds
-
-        return return_values
     
     def _allocate_samples(self, ranked_containers_results: list, 
                       available_samples: int, max_per_container: int,

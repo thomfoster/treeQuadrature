@@ -15,7 +15,7 @@ from tqdm import tqdm
 ########################
 
 parser = argparse.ArgumentParser(
-    description='Run the simpleIntegrator treeQuadrature method over dimensions 1,...,max_d.',
+    description='Run the TreeIntegrator with a simple tree over dimensions 1,...,max_d.',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
 )
 parser.add_argument('--N', type=int, default=10_000, help="Number of samples to draw, in advance, from the distribution.")
@@ -103,5 +103,6 @@ wandb.config.update(vars(args))
 
 for D in tqdm(Ds):
     problem_instance = problem(D)
-    integ = tq.integrators.SimpleIntegrator(args.N, args.P, split, integral)
+    integ = tq.integrators.TreeIntegrator(args.N, tree=tq.trees.SimpleTree(args.P, split), 
+                                          integral=integral)
     experiment(problem_instance, integ)

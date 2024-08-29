@@ -4,17 +4,19 @@ import matplotlib.pyplot as plt
 import time
 
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import RbfIntegral, AdaptiveRbfIntegral
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.containerIntegration import KernelIntegral, AdaptiveRbfIntegral
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.exampleProblems import Camel, SimpleGaussian, QuadCamel
 from treeQuadrature.container import Container
+from treeQuadrature.trees import SimpleTree
 
 Ds = range(1, 15)
 N = 10_000
 P = 40
 num_runs = 1
 
-integ = SimpleIntegrator(N, P, MinSseSplit(), RbfIntegral())
+integ = TreeIntegrator(N, tree=SimpleTree(P=P), 
+                           integral=KernelIntegral())
 
 # lengths = np.zeros((num_runs, len(Ds)))
 gp_times = np.zeros((num_runs, len(Ds)))
@@ -36,7 +38,6 @@ for i in range(num_runs):
         # problem = SimpleGaussian(D)
 
         # increase length scale and GP search range with N
-        # integ.integral = RbfIntegral(length = np.log(D+log_base-1) / np.log(log_base), range = 500 * np.log(D+1))
         integ.integral = AdaptiveRbfIntegral(max_n_samples=1000)
 
         # base_N = int(N * np.log(D+log_base-1) / np.log(log_base))

@@ -2,11 +2,14 @@ import argparse, os, json
 import numpy as np 
 
 from treeQuadrature.compare_integrators import test_integrators
+from treeQuadrature.containerIntegration.gpIntegral import KernelIntegral
 from treeQuadrature.exampleProblems import SimpleGaussian, Camel, QuadCamel, ExponentialProductProblem, QuadraticProblem, RippleProblem, OscillatoryProblem, ProductPeakProblem, CornerPeakProblem, DiscontinuousProblem, C0Problem
-from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral
+from treeQuadrature.containerIntegration import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral
+from treeQuadrature.integrators.treeIntegrator import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit
-from treeQuadrature.integrators import DistributedSampleIntegrator, LimitedSampleIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator, GpTreeIntegrator
+from treeQuadrature.integrators import DistributedSampleIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator, BatchGpIntegrator
 from treeQuadrature.samplers import McmcSampler, LHSImportanceSampler, UniformSampler, ImportanceSampler
+from treeQuadrature.trees import LimitedSampleTree
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Run integrator tests with various configurations.")
@@ -16,8 +19,8 @@ parser.add_argument('--base_N', type=int, default=7_500, help='Base sample size 
 parser.add_argument('--max_samples', type=int, default=15_000, help='Maximum sample size when D = 2 (default: 15_000)')
 parser.add_argument('--gp_min_container_samples', type=int, default=20, help='minimum sample size for a container when fitting GP (default: 20)')
 parser.add_argument('--gp_max_container_samples', type=int, default=150, help='maximum sample size for a container when fitting GP (default: 150)')
-parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleIntegrator when D = 3 (default: 1_000)')
-parser.add_argument('--lsi_active_N', type=int, default=0, help='active sample size for LimitedSampleIntegrator (default: 0)')
+parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleTree when D = 3 (default: 1_000)')
+parser.add_argument('--lsi_active_N', type=int, default=0, help='active sample size for LimitedSampleTree (default: 0)')
 parser.add_argument('--bmc_N', type=int, default=1200, help='Base sample size for BMC (default: 1200)')
 parser.add_argument('--P', type=int, default=50, help='Size of the largest container (default: 50)')
 parser.add_argument('--vegas_iter', type=int, default=10, help='Number of iterations for VegasIntegrator (default: 10)')
@@ -36,7 +39,7 @@ Ds = args.dimensions
 ### container Integrals 
 ranIntegral = RandomIntegral(n_samples=args.n_samples)
 aRbf = AdaptiveRbfIntegral(n_samples= args.n_samples, max_redraw=0, n_splits=0)
-non_iter_rbf = RbfIntegral(max_redraw=0, n_splits=0, 
+non_iter_rbf = KernelIntegral(max_redraw=0, n_splits=0, 
                             n_samples=args.n_samples)
 
 ### Splits
@@ -132,11 +135,8 @@ if __name__ == '__main__':
                                                 sampler=sampler)
         integ_simple.name = 'TQ with mean'
         
-        integ_active = LimitedSampleIntegrator(N=lsi_N, base_N=lsi_base_N, 
-                                        active_N=args.lsi_active_N, 
-                                        split=split, integral=ranIntegral, 
-                                        weighting_function=volume_weighting_function, 
-                                        sampler=sampler)
+        active_tree = LimitedSampleTree(N=lsi_N, active_N=args.lsi_active_N,
+                                                             split=split, weighting_function=volume_weighting_function)
         integ_activeTQ = DistributedSampleIntegrator(lsi_base_N, args.P, max_samples, 
                                                     split, ranIntegral, sampler=sampler,
                                                     construct_tree_method=integ_active.construct_tree)

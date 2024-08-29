@@ -4,9 +4,12 @@ import pandas as pd
 
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import MidpointIntegral
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.container import Container
+from treeQuadrature.trees import SimpleTree
+
+
 
 Ds = np.arange(2, 15, 3)   # test dimensions
 n_repeats = 5  # Number of times to repeat the experiment
@@ -27,7 +30,8 @@ for D in Ds:
             avg_sample_size_repeats = []
             avg_std_small_containers_repeats = []
             for _ in range(n_repeats):
-                integ = SimpleIntegrator(base_N, P, MinSseSplit(), MidpointIntegral())
+                integ = TreeIntegrator(base_N, tree=SimpleTree(P=P), 
+                           integral=MidpointIntegral())
                 X = integ.sampler.rvs(base_N, problem)
                 y = problem.integrand(X)
                 root = Container(X, y, mins=problem.lows, maxs=problem.highs)

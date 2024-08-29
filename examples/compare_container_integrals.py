@@ -1,4 +1,4 @@
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem, RippleProblem, Camel
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, MidpointIntegral, RandomIntegral
@@ -64,9 +64,8 @@ if __name__ == '__main__':
         integral_midpoint.name = 'Midpoint'
         integrals = [integral_rbf, integral_mean, integral_midpoint]
 
-        integ = SimpleIntegrator(base_N=args_dict['N'], P=args.P, split=split, 
-                                 integral=None, 
-                                 sampler=McmcSampler())
+        integ = TreeIntegrator(base_N=args_dict['N'], tree=SimpleTree(P=args.P, split=split), 
+                                 integral=None, sampler=McmcSampler())
             
         test_container_integrals(problems, integrals, integ, output_file, 
                                  n_repeat=args.n_repeat)

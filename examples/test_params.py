@@ -1,8 +1,8 @@
 from treeQuadrature.compare_integrators import test_integrator_performance_with_params
 from treeQuadrature.exampleProblems import Camel
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral
-from treeQuadrature.splits import MinSseSplit
+from treeQuadrature.trees import SimpleTree
 
 import numpy as np
 import os
@@ -11,8 +11,7 @@ n_repeat = 10
 max_time = 500
 Ds = np.arange(2, 14, 3)
 integral = AdaptiveRbfIntegral(n_splits=0, max_redraw=3, n_samples=20)
-split = MinSseSplit()
-integ = SimpleIntegrator(1000, 50, split, integral)
+integ = TreeIntegrator(1000, tree=SimpleTree(P=50), integral=integral)
 integ.name = "TQ with Rbf"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))

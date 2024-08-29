@@ -24,7 +24,7 @@ def integrator_wrapper(integrator, problem, verbose, result_queue, specific_kwar
         result_queue.put({'exception': e})
 
 def compare_integrators(integrators: List[Integrator], problem: Problem, 
-                        plot: bool=False, plot_samples: bool=True,
+                        plot: bool=False, 
                         verbose: int=1, 
                         xlim: Optional[List[float]]=None, 
                         ylim: Optional[List[float]]=None,
@@ -80,7 +80,8 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         dictionaries of specific arguments to be passed to those integrators.
         Default is None.
     **kwargs : Any
-        kwargs that should be used by __call__ method
+        kwargs that should be used by integrator.__call__ method 
+        or the plotContainers method
     """
     if integrator_specific_kwargs is None:
         integrator_specific_kwargs = {}
@@ -160,7 +161,7 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         print(f'Time taken: {avg_time:.2f} s ± {std_time:.2f} s')
 
         if 'containers' in result and 'contributions' in result:
-            title = 'Integral estimate using ' + integrator_name
+            default_title = 'Integral estimate using ' + integrator_name
             containers = result['containers']
             print(f'Number of containers: {len(containers)}')
             n_samples = [cont.N for cont in containers]
@@ -169,13 +170,16 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
             print(f'Maximum samples in containers: {np.max(n_samples)}')
             contributions = result['contributions']
             if plot:
-                if xlim is None or ylim is None:
-                    raise ValueError('xlim and ylim must be provided for plotting')
+                if xlim is None:
+                    raise ValueError('xlim must be provided for plotting')
+                plot_params = signature(plotContainers).parameters
+                applicable_kwargs = {k: v for k, v in kwargs.items() if k in plot_params}
+                title = applicable_kwargs.pop('title', default_title)
                 plotContainers(containers, contributions, 
                                xlim=xlim, ylim=ylim,
                                integrand=problem.integrand, 
-                               title=title, plot_samples=plot_samples, 
-                               dimensions=dimensions)
+                               title=title, dimensions=dimensions, 
+                               **applicable_kwargs)
         elif plot: 
             warnings.warn('Result of integrator has no containers to plot', 
                           UserWarning)

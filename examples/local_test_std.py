@@ -1,5 +1,6 @@
-from treeQuadrature.integrators import BayesMcIntegrator, SimpleIntegrator
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RandomIntegral
+from treeQuadrature.integrators import BayesMcIntegrator, TreeIntegrator
+from treeQuadrature.containerIntegration import AdaptiveRbfIntegral
+from treeQuadrature.trees import SimpleTree
 from treeQuadrature.splits import KdSplit
 from treeQuadrature.exampleProblems import SimpleGaussian
 from treeQuadrature.visualisation import plotContainers
@@ -9,8 +10,8 @@ import matplotlib.pyplot as plt
 
 problem = SimpleGaussian(D=3)
 
-treeInteg = SimpleIntegrator(8_000, 40, KdSplit(), 
-                             AdaptiveRbfIntegral())
+treeInteg = TreeIntegrator(8_000, tree=SimpleTree(split=KdSplit()), integral=AdaptiveRbfIntegral())
+                             
 bmcInteg = BayesMcIntegrator(500)
 
 if __name__ == '__main__':

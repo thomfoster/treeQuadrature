@@ -1,13 +1,16 @@
-from treeQuadrature.exampleProblems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem, ExponentialProductProblem
-from treeQuadrature.integrators import SimpleIntegrator, LimitedSampleIntegrator, GpTreeIntegrator, LimitedSamplesGpIntegrator, SmcIntegrator, DistributedSampleIntegrator, VegasIntegrator, QueueIntegrator
-from treeQuadrature.containerIntegration import RandomIntegral, RbfIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
+from curses.ascii import SI
+from treeQuadrature.exampleProblems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem, ExponentialProductProblem, QuadCamel
+from treeQuadrature.integrators import BatchGpIntegrator, DistributedSampleGpIntegrator, SmcIntegrator, DistributedSampleIntegrator, VegasIntegrator
+from treeQuadrature.containerIntegration import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
+from treeQuadrature.integrators.treeIntegrator import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit
 from treeQuadrature.samplers import ImportanceSampler, UniformSampler, McmcSampler, SobolSampler, LHSImportanceSampler
 from treeQuadrature import compare_integrators, Container
+from treeQuadrature.trees import SimpleTree, LimitedSampleTree
 
 import numpy as np
 
-D = 10
+D = 2
 
 ### Set problem
 # problem = Camel(D=D)
@@ -23,27 +26,27 @@ problem = SimpleGaussian(D=D)
 ### set basic parameters
 n_samples = 30
 max_redraw = 4
-max_n_samples = int(15_000 * (D/2))
+max_n_samples = int(30_000 * (D/2))
 min_container_samples = 32
+random_split_proportion = 0.3
 
-N = int(10_000 * (D/3))
+N = int(12_000 * (D/3))
 P = 50
 
-### set GP fitter
-# gp = SklearnGPFit(alpha=1e-5)
-
 ### Set ContainerIntegral
-rbfIntegral_mean = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, 
+rbfIntegral_mean = KernelIntegral(max_redraw=max_redraw, threshold=0.9, n_splits=3, 
                                n_samples=n_samples)
-rbfIntegral = RbfIntegral(max_redraw=max_redraw, threshold=0.5, n_splits=3, 
+rbfIntegral = KernelIntegral(max_redraw=max_redraw, threshold=0.9, n_splits=3, 
                             fit_residuals=False, 
                             n_samples=n_samples)
-rbfIntegral_non_iter = RbfIntegral(max_redraw=0, n_splits=0, 
+rbfIntegral_non_iter = KernelIntegral(max_redraw=0, n_splits=0, 
                                    n_samples=n_samples)
+
 aRbf = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0, keep_samples=False)
 aRbf_iniital = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0, keep_samples=True)
 aRbf_qmc = AdaptiveRbfIntegral(n_samples= n_samples, max_redraw=0, n_splits=0, keep_samples=False,
                                sampler=SobolSampler())
+
 iRbf = IterativeRbfIntegral(n_samples=n_samples, n_splits=0)
 rmeanIntegral = RandomIntegral(n_samples=n_samples)
 polyIntegral = PolyIntegral(n_samples=n_samples, degrees=[2, 3], max_redraw=0)
@@ -61,58 +64,69 @@ def side_lengths(container: Container):
 
 split = MinSseSplit()
 split_random = MinSseSplit(dimension_weights=side_lengths,
-                    dimension_proportion=0.5)
-# split = KdSplit()
+                    dimension_proportion=random_split_proportion)
+split_kd = KdSplit()
 
-integ1 = SimpleIntegrator(N, P, split, rbfIntegral_mean)
-integ1.name = 'TQ with RBF, fitting to mean'
+### set trees
+simple_tree = SimpleTree(split=split, P=P)
 
-integ_mean = DistributedSampleIntegrator(N, P, max_n_samples, split, rmeanIntegral, sampler=mcmcSampler)
-integ_mean.name = 'TQ with mean estimator'
-
-integ_mean_random_split = DistributedSampleIntegrator(N, P, max_n_samples, split_random, rmeanIntegral, 
-                                         sampler=mcmcSampler)
-integ_mean_random_split.name = 'TQ with mean estimator and random splitting'
-
-integ_is = SimpleIntegrator(N, P, split, aRbf, sampler=iSampler)
-integ_is.name = 'Importance sampler'
-
-integ_unif = SimpleIntegrator(N, P, split, aRbf, sampler=mcmcSampler)
-integ_unif.name = 'MCMC sampler'
-
-integ_poly = SimpleIntegrator(N, P, split, polyIntegral, sampler=iSampler)
-integ_poly.name = 'TQ with polynomial'
+random_tree = SimpleTree(split=split_random, P=P)
 
 lsi_N = int(max_n_samples / (n_samples + 1))
-integ_active = LimitedSampleIntegrator(lsi_N, 500, 10, split, rmeanIntegral, 
-                                 lambda container: container.volume, sampler=mcmcSampler)
-integ_activeTQ = DistributedSampleIntegrator(N, P, max_n_samples, split, rmeanIntegral, sampler=mcmcSampler,
-                                             construct_tree_method=integ_active.construct_tree)
-integ_activeTQ.name = 'LimitedSampleIntegrator'
+active_tree = LimitedSampleTree(N=lsi_N, active_N=10, split=split, weighting_function=lambda container: container.volume)
 
-integ_limitedGp = LimitedSamplesGpIntegrator(base_N=N, P=P, max_n_samples=max_n_samples,
+### Set integrators
+integ_mean_uncontrolled = TreeIntegrator(N, tree=simple_tree, integral=rmeanIntegral, sampler=mcmcSampler)
+integ_mean_uncontrolled.name = 'TQ with mean (unlimited)'
+
+integ_is = TreeIntegrator(N, tree=simple_tree, integral=aRbf, sampler=iSampler)
+integ_is.name = 'Importance sampler'
+
+integ_unif = TreeIntegrator(N, tree=simple_tree, integral=aRbf, sampler=mcmcSampler)
+integ_unif.name = 'MCMC sampler'
+
+integ_poly = TreeIntegrator(N, tree=simple_tree, integral=polyIntegral, sampler=mcmcSampler)
+integ_poly.name = 'TQ with polynomial'
+
+integ_mean = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+                                             integral=rmeanIntegral, sampler=mcmcSampler, tree=simple_tree)
+integ_mean.name = 'TQ with mean'
+
+integ_mean_random_split = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+                                             integral=rmeanIntegral, sampler=mcmcSampler, tree=random_tree)
+integ_mean_random_split.name = 'TQ with mean and random splitting'
+
+
+integ_activeTQ = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+                                             integral=rmeanIntegral, sampler=mcmcSampler, tree=active_tree)
+integ_activeTQ.name = 'ActiveTQ'
+
+integ_limitedGp = DistributedSampleGpIntegrator(base_N=N, P=P, max_n_samples=max_n_samples,
                                             split=split, integral=iRbf, sampler=lhsSampler, 
                                             max_container_samples=100)
-integ_limitedGp.name = 'Limited RbfIntegrator'
+integ_limitedGp.name = 'Distributed Rbf Integrator'
 
 
 
-integ_rbf = DistributedSampleIntegrator(N, P, max_n_samples, split, aRbf, sampler=mcmcSampler, 
-                                        min_container_samples=min_container_samples)
+integ_rbf = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+                                             integral=aRbf, sampler=mcmcSampler, tree=simple_tree, 
+                                             min_container_samples=min_container_samples)
 integ_rbf.name = 'TQ with RBF'
 
-integ_rbf_qmc = DistributedSampleIntegrator(N, P, max_n_samples, split, aRbf_qmc, sampler=mcmcSampler, 
-                                        min_container_samples=min_container_samples)
+integ_rbf_qmc = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+                                             integral=aRbf_qmc, sampler=mcmcSampler, tree=simple_tree, 
+                                             min_container_samples=min_container_samples)
 integ_rbf_qmc.name = 'TQ with RBF with QMC container sampler'
 
-integ_rbf_initial = DistributedSampleIntegrator(N, P, max_n_samples, split, aRbf_iniital, sampler=mcmcSampler, 
-                                        min_container_samples=min_container_samples)
+integ_rbf_initial = DistributedSampleIntegrator(N, max_n_samples=max_n_samples, 
+                                             integral=aRbf_iniital, sampler=mcmcSampler, tree=simple_tree, 
+                                             min_container_samples=min_container_samples)
 integ_rbf_initial.name = 'TQ with RBF, keeping initial samples'
 
-integ4 = SimpleIntegrator(N, P, split, aRbf)
-integ4.name = 'TQ with Adaptive RBF'
+integ_rbf_non_adaptive = TreeIntegrator(N, tree=simple_tree, integral=rbfIntegral_mean, sampler=mcmcSampler)
+integ_rbf_non_adaptive.name = 'TQ with non-adaptive RBF'
 
-integ_batch = GpTreeIntegrator(N, P, split, rbfIntegral_non_iter, 
+integ_batch = BatchGpIntegrator(N, P, split, rbfIntegral_non_iter, 
                                sampler = lhsSampler, max_n_samples=max_n_samples)
 integ_batch.name = 'Batch GP'
 
@@ -132,15 +146,17 @@ integ_vegas_adaptive.name = 'Adaptive Vegas'
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_mean_random_split, integ_mean], plot=False, verbose=1,
+    compare_integrators([integ_activeTQ], plot=True, verbose=2,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]], 
                         problem=problem, dimensions=[0, 1], 
-                        n_repeat=3, integrator_specific_kwargs={
-                            'LimitedSampleIntegrator': {'integrand' : problem.integrand}, 
-                            'Active TQ max_side': {'integrand' : problem.integrand}})
-    # compare_integrators([integ_rbf, integ_rbf_initial], plot=False, verbose=1,
+                        n_repeat=1, integrator_specific_kwargs={
+                            'ActiveTQ': {'integrand' : problem.integrand, 
+                                                        'max_iter' : 300}}, 
+                            plot_samples=False, title='')
+    # compare_integrators([integ_rbf_non_adaptive], plot=True, verbose=1,
     #                     xlim=[problem.lows[0], problem.highs[0]], 
     #                     problem=problem, dimensions=[0, 1], 
-    #                     n_repeat=3, integrator_specific_kwargs={
-    #                         'LimitedSampleIntegrator': {'integrand' : problem.integrand}})
+    #                     n_repeat=1, integrator_specific_kwargs={
+    #                         'ActiveTQ': {'integrand' : problem.integrand}}, 
+    #                         plot_samples=False, font_size=13)

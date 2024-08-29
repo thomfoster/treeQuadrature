@@ -98,7 +98,7 @@ def find_neighbors_grid(grid: dict, node: TreeNode, grid_size: int) -> List[Tree
     return neighbors
 
 
-class GpTreeIntegrator(Integrator):
+class BatchGpIntegrator(Integrator):
     def __init__(self, base_N: int, P: int, split: Split, integral: ContainerIntegral, 
                  base_grid_scale: float=1.0, dimension_scaling_exponent: float = 0.9,
                  length_scaling_exponent: float = 0.1, max_n_samples: Optional[int]=None,
@@ -138,22 +138,7 @@ class GpTreeIntegrator(Integrator):
         Methods
         -------
         __call__(problem, return_N, return_all)
-            solves the problem given
-
-        Example
-        -------
-        >>> from treeQuadrature.integrators import SimpleIntegrator
-        >>> from treeQuadrature.splits import MinSseSplit
-        >>> from treeQuadrature.containerIntegration import RandomIntegral
-        >>> from treeQuadrature.exampleProblems import SimpleGaussian
-        >>> problem = SimpleGaussian(D=2)
-        >>> 
-        >>> minSseSplit = MinSseSplit()
-        >>> randomIntegral = RandomIntegral()
-        >>> integ = SimpleIntegrator(N=2_000, P=40, minSseSplit, randomIntegral)
-        >>> estimate = integ(problem)
-        >>> print("error of random integral =", 
-        >>>      str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
+            solves the problem given and returns the estimate
         '''
         self.base_N = base_N
         self.split = split
@@ -361,6 +346,7 @@ class GpTreeIntegrator(Integrator):
 
         if verbose:
             print('fitting GP to containers and passing hyper-parameters')
+        self.integral._initialize_gp()
         self.fit_gps(tree, problem.integrand, verbose, return_std, grid_size)
 
         leaf_nodes = tree.get_leaf_nodes()

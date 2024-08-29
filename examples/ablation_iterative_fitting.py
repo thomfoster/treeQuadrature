@@ -1,10 +1,11 @@
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.exampleProblems import ProductPeakProblem, RippleProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature import Container
 from treeQuadrature.compare_integrators import load_existing_results, write_results
+from treeQuadrature.trees import SimpleTree
 
 import numpy as np
 from traceback import print_exc
@@ -61,9 +62,8 @@ if __name__ == '__main__':
                                                 threshold=args_dict['threshold'])
         integral_non_iter = AdaptiveRbfIntegral(n_samples= args.n_samples, max_redraw=0, 
                                                 n_splits=0)
-        integ = SimpleIntegrator(base_N=args_dict['N'], P=args.P, split=split, 
-                                 integral=integral, 
-                                 sampler=McmcSampler())
+        integ = TreeIntegrator(base_N=args_dict['N'], tree=SimpleTree(P=args.P, split=split), 
+                                 integral=integral, sampler=McmcSampler())
 
 
         def test_two_integrators(problem):

@@ -70,7 +70,7 @@ class KernelIntegral(ContainerIntegral):
             the kernel required
             By default, use the default kernel of
             GPFit.create_kernel. 
-            For SklearnGPFit and GPyGPFit, the default is RBF kernel
+            For SklearnGPFit, the default is RBF kernel
         **kwargs : Any
             length, range, n_samples, 
             n_splits, max_redraw, threshold,
@@ -150,7 +150,7 @@ class KernelIntegral(ContainerIntegral):
         return_std : bool
             if True, returns the posterior std of integral estimate
         kwargs : Any
-            other arguments allowed (see RbfIntegral attributes)
+            other arguments allowed (see class attributes)
         
         Return
         ------
@@ -279,6 +279,34 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         self.sampler = sampler
         self.keep_samples = keep_samples
         self.check_GP = check_GP
+        self.gp=None
+
+    def _initialize_gp(self, xs: np.ndarray):
+        """Lazy initialisation"""
+        if self.gp is None:
+            self.gp = self.GPFit(**self.gp_params)
+            
+        # construct kernel
+        pairwise_dists = pairwise_distances(xs)
+        # Mask the diagonal
+        mask = np.eye(pairwise_dists.shape[0], dtype=bool)
+        pairwise_dists = np.ma.masked_array(pairwise_dists, mask)
+
+        mean_dist = np.mean(pairwise_dists)
+        D = xs.shape[1]
+        initial_length = mean_dist / np.sqrt(D)
+        smallest_dist = np.min(pairwise_dists)
+        largest_dist = np.max(pairwise_dists)
+
+        # avoid setting 0 bound
+        min_bound = 1e-5
+        lower_bound = max(smallest_dist / 10, min_bound)
+        upper_bound = max(largest_dist * 10, min_bound)
+
+        bounds = (lower_bound, upper_bound)
+
+        self.kernel = self.gp.create_kernel({'kernel_type': 'RBF', 
+                                        'length': initial_length, 'bounds': bounds})
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
@@ -318,34 +346,14 @@ class AdaptiveRbfIntegral(ContainerIntegral):
                                f"sampler.rvs generated {xs.shape[0]} samples"
                                f"while expecting {self.n_samples}")
 
-        pairwise_dists = pairwise_distances(xs)
-        # Mask the diagonal
-        mask = np.eye(pairwise_dists.shape[0], dtype=bool)
-        pairwise_dists = np.ma.masked_array(pairwise_dists, mask)
-
-        mean_dist = np.mean(pairwise_dists)
-        D = xs.shape[1]
-        initial_length = mean_dist / np.sqrt(D)
-        smallest_dist = np.min(pairwise_dists)
-        largest_dist = np.max(pairwise_dists)
-
-        # avoid setting 0 bound
-        min_bound = 1e-5
-        lower_bound = max(smallest_dist / 10, min_bound)
-        upper_bound = max(largest_dist * 10, min_bound)
-
-        bounds = (lower_bound, upper_bound)
-
-
-        gp = self.GPFit(**self.gp_params)
-        # kernel type forced to be RBF here
-        self.kernel = gp.create_kernel({'kernel_type': 'RBF', 
-                                        'length': initial_length, 'bounds': bounds})
+        # initialize GP model and kernel
+        self._initialize_gp(xs)
+        
         iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                  max_redraw=self.max_redraw, scoring=self.scoring,
                                  performance_threshold=self.threshold, 
                                  threshold_direction=self.threshold_direction,
-                                 gp=gp, fit_residuals=self.fit_residuals)
+                                 gp=self.gp, fit_residuals=self.fit_residuals)
         
         # only fit using the samples drawn here
         if self.keep_samples:
@@ -366,9 +374,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
         ret = kernel_integration(iGP, container, gp_results, 
                                              return_std)
-        gp = iGP.gp
         
-        ret['hyper_params'] = {'length' : gp.hyper_params['length_scale']}
+        ret['hyper_params'] = {'length' : iGP.gp.hyper_params['length_scale']}
         ret['performance'] = gp_results['performance']
         
         return ret
@@ -435,6 +442,12 @@ class PolyIntegral(ContainerIntegral):
         else:
             self.coeffs = np.logspace(-2, 1, 5)  # default coeffs between 0.01 and 10
         self.sampler = sampler
+        self.gp = None
+    
+    def _initialize_gp(self):
+        """Lazy initialisation"""
+        if self.gp is None:
+            self.gp = self.GPFit(**self.gp_params)
 
     def containerIntegral(self, container: Container, 
                           f: Callable[..., np.ndarray], 
@@ -457,6 +470,8 @@ class PolyIntegral(ContainerIntegral):
             - hyper_params (dict) hyper-parameters of the fitted kernel.
             - performance (float) GP goodness of fit score.
         """
+        self._initialize_gp()
+
         if self.n_samples < 2:
             raise RuntimeError("Cannot perform GP Integral with less than 2 samples"
                                "please increase 'n_samples'")
@@ -476,11 +491,10 @@ class PolyIntegral(ContainerIntegral):
         def optimize_kernel_hyperparams(d, c):
             # Here, we return a "negative" score because we will minimize this function
             kernel = Polynomial(degree=d, coef0=c)
-            gp = self.GPFit(**self.gp_params)
             iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                      max_redraw=self.max_redraw, 
                                      performance_threshold=self.threshold, 
-                                     gp=gp, fit_residuals=self.fit_residuals)
+                                     gp=self.gp, fit_residuals=self.fit_residuals)
             gp_results = iGP.fit(f, container, kernel, initial_samples=(xs, ys))
             return -gp_results['performance']
 
@@ -496,12 +510,11 @@ class PolyIntegral(ContainerIntegral):
                     best_d, best_c = d, c
 
         # Fit GP with the best-found hyperparameters
-        gp = self.GPFit(**self.gp_params)
         self.kernel = Polynomial(degree=best_d, coef0=best_c)
         iGP = IterativeGPFitting(n_samples=self.n_samples, n_splits=self.n_splits, 
                                       max_redraw=self.max_redraw, 
                                       performance_threshold=self.threshold, 
-                                      gp=gp, fit_residuals=self.fit_residuals)
+                                      gp=self.gp, fit_residuals=self.fit_residuals)
 
         container.add(xs, ys)
         gp_results = iGP.fit(f, container, self.kernel, initial_samples=(xs, ys))
@@ -570,7 +583,7 @@ class IterativeRbfIntegral(IterativeGpIntegral):
     sample drawing and fitting of the Gaussian Process model.
     This is specifically used for integrators where 
     containers should be coordinating together.
-    e.g. LimitedSampleGpIntegrator
+    e.g. DistributedSampleGpIntegrator
 
     Attributes
     -----------

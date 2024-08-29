@@ -3,19 +3,23 @@ from inspect import signature
 import numpy as np
 import warnings
 
-from typing import Optional, Callable, List
+from typing import Optional, List
 
-from .simpleIntegrator import SimpleIntegrator
+from .treeIntegrator import TreeIntegrator
 from ..containerIntegration import ContainerIntegral
+from ..trees import Tree, SimpleTree
 from ..samplers import Sampler
-from ..splits import Split
 from ..exampleProblems import Problem
 from ..container import Container
 
 
-def parallel_container_integral(integral: ContainerIntegral, 
+def individual_container_integral(integral: ContainerIntegral, 
                                 cont: Container, integrand: callable, 
                                 return_std: bool, n_samples: int):
+    """
+    wrapper function of container_integral for parallel processing
+    with essential checks on the results
+    """
     try:
         _ = integral.n_samples
     except AttributeError:
@@ -42,142 +46,56 @@ def parallel_container_integral(integral: ContainerIntegral,
         
     return integral_results, cont
 
-class DistributedSampleIntegrator(SimpleIntegrator):
-    def __init__(self, base_N: int, P: int, max_n_samples: int, 
-                 split: Split, 
-                 integral: ContainerIntegral, 
+class DistributedSampleIntegrator(TreeIntegrator):
+    def __init__(self, base_N: int, max_n_samples: int, 
+                 integral: Optional[ContainerIntegral]=None, 
                  sampler: Optional[Sampler]=None, 
-                 construct_tree_method: Optional[Callable[[Container], List[Container]]] = None,
+                 tree: Optional[Tree]=None,
                  scaling_factor: float = 1e-6,
                  min_container_samples: int = 2, 
-                 max_container_samples: int = 200) -> None:
+                 max_container_samples: int = 200, 
+                 parallel: bool=True) -> None:
         """
         An integrator that constructs a tree and then distributes the 
         remaining samples among the containers obtained 
         according to the volume of containers.
 
-        Parameters
+        Attributes
         ----------
         base_N : int
             Total number of initial samples.
-        P : int
-            Maximum number of samples in each container during tree construction.
+        integral : ContainerIntegral 
+            Method to evaluate the integral of f on a container.\n
+            Default is RandomIntegral.
+        sampler : Sampler, optional
+            Method for generating initial samples, 
+            when the problem does not have an rvs method.
+        tree : Tree, optional
+            Method to construct the tree of containers.
+            Default is SimpleTree.
         max_n_samples : int
             Total number of evaluations available.
         min_container_samples, max_container_samples: int, optional
             The minimum and maximum number of samples to allocate to each container 
             Defaults are 2 and 200
-        split : Split
-            Method to split a container during tree construction.
-        integral : ContainerIntegral 
-            Method to evaluate the integral of f on a container.
-        sampler : Sampler, optional
-            Method for generating initial samples, 
-            when the problem does not have an rvs method.
-        construct_tree_method : Callable, optional
-            Custom method to construct the tree. If None, use the default 
-            `construct_tree` method from `SimpleIntegrator`. 
         scaling_factor : float, optional
             A scaling factor to control the aggressiveness of sample distribution 
             (default is 1e-6).
+        parallel : bool, optional
+            whether to use parallel computing for container integration
+
+        Methods
+        -------
+        __call__(self, problem: Problem, return_N: bool=False, return_containers: bool=False, return_std: bool=False, **kwargs)
+            Perform the integration on the given problem.
+        integrate_containers(self, containers, problem, return_std, **kwargs)
+            Integrate the given containers using the specified integral method.
         """
-        super().__init__(base_N, P, split, integral, sampler)
+        super().__init__(base_N, tree, integral, sampler, parallel)
         self.max_n_samples = max_n_samples
         self.max_container_samples = max_container_samples
         self.min_container_samples = min_container_samples
-        self.construct_tree_method = construct_tree_method or super().construct_tree
         self.scaling_factor = scaling_factor
-
-    def __call__(self, problem: Problem, 
-                 return_N: bool=False, return_containers: bool=False, 
-                 return_std: bool=False, verbose: bool=False,
-                 return_all: bool=False, 
-                 *args, **kwargs) -> dict:
-
-        if verbose: 
-            print('Drawing initial samples')
-        # Draw samples
-        if self.sampler is not None:
-            X, y = self.sampler.rvs(self.base_N, problem.lows, problem.highs,
-                                    problem.integrand)
-        elif hasattr(problem, 'rvs'):
-            X = problem.rvs(self.base_N)
-            y = problem.integrand(X)
-        else:
-            raise RuntimeError('Cannot draw initial samples. '
-                               'Either problem should have rvs method, '
-                               'or specify self.sampler')
-
-        assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1), (
-            'The output of problem.integrand must be one-dimensional array'
-            f', got shape {y.shape}'
-        )
-
-        if verbose: 
-            print('Constructing root container')
-        root = Container(X, y, mins=problem.lows, maxs=problem.highs)
-
-        # Construct tree
-        if verbose:
-            print('Constructing tree')
-            if 'verbose' in signature(self.construct_tree_method).parameters:
-                finished_containers = self.construct_tree_method(root, verbose=True, 
-                                                          *args, **kwargs)
-            else:
-                finished_containers = self.construct_tree_method(root, 
-                                                          *args, **kwargs)
-        else:
-            finished_containers = self.construct_tree_method(root, *args, **kwargs)
-
-        if len(finished_containers) == 0:
-            raise RuntimeError('No container obtained from construct_tree')
-        
-        if verbose:
-            n_samples = np.sum([cont.N for cont in finished_containers])
-            print(f'Got {len(finished_containers)} containers with {n_samples} samples')
-
-        # Uncertainty estimates
-        method = getattr(self.integral, 'containerIntegral', None)
-        if method:
-            has_return_std = 'return_std' in signature(method).parameters
-        else:
-            raise TypeError("self.integral must have 'containerIntegral' method")
-        compute_std = return_std and has_return_std
-        if not has_return_std and compute_std:
-            warnings.warn(
-                f'{str(self.integral)}.containerIntegral does not have '
-                'parameter return_std, will be ignored', 
-                UserWarning
-            )
-            compute_std = False
-        
-        # integrate containers
-        results, containers = self.integrate_containers(finished_containers, problem, 
-                                                        compute_std, verbose)
-        
-        if return_all:
-            return results, containers
-
-        if compute_std:
-            contributions = [result['integral'] for result in results]
-            stds = [result['std'] for result in results]
-        else:
-            contributions = [result['integral'] for result in results]
-            stds = None
-
-        G = np.sum(contributions)
-        N = sum([cont.N for cont in containers])
-
-        return_values = {'estimate': G}
-        if return_N:
-            return_values['n_evals'] = N
-        if return_containers:
-            return_values['containers'] = containers
-            return_values['contributions'] = contributions
-        if compute_std:
-            return_values['stds'] = stds
-
-        return return_values
     
     def integrate_containers(self, containers: List[Container], 
                              problem: Problem,
@@ -213,17 +131,27 @@ class DistributedSampleIntegrator(SimpleIntegrator):
 
         # for retracking containers 
         modified_containers = []
-        with ProcessPoolExecutor() as executor:
-            futures = {
-                executor.submit(parallel_container_integral, 
-                                self.integral, cont, problem.integrand, 
-                                compute_std, n_samples=samples_distribution.get(cont)): cont
-                for cont in containers
-            }
+        results = []
 
-            results = []
-            for future in as_completed(futures):
-                integral_results, modified_cont = future.result()
+        if self.parallel:
+            with ProcessPoolExecutor() as executor:
+                futures = {
+                    executor.submit(individual_container_integral, 
+                                    self.integral, cont, problem.integrand, 
+                                    compute_std, n_samples=samples_distribution.get(cont)): cont
+                    for cont in containers
+                }
+
+                
+                for future in as_completed(futures):
+                    integral_results, modified_cont = future.result()
+                    results.append(integral_results)
+                    modified_containers.append(modified_cont)
+        else:
+            for cont in containers:
+                integral_results, modified_cont = individual_container_integral(
+                    self.integral, cont, problem.integrand, 
+                    compute_std, samples_distribution.get(cont))
                 results.append(integral_results)
                 modified_containers.append(modified_cont)
 

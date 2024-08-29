@@ -10,17 +10,37 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from .integrator import Integrator
 from ..container import Container
-from ..exampleProblems import Problem
-from ..splits import Split
-from ..containerIntegration import ContainerIntegral
+from ..trees import Tree, SimpleTree
+from ..containerIntegration import ContainerIntegral, RandomIntegral
 from ..samplers import Sampler
-from ..visualisation import plotContainers
+from ..exampleProblems import Problem
 
 
 
-def parallel_container_integral(integral: ContainerIntegral, 
+def individual_container_integral(integral: ContainerIntegral, 
                                 cont: Container, integrand: callable, 
                                 return_std: bool):
+    """
+    Perform integration on an individual container.
+
+    Parameters
+    ----------
+    integral : ContainerIntegral
+        The integral method to be used.
+    cont : Container
+        The container on which to perform the integration.
+    integrand : callable
+        The integrand function to be integrated.
+    return_std : bool
+        Whether to return the standard deviation of the integral.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the results of the integration. 
+        - 'integral' : the estimated integral value
+        - 'std' : the standard deviation of the integral value
+    """
     params = {}
     if hasattr(integral, 'get_additional_params'):
         params.update(integral.get_additional_params())
@@ -32,7 +52,7 @@ def parallel_container_integral(integral: ContainerIntegral,
     else: 
         integral_results = integral.containerIntegral(cont, integrand,
                                                       **params)
-    # check types
+    # check results
     if 'integral' not in integral_results:
         raise KeyError("results of containerIntegral does not have key 'integral'")
     elif return_std and 'std' not in integral_results:
@@ -42,53 +62,40 @@ def parallel_container_integral(integral: ContainerIntegral,
 
 class TreeIntegrator(Integrator):
     """
-    Abstract base class for tree integrators.
+    Tree-based integrator. 
     """
 
-    def __init__(self, split: Split,
-            integral: ContainerIntegral, base_N: int, 
-            sampler: Optional[Sampler]=None,
+    def __init__(self, base_N: int, 
+            tree: Optional[Tree]=None,
+            integral: Optional[ContainerIntegral]=None, 
+            sampler: Optional[Sampler]=None, 
+            parallel: bool=True, 
             *args, **kwargs):
         """
         Initialise the tree structure. 
 
         Arguments
         ---------
-        split : Split
-            the method to split the containers
-        integral : ContainerIntegral
+        integral : ContainerIntegral, optional
             the method to integrate the containers
+            default is RandomIntegral (mean of uniform samples redrawn)
         base_N : int
-            number of initial samples
-        sampler : Sampler
+            number of initial samples for tree construction
+        tree : Tree, optional
+            the tree structure to use,
+            default is SimpleTree
+        sampler : Sampler, optional
             a method for generating initial samples
-            when problem does not have rvs method
-        *args, **kwargs : Any
-            other arguments necessary to build the Integrator,
-            override __init__ in subclass to add other arguments
+            when problem does not have rvs method. 
+        parallel : bool, optional
+            whether to use parallel computing for container integration
         """
-        self.split = split
-        self.integral = integral
+        super().__init__(*args, **kwargs)
+        self.tree = tree if tree is not None else SimpleTree()
+        self.integral = integral if integral is not None else RandomIntegral()
         self.base_N = base_N
         self.sampler = sampler
-
-    @abstractmethod
-    def construct_tree(self, root: Container, *args, **kwargs) -> List[Container]:
-        """
-        Construct the tree based on a root container
-
-        Arguments
-        ---------
-        root : Container
-            the tree root
-        integrand : the function to be 
-
-        Return
-        ------
-        list of Containers
-            leaf nodes of the tree
-        """
-        pass
+        self.parallel = parallel
 
     def __call__(self, problem: Problem, 
                  return_N: bool=False, return_containers: bool=False, 
@@ -113,8 +120,7 @@ class TreeIntegrator(Integrator):
             if true, print the stages (for debugging)
             Defaults to False
         *args, **kwargs : Any
-            for construct_tree, 
-            override __call__ in subclass to add additional arguments
+            for self.tree.construct_tree or self.integrate_containers
 
         Return
         -------
@@ -132,8 +138,32 @@ class TreeIntegrator(Integrator):
         list[dict], list[Container]
             if return_all, returns a list of raw results 
             from self.integral.containerIntegral
+
+        Example
+        -------
+        >>> # You can use settings othe than default in the following way
+        >>> from treeQuadrature.integrators import TreeIntegrator
+        >>> from treeQuadrature.splits import MinSseSplit
+        >>> from treeQuadrature.containerIntegration import RandomIntegral
+        >>> from treeQuadrature.exampleProblems import SimpleGaussian
+        >>> from treeQuadrature.trees import WeightedTree
+        >>> # Define the problem
+        >>> problem = SimpleGaussian(D=2)
+        >>> # Define the a tree splitting containers with larger volume first
+        >>> minSseSplit = MinSseSplit()
+        >>> volume_weighting = lambda container: container.volume
+        >>> stopping_small_containers = lambda container: container.N < 2
+        >>> tree = WeightedTree(split=minSseSplit, max_splits=50, 
+        >>>     weighting_function=volume_weighting, 
+        >>>     stopping_condition=stopping_small_containers)
+        >>> # Combine all compartments into a TreeIntegrator
+        >>> integ_weighted = TreeIntegrator(base_N=1000, tree=tree, integral=RandomIntegral())
+        >>> estimate = integ_weighted(problem)
+        >>> print("error of random integral =", 
+        >>>       str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
         """
 
+        ### Draw initial samples
         if verbose: 
             print('drawing initial samples')
         # Draw samples
@@ -157,17 +187,17 @@ class TreeIntegrator(Integrator):
             print('constructing root container')
         root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
-        # construct tree
+        ### construct tree
         if verbose:
             print('constructing tree')
-            if 'verbose' in signature(self.construct_tree).parameters:
-                finished_containers = self.construct_tree(root, verbose=True, 
-                                                          *args, **kwargs)
-            else:
-                finished_containers = self.construct_tree(root, 
-                                                          *args, **kwargs)
-        else:
-            finished_containers = self.construct_tree(root, *args, **kwargs)
+        construct_tree_parameters = signature(self.tree.construct_tree).parameters
+        construct_tree_kwargs = {k: v for k, v in kwargs.items() if k in construct_tree_parameters}
+        if 'verbose' in construct_tree_parameters:
+            construct_tree_kwargs['verbose'] = verbose
+        if 'integrand' in construct_tree_parameters:
+            construct_tree_kwargs['integrand'] = problem.integrand
+            
+        finished_containers = self.tree.construct_tree(root, *args, **construct_tree_kwargs)
 
         if len(finished_containers) == 0:
             raise RuntimeError('No container obtained from construct_tree')
@@ -176,7 +206,7 @@ class TreeIntegrator(Integrator):
             n_samples = np.sum([cont.N for cont in finished_containers])
             print(f'got {len(finished_containers)} containers with {n_samples} samples')
 
-        # uncertainty estimates
+        ### check if self.integral has return_std attribute
         method = getattr(self.integral, 'containerIntegral', None)
         if method:
             has_return_std =  'return_std' in signature(method).parameters
@@ -191,14 +221,22 @@ class TreeIntegrator(Integrator):
             )
             compute_std = False
  
+        ### integrate containers
         if verbose: 
             print('Integrating individual containers', 
                 'with standard deviation' if compute_std else '')
         
+        # Check if integrate_containers accepts additional arguments
+        integrate_containers_params = signature(self.integrate_containers).parameters
+        integrate_kwargs = {k: v for k, v in kwargs.items() if k in integrate_containers_params}
+        if 'verbose' in integrate_containers_params:
+            integrate_kwargs['verbose'] = verbose
         results, containers = self.integrate_containers(finished_containers, 
                                                         problem,
-                                                        compute_std)
+                                                        compute_std, 
+                                                        **integrate_kwargs)
         
+        ### return results
         if return_all:
             return results, containers
 
@@ -216,6 +254,8 @@ class TreeIntegrator(Integrator):
         return_values = {'estimate' : G}
         if return_N:
             return_values['n_evals'] = N
+            if hasattr(self.tree, 'n_splits'): # actual number of splits when constructing the tree
+                return_values['n_splits'] = self.tree.n_splits
         if return_containers:
             return_values['containers'] = containers
             return_values['contributions'] = contributions
@@ -232,17 +272,25 @@ class TreeIntegrator(Integrator):
 
         # for retracking containers 
         modified_containers = []
-        with ProcessPoolExecutor() as executor:
-            futures = {
-                executor.submit(parallel_container_integral, 
-                                self.integral, cont, problem.integrand, 
-                                compute_std): cont
-                for cont in containers
-            }
+        results = []
 
-            results = []
-            for future in as_completed(futures):
-                integral_results, modified_cont = future.result()
+        if self.parallel:
+            with ProcessPoolExecutor() as executor:
+                futures = {
+                    executor.submit(individual_container_integral, 
+                                    self.integral, cont, problem.integrand, 
+                                    compute_std): cont
+                    for cont in containers
+                }
+
+                for future in as_completed(futures):
+                    integral_results, modified_cont = future.result()
+                    results.append(integral_results)
+                    modified_containers.append(modified_cont)
+        else:
+            for cont in containers:
+                integral_results, modified_cont = individual_container_integral(
+                    self.integral, cont, problem.integrand, compute_std)
                 results.append(integral_results)
                 modified_containers.append(modified_cont)
 

@@ -1,8 +1,9 @@
 from treeQuadrature.exampleProblems import QuadraticProblem, ExponentialProductProblem, Problem
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RandomIntegral, PolyIntegral, ContainerIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.samplers import ImportanceSampler
+from treeQuadrature.trees import SimpleTree
 
 from treeQuadrature import Container
 
@@ -46,8 +47,8 @@ if __name__ == '__main__':
     split = MinSseSplit()
     sampler = ImportanceSampler()
 
-    integ = SimpleIntegrator(20_000, 40, split, rmeanIntegral, 
-                             sampler=sampler)
+    integ = TreeIntegrator(20_000, tree=SimpleTree(split=split, P=40), integral=rmeanIntegral,
+                            sampler=sampler)
 
     problems = []
     for D in Ds:

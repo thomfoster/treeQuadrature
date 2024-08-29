@@ -2,14 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import RbfIntegral
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.containerIntegration import KernelIntegral
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.container import Container
 
 D = 13
 
-integ = SimpleIntegrator(1000, 40, MinSseSplit(), RbfIntegral())
+integ = TreeIntegrator(1000, integral=KernelIntegral())
 
 # Assume `Camel`, `Container`, and `integ` are defined and initialized
 problem = Camel(D)

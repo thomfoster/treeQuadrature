@@ -1,7 +1,8 @@
 from treeQuadrature.exampleProblems import QuadraticProblem, ExponentialProductProblem, Gaussian
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RandomIntegral
 from treeQuadrature.splits import MinSseSplit
+from treeQuadrature.trees import SimpleTree
 
 from treeQuadrature.visualisation import plotContainers, plotIntegrand
 
@@ -18,7 +19,8 @@ if __name__ == '__main__':
 
     split = MinSseSplit()
 
-    integ = SimpleIntegrator(10_000, 50, split, rbfIntegral)
+    integ = TreeIntegrator(10_000, tree=SimpleTree(P=50, split=split), 
+                           integral=rbfIntegral)
     integ.name = 'TQ with RBF, fitting to mean'
 
     Ds = np.arange(2, 12, 2)

@@ -1,9 +1,10 @@
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.exampleProblems import QuadraticProblem
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, PolyIntegral
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature.compare_integrators import test_container_integrals
+from treeQuadrature.trees import SimpleTree
 
 import os, json, argparse
 
@@ -54,9 +55,8 @@ if __name__ == '__main__':
 
         integrals = [integral_rbf, integral_poly]
 
-        integ = SimpleIntegrator(base_N=args_dict['N'], P=args.P, split=split, 
-                                 integral=None, 
-                                 sampler=McmcSampler())
+        integ = TreeIntegrator(base_N=args_dict['N'], tree=SimpleTree(P=args.P, split=split), 
+                                 integral=None, sampler=McmcSampler())
             
         test_container_integrals(problems, integrals, integ, output_file, 
                                  n_repeat=args.n_repeat)

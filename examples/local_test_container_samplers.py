@@ -1,9 +1,10 @@
-from treeQuadrature.integrators import SimpleIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem, SimpleGaussian, Camel, QuadCamel
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RbfIntegral
+from treeQuadrature.containerIntegration import AdaptiveRbfIntegral
 from treeQuadrature.samplers import McmcSampler, SobolSampler
 from treeQuadrature.compare_integrators import test_container_integrals
+from treeQuadrature.trees import SimpleTree
 
 import numpy as np
 import os, json, argparse
@@ -59,9 +60,8 @@ if __name__ == '__main__':
         integral_qmc.name = 'QMC using Sobol'
         integrals = [integral_uniform, integral_qmc]
 
-        integ = SimpleIntegrator(base_N=args['N'], P=args['P'], split=split, 
-                                 integral=None, 
-                                 sampler=McmcSampler())
+        integ = TreeIntegrator(args['N'], tree=SimpleTree(P=args['P'], split=split), 
+                           integral=None, sampler=McmcSampler())
             
         test_container_integrals(problems, integrals, integ, output_file, 
                                  n_repeat=args['n_repeat'])

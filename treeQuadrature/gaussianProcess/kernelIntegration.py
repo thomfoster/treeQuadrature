@@ -1,7 +1,7 @@
 import warnings
 from scipy.special import erf, binom
 from scipy.integrate import quad
-from sklearn.gaussian_process.kernels import RBF
+from sklearn.gaussian_process.kernels import RBF as SklearnRBF
 import numpy as np
 from typing import Callable, Optional, Tuple
 
@@ -9,6 +9,25 @@ from .gaussianProcess import GPFit, IterativeGPFitting
 from ..container import Container
 from .kernels import Polynomial
 
+
+# Add any future RBF kernel classes to this tuple
+RBF_CLASSES = (SklearnRBF)
+
+
+def get_length_scale(kernel):
+    """
+    Attempt to retrieve the length_scale attribute from the kernel.
+    """
+    try:
+        # Try common attribute names for length scale
+        if hasattr(kernel, 'length_scale'):
+            return kernel.length_scale
+        elif hasattr(kernel, 'lengthscale'):
+            return kernel.lengthscale
+        else:
+            raise AttributeError("The kernel does not have a recognizable length scale attribute.")
+    except AttributeError as e:
+        raise TypeError(f"Unsupported kernel type: {type(kernel)}") from e
 
 
 def rbf_mean_post(gp: GPFit, container: Container, gp_results: dict):
@@ -22,7 +41,7 @@ def rbf_mean_post(gp: GPFit, container: Container, gp_results: dict):
     """
 
     ### Extract necessary information
-    l = gp.kernel_.length_scale
+    l = get_length_scale(gp.kernel_)
     
     xs = gp.X_train_
 
@@ -204,7 +223,7 @@ def kernel_integration(igp: IterativeGPFitting, container: Container,
     """
     gp = igp.gp
 
-    if isinstance(gp.kernel_, RBF):   # RBF kernel        
+    if isinstance(gp.kernel_, RBF_CLASSES):   # RBF kernel        
         integral, k_tilde = rbf_mean_post(gp, container, gp_results)
 
         if return_std:

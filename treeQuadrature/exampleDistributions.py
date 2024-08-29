@@ -99,8 +99,19 @@ class MultivariateNormal(Distribution):
     def __init__(self, D, mean, cov):
         super().__init__(D=D)
         self.mean = mean
-        assert np.array(mean).shape[0] == D
-        self.cov = cov
+        assert len(mean) == D, "Mean vector length must match dimension D"
+        # Handle covariance matrix, expand if scalar
+        if np.isscalar(cov):
+            self.cov = cov * np.eye(D)
+        else:
+            self.cov = np.array(cov)
+            assert self.cov.shape == (D, D), "Covariance matrix must be of shape (D, D)"
+
+        # Check if the covariance matrix is positive definite
+        eigenvalues = np.linalg.eigvals(self.cov)
+        if np.any(eigenvalues <= 0):
+            raise ValueError("Covariance matrix must be positive definite")
+
         self.d = multivariate_normal(mean=mean, cov=cov)
 
     def rvs(self, n):

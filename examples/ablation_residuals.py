@@ -1,9 +1,11 @@
-from treeQuadrature.integrators import SimpleIntegrator
+from git import Tree
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RbfIntegral
+from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, KernelIntegral
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature.compare_integrators import test_container_integrals
+from treeQuadrature.trees import SimpleTree
 
 import numpy as np
 import os, json, argparse
@@ -59,15 +61,14 @@ if __name__ == '__main__':
                                        fit_residuals=False,
                                        n_splits=0)
         integral.name = 'Adaptive Rbf'
-        integral_non_adaptive = RbfIntegral(n_samples= args.n_samples, max_redraw=0, 
+        integral_non_adaptive = KernelIntegral(n_samples= args.n_samples, max_redraw=0, 
                                                 n_splits=0, 
                                                 range=args.range)
         integral_non_adaptive.name = 'Non Adaptive Rbf'
         integrals = [integral_mean, integral, integral_non_adaptive]
 
-        integ = SimpleIntegrator(base_N=args_dict['N'], P=args.P, split=split, 
-                                 integral=None, 
-                                 sampler=McmcSampler())
+        integ = TreeIntegrator(base_N=args_dict['N'], tree=SimpleTree(P=args.P, split=split), 
+                                 integral=None, sampler=McmcSampler())
             
         test_container_integrals(problems, integrals, integ, output_file, 
                                  n_repeat=args.n_repeat)

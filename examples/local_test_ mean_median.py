@@ -1,7 +1,8 @@
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.containerIntegration import RandomIntegral, RandomIntegral
-from treeQuadrature.splits import MinSseSplit, KdSplit
-from treeQuadrature.integrators import LimitedSampleIntegrator
+from treeQuadrature.integrators import TreeIntegrator
+from treeQuadrature.splits import KdSplit
+from treeQuadrature.trees import LimitedSampleTree
 from treeQuadrature.compare_integrators import test_integrators
 
 import os
@@ -14,16 +15,15 @@ medianIntegral = RandomIntegral()
 meanIntegral = RandomIntegral()
 split = KdSplit()
 
-integ_median = LimitedSampleIntegrator(N=2000, base_N=1000, 
-                                 active_N=10, 
-                                 split=split, integral=medianIntegral, 
-                                 weighting_function=lambda container: container.volume)
+tree = LimitedSampleTree(N=2000, active_N=10, split=split,
+                         weighting_function=lambda container: container.volume)
+
+integ_median = TreeIntegrator(base_N=1000, integral=medianIntegral, 
+                              tree=tree)
 integ_median.name = 'active TQ with median'
 
-integ_mean = LimitedSampleIntegrator(N=2000, base_N=1000, 
-                                 active_N=10, 
-                                 split=split, integral=meanIntegral, 
-                                 weighting_function=lambda container: container.volume)
+integ_mean = TreeIntegrator(base_N=1000, integral=meanIntegral, 
+                              tree=tree)
 integ_mean.name = 'active TQ with mean'
 
 script_dir = os.path.dirname(os.path.abspath(__file__))

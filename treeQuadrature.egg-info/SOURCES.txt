@@ -9,7 +9,7 @@ tests/test_samplers.py
 treeQuadrature/__init__.py
 treeQuadrature/compare_integrators.py
 treeQuadrature/container.py
-treeQuadrature/exampleDistributions.py
+treeQuadrature/distributions.py
 treeQuadrature/example_problems.py
 treeQuadrature/queues.py
 treeQuadrature/utils.py

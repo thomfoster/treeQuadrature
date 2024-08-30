@@ -146,7 +146,7 @@ class KernelIntegral(ContainerIntegral):
             the container on which the integral of f should be evaluated
         f : function
             takes X : np.ndarray and return np.ndarray, 
-            see pdf method of Distribution class in exampleDistributions.py
+            see pdf method of Distribution class in distributions.py
         return_std : bool
             if True, returns the posterior std of integral estimate
         kwargs : Any
@@ -198,13 +198,7 @@ class KernelIntegral(ContainerIntegral):
         ret = kernel_integration(iGP, container, gp_results, 
                                             return_std)
         
-        hyper_params = iGP.gp.hyper_params
-        if 'length_scale' in hyper_params:
-            length = hyper_params['length_scale']
-        elif 'lengthscale' in hyper_params:
-            length = hyper_params['lengthscale']
-        else:
-            raise KeyError("Neither 'length_scale' nor 'lengthscale' found in hyperparameters.")
+        ret['hyper_params'] = iGP.gp.hyper_params
         
         ret['performance'] = gp_results['performance']
         
@@ -317,8 +311,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         container: Container
             the container on which the integral of f should be evaluated
         f : function
-            takes X : np.ndarray and return np.ndarray, 
-            see pdf method of Distribution class in exampleDistributions.py
+            takes X : np.ndarray and return np.ndarray
         return_std : bool
             if True, returns the posterior std of integral estimate
         
@@ -559,7 +552,6 @@ class IterativeGpIntegral(ContainerIntegral):
             the container on which the integral of f should be evaluated
         f : function
             takes X : np.ndarray and return np.ndarray, 
-            see pdf method of Distribution class in exampleDistributions.py
         return_std : bool
             if True, returns the posterior std of integral estimate
         previous_samples : tuple, optional

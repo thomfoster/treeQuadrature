@@ -23,7 +23,7 @@ class ContainerIntegral(ABC):
             the container on which the integral of f should be evaluated
         f : function
             takes X : np.ndarray and return np.ndarray, 
-            see pdf method of Distribution class in exampleDistributions.py
+            see pdf method of Distribution class in distributions.py
         kwargs : Any
             other arguments allowed, must set default values
         

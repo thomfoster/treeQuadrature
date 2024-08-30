@@ -29,10 +29,10 @@ treeQuadrature.containerIntegration module
    :undoc-members:
    :show-inheritance:
 
-treeQuadrature.exampleDistributions module
+treeQuadrature.distributions module
 ------------------------------------------
 
-.. automodule:: treeQuadrature.exampleDistributions
+.. automodule:: treeQuadrature.distributions
    :members:
    :undoc-members:
    :show-inheritance:

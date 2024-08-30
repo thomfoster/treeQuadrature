@@ -147,7 +147,7 @@ class TreeIntegrator(Integrator):
         compute_std = self._check_return_std(return_std)
 
         results, containers = self.integrate_containers(leaf_containers, problem, 
-                                                        compute_std, verbose=verbose)
+                                                        compute_std, verbose)
 
         return self._compile_results(results, containers, compute_std, return_N, 
                                      return_containers, return_all)
@@ -242,7 +242,10 @@ class TreeIntegrator(Integrator):
 
     def integrate_containers(self, containers: List[Container], 
                              problem: Problem,
-                             compute_std: bool=False):
+                             compute_std: bool=False, verbose: bool=False):
+        if verbose:
+            print(f'integrating containers, parallel : {self.parallel}')
+
         if len(containers) == 0:
             raise ValueError("Got no container")
 

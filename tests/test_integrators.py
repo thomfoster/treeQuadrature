@@ -39,8 +39,8 @@ def test_io(integrator_instance):
         integral=tq.container_integrators.MidpointIntegral()),
     tq.integrators.TreeIntegrator(200, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()), 
                                     integral=tq.container_integrators.MidpointIntegral()),
-    tq.integrators.BatchGpIntegrator(200, 40, tq.splits.KdSplit(), 
-                                    tq.container_integrators.KernelIntegral(n_splits=0))
+    tq.integrators.BatchGpIntegrator(200, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()), 
+                                    integral=tq.container_integrators.KernelIntegral(n_splits=0))
 ])
 def test_treeIntegrator_io(integrator_instance):
     problem = tq.example_problems.SimpleGaussian(1)
@@ -63,14 +63,14 @@ def test_treeIntegrator_io(integrator_instance):
     tq.integrators.TreeIntegrator(1000, integral=tq.container_integrators.RandomIntegral()),
     tq.integrators.BayesMcIntegrator(200),
     tq.integrators.SmcIntegrator(300),
-    tq.integrators.BatchGpIntegrator(300, 40, tq.splits.KdSplit(), 
-                                    tq.container_integrators.KernelIntegral(n_splits=0))
+    tq.integrators.BatchGpIntegrator(300, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()), 
+                                    integral=tq.container_integrators.KernelIntegral(n_splits=0))
 ])
 def test_return_std(integrator_instance):
     problem = tq.example_problems.SimpleGaussian(1)
 
     res = integrator_instance(problem, return_std=True)
-    if "TreeIntegrator" in str(integrator_instance):
+    if "TreeIntegrator" in str(integrator_instance) or 'BatchGpIntegrator' in str(integrator_instance):
         for std in res['stds']:
             assert isinstance(std, float)
             assert std >= 0

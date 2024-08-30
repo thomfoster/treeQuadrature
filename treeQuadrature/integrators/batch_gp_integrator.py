@@ -190,12 +190,19 @@ class BatchGpIntegrator(TreeIntegrator):
         samples_per_batch, extra_samples = self._distribute_samples(batches)
 
         with ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(self._fit_batch_gp, batch, integrand, samples_per_batch + (
-                    1 if i < extra_samples else 0), verbose, 
-                    grid_size, return_std)
-                for i, batch in enumerate(batches)
-            ]
+            if samples_per_batch:
+                futures = [
+                    executor.submit(self._fit_batch_gp, batch, integrand, samples_per_batch + (
+                        1 if i < extra_samples else 0), verbose, 
+                        grid_size, return_std)
+                    for i, batch in enumerate(batches)
+                ]
+            else: # not set number of samples
+                futures = [
+                    executor.submit(self._fit_batch_gp, batch, integrand, None, verbose, 
+                                    grid_size, return_std)
+                    for batch in batches
+                ]
             for future in futures:
                 future.result()
 

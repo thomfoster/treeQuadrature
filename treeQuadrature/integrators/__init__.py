@@ -1,11 +1,8 @@
-from .simpleIntegrator import SimpleIntegrator # noqa
-from .queueIntegrator import QueueIntegrator # noqa
-from .smcIntegrator import SmcIntegrator # noqa
-from .vegasIntegrator import VegasIntegrator # noqa
-from .limitedSampleIntegrator import LimitedSampleIntegrator # noqa
+from .smc_integrator import SmcIntegrator # noqa
+from .vegas_integrator import VegasIntegrator # noqa
 from .integrator import Integrator
-from .treeIntegrator import TreeIntegrator
-from .bayesMcIntegrator import BayesMcIntegrator
-from .gpTreeIntegrator import GpTreeIntegrator
-from .limitedSampleGpIntegrator import LimitedSamplesGpIntegrator
-from .distributedSampleIntegrator import DistributedSampleIntegrator
+from .tree_integrator import TreeIntegrator
+from .bmc_integrator import BayesMcIntegrator
+from .batch_gp_integrator import BatchGpIntegrator
+from .distributed_tree_integrator import DistributedTreeIntegrator
+from .distributed_gp_integrator import DistributedGpTreeIntegrator

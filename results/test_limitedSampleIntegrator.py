@@ -44,11 +44,11 @@ if args.wandb_project == "by_problem_name":
     args.wandb_project = args.problem
 
 if args.problem == 'SimpleGaussian':
-    problem = tq.exampleProblems.SimpleGaussian
+    problem = tq.example_problems.SimpleGaussian
 elif args.problem == 'Camel':
-    problem = tq.exampleProblems.Camel
+    problem = tq.example_problems.Camel
 elif args.problem == 'QuadCamel':
-    problem = tq.exampleProblems.QuadCamel
+    problem = tq.example_problems.QuadCamel
 else:
     raise Exception(f'Specified problem {args.problem} is not recognised - try CaptialisedCamelCase')
 
@@ -125,7 +125,8 @@ wandb.config.update(vars(args))
 
 for D in tqdm(Ds):
     problem_instance = problem(D)
-    integ = tq.integrators.LimitedSampleIntegrator(
-        args.N, args.base_N, args.active_N, split, integral, weighting_function, queue
-    )
+    tree = tq.trees.LimitedSampleTree(N=args.N, active_N=args.active_N, 
+                                      split=split, weighting_function=weighting_function, 
+                                      queue=queue)
+    integ = tq.integrators.TreeIntegrator(args.base_N, integral=integral, tree = tree)
     experiment(problem_instance, integ)

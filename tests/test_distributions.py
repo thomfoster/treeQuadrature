@@ -6,9 +6,9 @@ from functools import partial
 @pytest.mark.parametrize("D", [1,2])
 @pytest.mark.parametrize("n_samples", [0,1,10])
 @pytest.mark.parametrize("distribution", [
-    partial(tq.exampleDistributions.Uniform, low=-1.0, high=1.0),
-    tq.exampleDistributions.Camel,
-    tq.exampleDistributions.QuadCamel
+    partial(tq.example_problems.distributions.Uniform, low=-1.0, high=1.0),
+    tq.example_problems.distributions.Camel,
+    tq.example_problems.distributions.QuadCamel
 ])
 def test_shapes(D, n_samples, distribution):
     d = distribution(D)
@@ -28,7 +28,7 @@ def uniform_dist(request):
     D = request.param  # Dimension
     low = -1.0
     high = 1.0
-    return tq.exampleDistributions.Uniform(D=D, low=low, high=high)
+    return tq.example_problems.distributions.Uniform(D=D, low=low, high=high)
 
 def test_uniform_pdf(uniform_dist):
     # Generate random samples within the bounds

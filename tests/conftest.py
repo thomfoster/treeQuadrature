@@ -9,7 +9,7 @@ def simple_container(request):
     """standard populated container"""
 
     D = request.param
-    d = tq.exampleDistributions.MultivariateNormal(D, mean=[0.0]*D, cov=0.5)
+    d = tq.example_problems.distributions.MultivariateNormal(D, mean=[0.0]*D, cov=0.5)
     X = d.rvs(100)
     y = d.pdf(X)
     

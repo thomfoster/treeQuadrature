@@ -27,8 +27,8 @@ def test_init(D):
     assert cont.midpoint.shape == (D,)
     assert np.all(cont.midpoint == np.array([0]*D))
 
-    assert cont._X.N == 2
-    assert np.all(cont._X.contents == X)
+    assert cont.N == 2
+    assert np.all(cont.X == X)
 
 @pytest.mark.parametrize("mins, maxs", [
     ([-1, -2], [2, 3]), 

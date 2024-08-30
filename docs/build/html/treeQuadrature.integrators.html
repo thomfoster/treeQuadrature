@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>treeQuadrature.integrators package &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="treeQuadrature.samplers package" href="treeQuadrature.samplers.html" />
+    <link rel="prev" title="treeQuadrature.gaussian_process package" href="treeQuadrature.gaussian_process.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="treequadrature-integrators-package">
+<h1>treeQuadrature.integrators package<a class="headerlink" href="#treequadrature-integrators-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-treeQuadrature.integrators.base_class">
+<span id="treequadrature-integrators-base-class-module"></span><h2>treeQuadrature.integrators.base_class module<a class="headerlink" href="#module-treeQuadrature.integrators.base_class" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.base_class.Integrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.base_class.</span></span><span class="sig-name descname"><span class="pre">Integrator</span></span><a class="reference internal" href="_modules/treeQuadrature/integrators/base_class.html#Integrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.base_class.Integrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for integrators.</p>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.integrators.batch_gp_integrator">
+<span id="treequadrature-integrators-batch-gp-integrator-module"></span><h2>treeQuadrature.integrators.batch_gp_integrator module<a class="headerlink" href="#module-treeQuadrature.integrators.batch_gp_integrator" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.batch_gp_integrator.BatchGpIntegrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.batch_gp_integrator.</span></span><span class="sig-name descname"><span class="pre">BatchGpIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><span class="pre">ContainerIntegral</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.base_class.Tree" title="treeQuadrature.trees.base_class.Tree"><span class="pre">Tree</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_grid_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension_scaling_exponent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_scaling_exponent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><span class="pre">Sampler</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/batch_gp_integrator.html#BatchGpIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.batch_gp_integrator.BatchGpIntegrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.integrators.tree_integrator.TreeIntegrator" title="treeQuadrature.integrators.tree_integrator.TreeIntegrator"><code class="xref py py-class docutils literal notranslate"><span class="pre">TreeIntegrator</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.batch_gp_integrator.BatchGpIntegrator.fit_gps">
+<span class="sig-name descname"><span class="pre">fit_gps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/batch_gp_integrator.html#BatchGpIntegrator.fit_gps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.batch_gp_integrator.BatchGpIntegrator.fit_gps" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.batch_gp_integrator.build_grid">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.batch_gp_integrator.</span></span><span class="sig-name descname"><span class="pre">build_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/treeQuadrature/integrators/batch_gp_integrator.html#build_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.batch_gp_integrator.build_grid" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.batch_gp_integrator.find_neighbors_grid">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.batch_gp_integrator.</span></span><span class="sig-name descname"><span class="pre">find_neighbors_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/integrators/batch_gp_integrator.html#find_neighbors_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.batch_gp_integrator.find_neighbors_grid" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-treeQuadrature.integrators.bmc_integrator">
+<span id="treequadrature-integrators-bmc-integrator-module"></span><h2>treeQuadrature.integrators.bmc_integrator module<a class="headerlink" href="#module-treeQuadrature.integrators.bmc_integrator" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.bmc_integrator.BayesMcIntegrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.bmc_integrator.</span></span><span class="sig-name descname"><span class="pre">BayesMcIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel:</span> <span class="pre">~sklearn.gaussian_process.kernels.Kernel</span> <span class="pre">=</span> <span class="pre">RBF(length_scale=1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler:</span> <span class="pre">~treeQuadrature.samplers.base_class.Sampler</span> <span class="pre">=</span> <span class="pre">&lt;treeQuadrature.samplers.uniform_sampler.UniformSampler</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_tuning:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factr:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">10000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">range:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">100.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/bmc_integrator.html#BayesMcIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.bmc_integrator.BayesMcIntegrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Integrator</span></code></a></p>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.integrators.distributed_gp_integrator">
+<span id="treequadrature-integrators-distributed-gp-integrator-module"></span><h2>treeQuadrature.integrators.distributed_gp_integrator module<a class="headerlink" href="#module-treeQuadrature.integrators.distributed_gp_integrator" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.distributed_gp_integrator.</span></span><span class="sig-name descname"><span class="pre">DistributedGpTreeIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral" title="treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral"><span class="pre">IterativeGpIntegral</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.base_class.Tree" title="treeQuadrature.trees.base_class.Tree"><span class="pre">Tree</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><span class="pre">Sampler</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_container_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_container_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iterations_per_container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/distributed_gp_integrator.html#DistributedGpTreeIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.integrators.distributed_tree_integrator.DistributedTreeIntegrator" title="treeQuadrature.integrators.distributed_tree_integrator.DistributedTreeIntegrator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistributedTreeIntegrator</span></code></a></p>
+<p>Integrator for gaussian process container integrals
+that distribute samples dynamically based on performance gain.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.split">
+<span class="sig-name descname"><span class="pre">split</span></span><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.split" title="Link to this definition">¶</a></dt>
+<dd><p>method to split the tree</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.base_class.Split" title="treeQuadrature.splits.base_class.Split">Split</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.integral">
+<span class="sig-name descname"><span class="pre">integral</span></span><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.integral" title="Link to this definition">¶</a></dt>
+<dd><p>an integrator that takes previous_samples
+and is able to extend from there.</p>
+<p>Note: integral.n_samples will be ignored</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral" title="treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral">IterativeGpIntegral</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.base_N">
+<span class="sig-name descname"><span class="pre">base_N</span></span><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.base_N" title="Link to this definition">¶</a></dt>
+<dd><p>number of initial samples used to construct the tree</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.P">
+<span class="sig-name descname"><span class="pre">P</span></span><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.P" title="Link to this definition">¶</a></dt>
+<dd><p>stopping criteria for building tree.</p>
+<p>largest container should not have more than P samples</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.sampler">
+<span class="sig-name descname"><span class="pre">sampler</span></span><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.sampler" title="Link to this definition">¶</a></dt>
+<dd><p>sampler to use when problem does nove have method rvs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler">Sampler</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.max_container_samples">
+<span class="sig-name descname"><span class="pre">max_container_samples</span></span><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.max_container_samples" title="Link to this definition">¶</a></dt>
+<dd><p>maximum number of samples to allocate to a container</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.min_container_samples">
+<span class="sig-name descname"><span class="pre">min_container_samples</span></span><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.min_container_samples" title="Link to this definition">¶</a></dt>
+<dd><p>minimum number of samples to allocate to a container.</p>
+<p>This is also used for the initial round</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.max_iterations_per_container">
+<span class="sig-name descname"><span class="pre">max_iterations_per_container</span></span><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.max_iterations_per_container" title="Link to this definition">¶</a></dt>
+<dd><p>maximum number of iterations to allocate to a container</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.integrate_containers">
+<span class="sig-name descname"><span class="pre">integrate_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><span class="pre">Problem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/distributed_gp_integrator.html#DistributedGpTreeIntegrator.integrate_containers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.integrate_containers" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_gp_integrator.individual_container_integral">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.distributed_gp_integrator.</span></span><span class="sig-name descname"><span class="pre">individual_container_integral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral" title="treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral"><span class="pre">IterativeGpIntegral</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrand</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/distributed_gp_integrator.html#individual_container_integral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.distributed_gp_integrator.individual_container_integral" title="Link to this definition">¶</a></dt>
+<dd><p>Perform the container integral with the option to pass in previous samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>integral</strong> (<a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral" title="treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral"><em>IterativeGpIntegral</em></a>) – The integral method to be used.</p></li>
+<li><p><strong>cont</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – The container to perform the integral on.</p></li>
+<li><p><strong>integrand</strong> (<em>callable</em>) – The integrand function.</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – Whether to return the standard deviation of the integral.</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – Number of samples to draw for this container in this iteration.</p></li>
+<li><p><strong>previous_samples</strong> (<em>dict</em>) – containers are keys and values are</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>integral_results</strong> (<em>dict</em>) – The results of the integral.</p></li>
+<li><p><strong>cont</strong> (<em>Container</em>) – The container used for the integral.</p></li>
+<li><p><strong>new_samples</strong> (<em>tuple of np.ndarray</em>) – Updated tuple containing all samples used.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.integrators.distributed_tree_integrator">
+<span id="treequadrature-integrators-distributed-tree-integrator-module"></span><h2>treeQuadrature.integrators.distributed_tree_integrator module<a class="headerlink" href="#module-treeQuadrature.integrators.distributed_tree_integrator" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_tree_integrator.DistributedTreeIntegrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.distributed_tree_integrator.</span></span><span class="sig-name descname"><span class="pre">DistributedTreeIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><span class="pre">ContainerIntegral</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><span class="pre">Sampler</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.base_class.Tree" title="treeQuadrature.trees.base_class.Tree"><span class="pre">Tree</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_container_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_container_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/distributed_tree_integrator.html#DistributedTreeIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.distributed_tree_integrator.DistributedTreeIntegrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.integrators.tree_integrator.TreeIntegrator" title="treeQuadrature.integrators.tree_integrator.TreeIntegrator"><code class="xref py py-class docutils literal notranslate"><span class="pre">TreeIntegrator</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_tree_integrator.DistributedTreeIntegrator.integrate_containers">
+<span class="sig-name descname"><span class="pre">integrate_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><span class="pre">Problem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/distributed_tree_integrator.html#DistributedTreeIntegrator.integrate_containers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.distributed_tree_integrator.DistributedTreeIntegrator.integrate_containers" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.distributed_tree_integrator.individual_container_integral">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.distributed_tree_integrator.</span></span><span class="sig-name descname"><span class="pre">individual_container_integral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><span class="pre">ContainerIntegral</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrand</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/distributed_tree_integrator.html#individual_container_integral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.distributed_tree_integrator.individual_container_integral" title="Link to this definition">¶</a></dt>
+<dd><p>wrapper function of container_integral for parallel processing
+with essential checks on the results</p>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.integrators.smc_integrator">
+<span id="treequadrature-integrators-smc-integrator-module"></span><h2>treeQuadrature.integrators.smc_integrator module<a class="headerlink" href="#module-treeQuadrature.integrators.smc_integrator" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.smc_integrator.SmcIntegrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.smc_integrator.</span></span><span class="sig-name descname"><span class="pre">SmcIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><span class="pre">Sampler</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/smc_integrator.html#SmcIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.smc_integrator.SmcIntegrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Integrator</span></code></a></p>
+<p>Simple Monte Carlo integrator: Draw N samples from prior,
+take sample mean of likelihood values at these samples.</p>
+<p>Only works for BayesProblem</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>N</strong> (<em>int</em>) – Number of samples to draw.</p></li>
+<li><p><strong>sampler</strong></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.integrators.tree_integrator">
+<span id="treequadrature-integrators-tree-integrator-module"></span><h2>treeQuadrature.integrators.tree_integrator module<a class="headerlink" href="#module-treeQuadrature.integrators.tree_integrator" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.tree_integrator.TreeIntegrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.tree_integrator.</span></span><span class="sig-name descname"><span class="pre">TreeIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.base_class.Tree" title="treeQuadrature.trees.base_class.Tree"><span class="pre">Tree</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><span class="pre">ContainerIntegral</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><span class="pre">Sampler</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/tree_integrator.html#TreeIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.tree_integrator.TreeIntegrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Integrator</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.tree_integrator.TreeIntegrator.integrate_containers">
+<span class="sig-name descname"><span class="pre">integrate_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><span class="pre">Problem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/tree_integrator.html#TreeIntegrator.integrate_containers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.tree_integrator.TreeIntegrator.integrate_containers" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.tree_integrator.individual_container_integral">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.tree_integrator.</span></span><span class="sig-name descname"><span class="pre">individual_container_integral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><span class="pre">ContainerIntegral</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrand</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/tree_integrator.html#individual_container_integral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.tree_integrator.individual_container_integral" title="Link to this definition">¶</a></dt>
+<dd><p>Perform integration on an individual container.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>integral</strong> (<a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><em>ContainerIntegral</em></a>) – The integral method to be used.</p></li>
+<li><p><strong>cont</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – The container on which to perform the integration.</p></li>
+<li><p><strong>integrand</strong> (<em>callable</em>) – The integrand function to be integrated.</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – Whether to return the standard deviation of the integral.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the results of the integration.
+- ‘estimate’ : the estimated integral value
+- ‘std’ : the standard deviation of the integral value</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.integrators.vegas_integrator">
+<span id="treequadrature-integrators-vegas-integrator-module"></span><h2>treeQuadrature.integrators.vegas_integrator module<a class="headerlink" href="#module-treeQuadrature.integrators.vegas_integrator" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.vegas_integrator.ShapeAdapter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.vegas_integrator.</span></span><span class="sig-name descname"><span class="pre">ShapeAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/vegas_integrator.html#ShapeAdapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.vegas_integrator.ShapeAdapter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.integrators.vegas_integrator.VegasIntegrator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.integrators.vegas_integrator.</span></span><span class="sig-name descname"><span class="pre">VegasIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_adaptive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/integrators/vegas_integrator.html#VegasIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.integrators.vegas_integrator.VegasIntegrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Integrator</span></code></a></p>
+<p>Integrator that uses the VEGAS algorithm for adaptive Monte Carlo integration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>N</strong> (<em>int</em>) – Number of samples to draw per iteration.</p></li>
+<li><p><strong>n_iter</strong> (<em>int</em>) – Number of adaptive iterations to perform.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.integrators">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-treeQuadrature.integrators" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="treeQuadrature.html">treeQuadrature package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="treeQuadrature.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.compare_integrators">treeQuadrature.compare_integrators module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.container">treeQuadrature.container module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.queues">treeQuadrature.queues module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.utils">treeQuadrature.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.visualisation">treeQuadrature.visualisation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">treeQuadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">tests package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="treeQuadrature.html">treeQuadrature package</a><ul>
+      <li>Previous: <a href="treeQuadrature.gaussian_process.html" title="previous chapter">treeQuadrature.gaussian_process package</a></li>
+      <li>Next: <a href="treeQuadrature.samplers.html" title="next chapter">treeQuadrature.samplers package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/treeQuadrature.integrators.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

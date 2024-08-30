@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tests.conftest &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for tests.conftest</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pytest</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">treeQuadrature</span> <span class="k">as</span> <span class="nn">tq</span>
+
+<span class="n">TESTING_DIMS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">15</span><span class="p">]</span>
+
+<div class="viewcode-block" id="simple_container">
+<a class="viewcode-back" href="../../tests.html#tests.conftest.simple_container">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">TESTING_DIMS</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">simple_container</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;standard populated container&quot;&quot;&quot;</span>
+
+    <span class="n">D</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">example_problems</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">MultivariateNormal</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    
+    <span class="n">mins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">5.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">maxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">)</span>
+
+    <span class="n">cont</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">Container</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mins</span><span class="o">=</span><span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="o">=</span><span class="n">maxs</span><span class="p">)</span>
+
+    <span class="n">cont</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;simple_container&quot;</span>
+    <span class="k">return</span> <span class="n">cont</span></div>
+
+
+
+<div class="viewcode-block" id="empty_container">
+<a class="viewcode-back" href="../../tests.html#tests.conftest.empty_container">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">TESTING_DIMS</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">empty_container</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;container with volume &gt; 0 but no samples&quot;&quot;&quot;</span>
+
+    <span class="n">D</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">D</span><span class="p">))</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">mins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">5.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">maxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">)</span>
+
+    <span class="n">cont</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">Container</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mins</span><span class="o">=</span><span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="o">=</span><span class="n">maxs</span><span class="p">)</span>
+    <span class="n">cont</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;empty_container&quot;</span>
+    <span class="k">return</span> <span class="n">cont</span></div>
+
+
+
+<div class="viewcode-block" id="boundary_container">
+<a class="viewcode-back" href="../../tests.html#tests.conftest.boundary_container">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">TESTING_DIMS</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">boundary_container</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;container with samples on corners of container&quot;&quot;&quot;</span>
+    
+    <span class="n">D</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span>
+
+    <span class="n">mins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">5.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">maxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">)</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">cont</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">Container</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mins</span><span class="o">=</span><span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="o">=</span><span class="n">maxs</span><span class="p">)</span>
+    <span class="n">cont</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;boundary_container&quot;</span>
+    <span class="k">return</span> <span class="n">cont</span></div>
+
+
+
+<div class="viewcode-block" id="closed_container">
+<a class="viewcode-back" href="../../tests.html#tests.conftest.closed_container">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">TESTING_DIMS</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">closed_container</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;container with 0 volume&quot;&quot;&quot;</span>
+
+    <span class="n">D</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">param</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]])</span>
+    
+    <span class="n">mins</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">maxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span><span class="o">*</span><span class="n">D</span><span class="p">)</span>
+
+    <span class="n">cont</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">Container</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mins</span><span class="o">=</span><span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="o">=</span><span class="n">maxs</span><span class="p">)</span>
+    <span class="n">cont</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;closed_container&quot;</span>
+    <span class="k">return</span> <span class="n">cont</span></div>
+
+
+
+<div class="viewcode-block" id="container">
+<a class="viewcode-back" href="../../tests.html#tests.conftest.container">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">[</span>
+    <span class="s1">&#39;simple_container&#39;</span><span class="p">,</span> 
+    <span class="s1">&#39;empty_container&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;closed_container&#39;</span>
+    <span class="p">])</span>
+<span class="k">def</span> <span class="nf">container</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">simple_container</span><span class="p">,</span> <span class="n">empty_container</span><span class="p">,</span> <span class="n">closed_container</span><span class="p">,</span> <span class="n">boundary_container</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pretty hacky &quot;Meta&quot; container to allow the parametrization of multiple containers.</span>
+<span class="sd">    See https://github.com/pytest-dev/pytest/issues/349 for more answers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">switch</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;simple_container&quot;</span><span class="p">:</span> <span class="n">simple_container</span><span class="p">,</span> 
+        <span class="s2">&quot;empty_container&quot;</span><span class="p">:</span> <span class="n">empty_container</span><span class="p">,</span>
+        <span class="s2">&quot;closed_container&quot;</span><span class="p">:</span> <span class="n">closed_container</span><span class="p">,</span>
+        <span class="s2">&quot;boundary_container&quot;</span><span class="p">:</span> <span class="n">boundary_container</span>
+        <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">switch</span><span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">param</span><span class="p">]</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../treeQuadrature.html">treeQuadrature package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

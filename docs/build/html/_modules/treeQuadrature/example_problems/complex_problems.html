@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>treeQuadrature.example_problems.complex_problems &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for treeQuadrature.example_problems.complex_problems</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.base_class</span> <span class="kn">import</span> <span class="n">Problem</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">handle_bound</span>
+
+
+<div class="viewcode-block" id="Ripple">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Ripple">[docs]</a>
+<span class="k">class</span> <span class="nc">Ripple</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A problem class representing a ripple-like integrand function</span>
+<span class="sd">    for numerical integration or other mathematical evaluations.</span>
+
+<span class="sd">    The ripple function has an oscillatory behavior controlled by the </span>
+<span class="sd">    parameter `a` and is defined over a D-dimensional space with bounds </span>
+<span class="sd">    from -10 to 10 in each dimension.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    D : int</span>
+<span class="sd">        The dimensionality of the problem.</span>
+<span class="sd">    a : float, optional</span>
+<span class="sd">        A parameter controlling the frequency of the ripple in the </span>
+<span class="sd">        integrand function. Default is 3.</span>
+<span class="sd">    answer : float</span>
+<span class="sd">        The analytic solution to the integral of the function over the</span>
+<span class="sd">        entire domain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">lows</span><span class="o">=-</span><span class="mf">10.</span><span class="p">,</span> <span class="n">highs</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span> 
+
+        <span class="c1"># Compute the answer </span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">16</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span><span class="o">**</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">16</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span><span class="p">))))</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">temp</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+
+    
+<div class="viewcode-block" id="Ripple.integrand">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Ripple.integrand">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ripple integrand function.</span>
+
+<span class="sd">        Mathematically, the integrand function is defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            f(x) = \exp\left(-\frac{\|x\|^2}{2}\right) \cdot \cos^2\left(a \|x\|^2\right)</span>
+
+<span class="sd">        where:</span>
+<span class="sd">        - \( x = (x_1, x_2, \dots, x_D) \) is the input vector.</span>
+<span class="sd">        - \( \|x\| \) is the Euclidean norm of the vector \( x \), </span>
+<span class="sd">           given by \( \|x\| = \sqrt{\sum_{i=1}^D x_i^2} \).</span>
+<span class="sd">        - \( a \) is a scalar that controls the frequency of the ripples.</span>
+
+<span class="sd">        The function exhibits a combination of exponential decay and </span>
+<span class="sd">        oscillatory ripple patterns as \( \|x\| \) varies.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy.ndarray</span>
+<span class="sd">            Each row is an input vector.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray of shape (N, 1)</span>
+<span class="sd">            the function value evaluated at X</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_input</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">norms</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">*</span><span class="n">norms</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></div>
+
+    
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Ripple(D=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="si">}</span><span class="s1">)&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="Oscillatory">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory">[docs]</a>
+<span class="k">class</span> <span class="nc">Oscillatory</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A problem class representing an oscillatory integrand function</span>
+<span class="sd">    for numerical integration or other mathematical evaluations.</span>
+
+<span class="sd">    The oscillatory function depends on a frequency vector `a` and a phase</span>
+<span class="sd">    shift parameter `u`. The integration bounds are [0, 1] in each dimension.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    D : int</span>
+<span class="sd">        The dimensionality of the problem.</span>
+<span class="sd">    a : numpy.ndarray</span>
+<span class="sd">        The frequency vector of the oscillatory function. </span>
+<span class="sd">    u : float</span>
+<span class="sd">        The phase shift parameter of the oscillatory function. </span>
+<span class="sd">    answer : float</span>
+<span class="sd">        The analytic solution to the integral of the function over the</span>
+<span class="sd">        entire domain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">D</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the OscillatoryProblem with the given dimensionality,</span>
+<span class="sd">        frequency vector, and phase shift parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        D : int</span>
+<span class="sd">            The dimensionality of the problem.</span>
+<span class="sd">        u : float, optional</span>
+<span class="sd">            The phase shift parameter of the oscillatory function.</span>
+<span class="sd">            Default is 0.</span>
+<span class="sd">        a : np.ndarray or None, optional</span>
+<span class="sd">            The frequency vector that controls the frequency of oscillation </span>
+<span class="sd">            in each dimension. If None, it is set to 5 / np.linspace(1, D, D),</span>
+<span class="sd">            which generates a decreasing frequency across dimensions.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The vector `a` affects the oscillatory behavior of the integrand. </span>
+<span class="sd">        Specifically, each element of `a` controls the frequency of oscillation </span>
+<span class="sd">        along the corresponding dimension. Larger values in `a` result in higher </span>
+<span class="sd">        frequencies, causing more rapid oscillations along that dimension.</span>
+
+<span class="sd">        The integration domain is always [0, 1]^D</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">lows</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">highs</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">D</span><span class="p">,</span><span class="n">D</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">u</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_answer</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Oscillatory.compute_answer">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory.compute_answer">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_answer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">term1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_answer</span><span class="p">(</span><span class="n">a</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">u</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span> <span class="o">+</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+            <span class="n">term2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_answer</span><span class="p">(</span><span class="n">a</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">u</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">term1</span> <span class="o">-</span> <span class="n">term2</span><span class="p">)</span><span class="o">/</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">u</span> <span class="o">+</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">u</span><span class="p">))</span><span class="o">/</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Oscillatory.integrand">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory.integrand">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Oscillatory integrand function.</span>
+
+<span class="sd">        Mathematically, the integrand function is defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            f(x) = \cos\left(2\pi u + \sum_{i=1}^D a_i x_i\right)</span>
+
+<span class="sd">        where:</span>
+<span class="sd">        - \( x = (x_1, x_2, \dots, x_D) \) is the input vector.</span>
+<span class="sd">        - \( u \) is a scalar that shifts the phase of the cosine function.</span>
+<span class="sd">        - \( a = (a_1, a_2, \dots, a_D) \) is a vector that controls the frequency of </span>
+<span class="sd">           oscillation along each dimension.</span>
+<span class="sd">        - \( D \) is the dimension of the input space.</span>
+
+<span class="sd">        The function exhibits oscillatory behavior as \( x \) varies, with the </span>
+<span class="sd">        frequency of oscillation determined by the values in the vector \( a \).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy.ndarray</span>
+<span class="sd">            Each row is an input vector.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray of shape (N, 1)</span>
+<span class="sd">            the function value evaluated at X</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_input</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">dotprods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">])</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">+</span> <span class="n">dotprods</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></div>
+
+    
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Oscillatory(D=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="si">}</span><span class="s1">)&#39;</span></div>
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../treeQuadrature.html">treeQuadrature package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tests.html">tests package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

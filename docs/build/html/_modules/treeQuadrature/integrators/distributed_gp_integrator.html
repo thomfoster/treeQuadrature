@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>treeQuadrature.integrators.distributed_gp_integrator &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for treeQuadrature.integrators.distributed_gp_integrator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.distributed_tree_integrator</span> <span class="kn">import</span> <span class="n">DistributedTreeIntegrator</span>
+<span class="kn">from</span> <span class="nn">..samplers</span> <span class="kn">import</span> <span class="n">Sampler</span>
+<span class="kn">from</span> <span class="nn">..container_integrators.gp_integral</span> <span class="kn">import</span> <span class="n">IterativeGpIntegral</span>
+<span class="kn">from</span> <span class="nn">..container</span> <span class="kn">import</span> <span class="n">Container</span>
+<span class="kn">from</span> <span class="nn">..trees</span> <span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span> <span class="nn">..example_problems</span> <span class="kn">import</span> <span class="n">Problem</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># parallel computing</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+
+
+<div class="viewcode-block" id="individual_container_integral">
+<a class="viewcode-back" href="../../../treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.individual_container_integral">[docs]</a>
+<span class="k">def</span> <span class="nf">individual_container_integral</span><span class="p">(</span><span class="n">integral</span><span class="p">:</span> <span class="n">IterativeGpIntegral</span><span class="p">,</span> 
+                                <span class="n">cont</span><span class="p">:</span> <span class="n">Container</span><span class="p">,</span> <span class="n">integrand</span><span class="p">:</span> <span class="nb">callable</span><span class="p">,</span> 
+                                <span class="n">return_std</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
+                                <span class="n">previous_samples</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform the container integral with the option to pass in previous samples.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    integral : IterativeGpIntegral</span>
+<span class="sd">        The integral method to be used.</span>
+<span class="sd">    cont : Container</span>
+<span class="sd">        The container to perform the integral on.</span>
+<span class="sd">    integrand : callable</span>
+<span class="sd">        The integrand function.</span>
+<span class="sd">    return_std : bool</span>
+<span class="sd">        Whether to return the standard deviation of the integral.</span>
+<span class="sd">    n_samples : int</span>
+<span class="sd">        Number of samples to draw for this container in this iteration.</span>
+<span class="sd">    previous_samples : dict</span>
+<span class="sd">        containers are keys and values are </span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    integral_results : dict</span>
+<span class="sd">        The results of the integral.</span>
+<span class="sd">    cont : Container</span>
+<span class="sd">        The container used for the integral.</span>
+<span class="sd">    new_samples : tuple of np.ndarray</span>
+<span class="sd">        Updated tuple containing all samples used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="k">if</span> <span class="n">previous_samples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">previous_samples</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">container_samples</span> <span class="o">=</span> <span class="n">previous_samples</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cont</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">integral</span><span class="p">,</span> <span class="s2">&quot;n_samples&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;integral must have attribute n_samples&quot;</span><span class="p">)</span>
+    
+    <span class="n">integral</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
+
+    <span class="n">n_previous</span> <span class="o">=</span> <span class="n">cont</span><span class="o">.</span><span class="n">N</span>
+
+    <span class="n">integral_results</span><span class="p">,</span> <span class="n">new_samples</span> <span class="o">=</span> <span class="n">integral</span><span class="o">.</span><span class="n">containerIntegral</span><span class="p">(</span>
+        <span class="n">cont</span><span class="p">,</span> <span class="n">integrand</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="n">return_std</span><span class="p">,</span> 
+        <span class="n">previous_samples</span><span class="o">=</span><span class="n">container_samples</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cont</span><span class="o">.</span><span class="n">N</span> <span class="o">-</span> <span class="n">n_previous</span> <span class="o">!=</span> <span class="n">n_samples</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;integral did not add proper number of samples. &quot;</span>
+                           <span class="sa">f</span><span class="s2">&quot;added </span><span class="si">{</span><span class="n">cont</span><span class="o">.</span><span class="n">N</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">n_previous</span><span class="si">}</span><span class="s2"> &quot;</span>
+                           <span class="sa">f</span><span class="s2">&quot;while expecting </span><span class="si">{</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Return integral results, modified container, and the new samples</span>
+    <span class="k">return</span> <span class="n">integral_results</span><span class="p">,</span> <span class="n">cont</span><span class="p">,</span> <span class="n">new_samples</span></div>
+
+
+
+<div class="viewcode-block" id="DistributedGpTreeIntegrator">
+<a class="viewcode-back" href="../../../treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator">[docs]</a>
+<span class="k">class</span> <span class="nc">DistributedGpTreeIntegrator</span><span class="p">(</span><span class="n">DistributedTreeIntegrator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Integrator for gaussian process container integrals</span>
+<span class="sd">    that distribute samples dynamically based on performance gain.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ---------</span>
+<span class="sd">    split : Split</span>
+<span class="sd">        method to split the tree</span>
+<span class="sd">    integral : IterativeGpIntegral</span>
+<span class="sd">        an integrator that takes previous_samples</span>
+<span class="sd">        and is able to extend from there. \n</span>
+<span class="sd">        Note: integral.n_samples will be ignored</span>
+<span class="sd">    base_N : int</span>
+<span class="sd">        number of initial samples used to construct the tree</span>
+<span class="sd">    P : int</span>
+<span class="sd">        stopping criteria for building tree. \n</span>
+<span class="sd">        largest container should not have more than P samples</span>
+<span class="sd">    sampler : Sampler</span>
+<span class="sd">        sampler to use when problem does nove have method rvs</span>
+<span class="sd">    max_container_samples : int</span>
+<span class="sd">        maximum number of samples to allocate to a container</span>
+<span class="sd">    min_container_samples : int</span>
+<span class="sd">        minimum number of samples to allocate to a container. \n</span>
+<span class="sd">        This is also used for the initial round</span>
+<span class="sd">    max_iterations_per_container : int</span>
+<span class="sd">        maximum number of iterations to allocate to a container</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_N</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_n_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">integral</span><span class="p">:</span> <span class="n">IterativeGpIntegral</span><span class="p">,</span>
+                 <span class="n">tree</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tree</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sampler</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">max_container_samples</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> 
+                 <span class="n">min_container_samples</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                 <span class="n">max_iterations_per_container</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">base_N</span><span class="o">=</span><span class="n">base_N</span><span class="p">,</span> <span class="n">integral</span><span class="o">=</span><span class="n">integral</span><span class="p">,</span> <span class="n">sampler</span><span class="o">=</span><span class="n">sampler</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="n">tree</span><span class="p">,</span> <span class="n">max_n_samples</span><span class="o">=</span><span class="n">max_n_samples</span><span class="p">,</span>
+                         <span class="n">max_container_samples</span><span class="o">=</span><span class="n">max_container_samples</span><span class="p">,</span> <span class="n">min_container_samples</span><span class="o">=</span><span class="n">min_container_samples</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iterations_per_container</span><span class="p">:</span> <span class="n">max_iterations_per_container</span>
+    
+<div class="viewcode-block" id="DistributedGpTreeIntegrator.integrate_containers">
+<a class="viewcode-back" href="../../../treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.integrate_containers">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrate_containers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">containers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Container</span><span class="p">],</span> 
+                             <span class="n">problem</span><span class="p">:</span> <span class="n">Problem</span><span class="p">,</span>
+                             <span class="n">compute_std</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                             <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">cont</span><span class="o">.</span><span class="n">N</span> <span class="k">for</span> <span class="n">cont</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">])</span>
+
+        <span class="c1"># Initialize previous_samples dictionary</span>
+        <span class="n">previous_samples</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">container_iterations</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">container_performances</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">container_prev_performances</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># To store old performances</span>
+        <span class="n">total_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
+        <span class="n">all_containers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_results</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">sample_allocation</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">min_container_samples</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">containers</span><span class="p">))]</span>
+        <span class="k">if</span> <span class="n">total_samples</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sample_allocation</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_n_samples</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;not enough samples to fit first run of GP&#39;</span>
+                                <span class="s1">&#39;please reduce base_N or increase max_n_samples&#39;</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">total_samples</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_n_samples</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">containers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;largest container allocation </span><span class="si">{</span><span class="nb">max</span><span class="p">(</span><span class="n">sample_allocation</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">container_sample_map</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">(</span><span class="n">cont</span><span class="p">):</span> <span class="n">sample_allocation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cont</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">containers</span><span class="p">)}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+                    <span class="n">futures</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">individual_container_integral</span><span class="p">,</span> 
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">integral</span><span class="p">,</span> <span class="n">cont</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">integrand</span><span class="p">,</span> 
+                                        <span class="n">compute_std</span><span class="p">,</span> <span class="n">container_sample_map</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">cont</span><span class="p">)],</span>
+                                        <span class="n">previous_samples</span><span class="o">=</span><span class="n">previous_samples</span><span class="p">):</span> <span class="nb">id</span><span class="p">(</span><span class="n">cont</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">cont</span> <span class="ow">in</span> <span class="n">containers</span>
+                    <span class="p">}</span>
+
+                    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">new_samples_dict</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+                        <span class="n">container_id</span> <span class="o">=</span> <span class="n">futures</span><span class="p">[</span><span class="n">future</span><span class="p">]</span>
+                        <span class="n">integral_results</span><span class="p">,</span> <span class="n">container</span><span class="p">,</span> <span class="n">new_samples</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">integral_results</span><span class="p">,</span> <span class="n">container</span><span class="p">))</span>
+                        <span class="n">new_samples_dict</span><span class="p">[</span><span class="n">container</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_samples</span>
+
+                        <span class="n">total_samples</span> <span class="o">+=</span> <span class="n">container_sample_map</span><span class="p">[</span><span class="n">container_id</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">new_samples_dict</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">cont</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">:</span>
+                    <span class="n">integral_results</span><span class="p">,</span> <span class="n">container</span><span class="p">,</span> <span class="n">new_samples</span> <span class="o">=</span> <span class="n">individual_container_integral</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">integral</span><span class="p">,</span> <span class="n">cont</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">integrand</span><span class="p">,</span> 
+                        <span class="n">compute_std</span><span class="p">,</span> <span class="n">container_sample_map</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">cont</span><span class="p">)],</span>
+                        <span class="n">previous_samples</span><span class="o">=</span><span class="n">previous_samples</span>
+                    <span class="p">)</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">integral_results</span><span class="p">,</span> <span class="n">container</span><span class="p">))</span>
+                    <span class="n">new_samples_dict</span><span class="p">[</span><span class="n">container</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_samples</span>
+
+                    <span class="n">total_samples</span> <span class="o">+=</span> <span class="n">container_sample_map</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">cont</span><span class="p">)]</span>
+
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total samples used: </span><span class="si">{</span><span class="n">total_samples</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_n_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">total_samples</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_n_samples</span><span class="p">:</span>
+                <span class="n">containers</span> <span class="o">=</span> <span class="p">[</span><span class="n">cont</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">cont</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Update previous_samples with new samples from this iteration</span>
+            <span class="n">previous_samples</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_samples_dict</span><span class="p">)</span>
+            
+            <span class="c1"># Track performance gains</span>
+            <span class="k">for</span> <span class="n">result</span><span class="p">,</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">new_performance</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;performance&#39;</span><span class="p">]</span>
+                <span class="n">old_performance</span> <span class="o">=</span> <span class="n">container_prev_performances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">new_performance</span><span class="p">)</span>
+                <span class="n">delta_performance</span> <span class="o">=</span> <span class="n">new_performance</span> <span class="o">-</span> <span class="n">old_performance</span> <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">container</span> <span class="ow">in</span> <span class="n">container_prev_performances</span><span class="p">)</span> <span class="k">else</span> <span class="n">new_performance</span>
+                <span class="n">container_prev_performances</span><span class="p">[</span><span class="n">container</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_performance</span>
+                <span class="n">container_performances</span><span class="p">[</span><span class="n">container</span><span class="p">]</span> <span class="o">=</span> <span class="n">delta_performance</span>
+                <span class="n">container_iterations</span><span class="p">[</span><span class="n">container</span><span class="p">]</span> <span class="o">=</span> <span class="n">container_iterations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+            <span class="c1"># Sort containers by performance gain (delta)</span>
+            <span class="n">ranked_containers_results</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="n">results</span><span class="p">,</span> 
+                <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">container_performances</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Allocate samples dynamically based on performance gain</span>
+            <span class="n">available_samples</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_n_samples</span> <span class="o">-</span> <span class="n">total_samples</span><span class="p">,</span> 
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">min_container_samples</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">containers</span><span class="p">))</span>
+            <span class="n">sample_allocation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocate_samples</span><span class="p">(</span><span class="n">ranked_containers_results</span><span class="o">=</span><span class="n">ranked_containers_results</span><span class="p">,</span> 
+                                                       <span class="n">available_samples</span><span class="o">=</span><span class="n">available_samples</span><span class="p">,</span>
+                                                       <span class="n">container_iterations</span><span class="o">=</span><span class="n">container_iterations</span><span class="p">,</span>
+                                                       <span class="n">max_iterations_per_container</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iterations_per_container</span><span class="p">,</span> 
+                                                       <span class="n">container_performances</span><span class="o">=</span><span class="n">container_performances</span><span class="p">,</span>
+                                                       <span class="n">max_per_container</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_container_samples</span><span class="p">)</span>
+            
+            <span class="c1"># Separate out containers that received 0 samples</span>
+            <span class="n">containers_for_next_iteration</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">updated_sample_allocation</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">container</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ranked_containers_results</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">sample_allocation</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">containers_for_next_iteration</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+                    <span class="n">updated_sample_allocation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_allocation</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">sample_allocation</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">all_containers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+                    <span class="n">all_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span> 
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;allocation cannot be negative, got &quot;</span>
+                                       <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sample_allocation</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">containers</span> <span class="o">=</span> <span class="n">containers_for_next_iteration</span>
+            <span class="n">sample_allocation</span> <span class="o">=</span> <span class="n">updated_sample_allocation</span>
+
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of containers left: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">containers</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Only add the remaining containers not yet processed</span>
+        <span class="n">all_containers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">containers</span><span class="p">)</span>
+        <span class="n">all_results</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">result</span> <span class="k">for</span> <span class="n">result</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ranked_containers_results</span> <span class="k">if</span> <span class="n">result</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_results</span><span class="p">])</span></div>
+
+
+    
+    <span class="k">def</span> <span class="nf">_allocate_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ranked_containers_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> 
+                      <span class="n">available_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_per_container</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="n">container_iterations</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> 
+                      <span class="n">max_iterations_per_container</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="n">container_performances</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Allocate samples to containers based on their performance gain, with a strict cap on the number</span>
+<span class="sd">        of samples allocated to any single container in this iteration.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ranked_containers_results : list</span>
+<span class="sd">            A list of tuples where each tuple contains a result dictionary and a container,</span>
+<span class="sd">            sorted by performance gain.</span>
+<span class="sd">        available_samples : int</span>
+<span class="sd">            The total number of samples available to be allocated.</span>
+<span class="sd">        max_per_container : int, optional</span>
+<span class="sd">            The maximum number of samples to allocate to any single container in this iteration.</span>
+<span class="sd">            Defaults to 1000.</span>
+<span class="sd">        container_iterations : dict</span>
+<span class="sd">            Dictionary tracking the number of iterations each container has undergone.</span>
+<span class="sd">        max_iterations_per_container : int</span>
+<span class="sd">            The maximum number of iterations allowed per container.</span>
+<span class="sd">        container_performances : dict</span>
+<span class="sd">            Dictionary tracking the performance delta for each container.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List[int]</span>
+<span class="sd">            A list containing the number of samples allocated to each container.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">min_performance</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">container_performances</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Ensure positive weights</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="o">-</span><span class="n">min_performance</span> <span class="o">+</span> <span class="mf">1e-10</span> <span class="k">if</span> <span class="n">min_performance</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">result</span><span class="p">,</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">ranked_containers_results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">container_iterations</span><span class="p">[</span><span class="n">container</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">max_iterations_per_container</span><span class="p">:</span>
+                <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">delta_performance</span> <span class="o">=</span> <span class="n">container_performances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">shift</span>
+            <span class="c1"># Use np.clip to ensure the log does not produce negative results</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">delta_performance</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="n">total_weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">total_weight</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">normalized_weights</span> <span class="o">=</span> <span class="n">weights</span> <span class="o">/</span> <span class="n">total_weight</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Uniform allocation if all weights are zero</span>
+            <span class="n">normalized_weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+        <span class="n">allocation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">normalized_weights</span> <span class="o">*</span> <span class="n">available_samples</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">allocated_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">allocation</span><span class="p">)</span>
+        <span class="n">discrepancy</span> <span class="o">=</span> <span class="n">available_samples</span> <span class="o">-</span> <span class="n">allocated_samples</span>
+
+        <span class="c1"># Handle discrepancies by incrementally allocating or reducing samples</span>
+        <span class="k">if</span> <span class="n">discrepancy</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">discrepancy</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">allocation</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">discrepancy</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">allocation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">max_per_container</span><span class="p">:</span>
+                        <span class="n">allocation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">discrepancy</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">discrepancy</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">discrepancy</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">allocation</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">discrepancy</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">allocation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">allocation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+                        <span class="n">discrepancy</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Ensure no over-allocation</span>
+        <span class="n">allocation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">allocation</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_per_container</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">allocation</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../treeQuadrature.html">treeQuadrature package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

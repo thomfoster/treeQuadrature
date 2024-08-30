@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>treeQuadrature.integrators.bmc_integrator &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for treeQuadrature.integrators.bmc_integrator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">ResultDict</span>
+<span class="kn">from</span> <span class="nn">..example_problems</span> <span class="kn">import</span> <span class="n">Problem</span>
+<span class="kn">from</span> <span class="nn">.base_class</span> <span class="kn">import</span> <span class="n">Integrator</span>
+<span class="kn">from</span> <span class="nn">..samplers</span> <span class="kn">import</span> <span class="n">Sampler</span><span class="p">,</span> <span class="n">UniformSampler</span>
+<span class="kn">from</span> <span class="nn">..container</span> <span class="kn">import</span> <span class="n">Container</span>
+<span class="kn">from</span> <span class="nn">..gaussian_process</span> <span class="kn">import</span> <span class="n">kernel_integration</span><span class="p">,</span> <span class="n">IterativeGPFitting</span><span class="p">,</span> <span class="n">SklearnGPFit</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.gaussian_process.kernels</span> <span class="kn">import</span> <span class="n">RBF</span><span class="p">,</span> <span class="n">Kernel</span>
+
+<span class="n">default_sampler</span> <span class="o">=</span> <span class="n">UniformSampler</span><span class="p">()</span>
+<span class="n">default_kernel</span> <span class="o">=</span> <span class="n">kernel</span> <span class="o">=</span> <span class="n">RBF</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">))</span>
+
+<div class="viewcode-block" id="BayesMcIntegrator">
+<a class="viewcode-back" href="../../../treeQuadrature.integrators.html#treeQuadrature.integrators.bmc_integrator.BayesMcIntegrator">[docs]</a>
+<span class="k">class</span> <span class="nc">BayesMcIntegrator</span><span class="p">(</span><span class="n">Integrator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">Kernel</span><span class="o">=</span><span class="n">default_kernel</span><span class="p">,</span> 
+                 <span class="n">sampler</span><span class="p">:</span> <span class="n">Sampler</span><span class="o">=</span><span class="n">default_sampler</span><span class="p">,</span> 
+                 <span class="n">n_tuning</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">factr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e7</span><span class="p">,</span> 
+                 <span class="n">length</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">range</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the BayesMcIntegrator.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        N : int</span>
+<span class="sd">            The number of evaluations.</span>
+<span class="sd">        kernel : Kernel, optional</span>
+<span class="sd">            The kernel to use for the Gaussian Process. </span>
+<span class="sd">            Default is RBF.</span>
+<span class="sd">        sampler : Sampler, optional </span>
+<span class="sd">            The sampler to use for generating samples. </span>
+<span class="sd">            Default is UniformSampler.</span>
+<span class="sd">        base_N : int, optional (Default=100)</span>
+<span class="sd">            The base number of samples to draw for the problem. </span>
+<span class="sd">        n_tuning : int, optional (Default=10)</span>
+<span class="sd">            The number of tuning steps for the Gaussian Process. </span>
+<span class="sd">        max_iter : int, optional (Default=1000)</span>
+<span class="sd">            The maximum number of iterations for </span>
+<span class="sd">            fitting the Gaussian Process. </span>
+<span class="sd">        factr : float, optional (Default=1e7)</span>
+<span class="sd">            The factor for convergence criterion.</span>
+<span class="sd">        length: float, optional (Default=1.0)</span>
+<span class="sd">            initial length scale of RBF kernel</span>
+<span class="sd">        range : float, optional (Default=1e2)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="n">N</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_tuning</span> <span class="o">=</span> <span class="n">n_tuning</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factr</span> <span class="o">=</span> <span class="n">factr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="nb">range</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">Problem</span><span class="p">,</span> <span class="n">return_N</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                 <span class="n">return_std</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResultDict</span><span class="p">:</span>
+        <span class="c1"># create a container with samples</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="s1">&#39;rvs&#39;</span><span class="p">):</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">integrand</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">lows</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">highs</span><span class="p">,</span> 
+                                    <span class="n">problem</span><span class="o">.</span><span class="n">integrand</span><span class="p">)</span>
+        
+        <span class="n">cont</span> <span class="o">=</span> <span class="n">Container</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mins</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">lows</span><span class="p">,</span> <span class="n">maxs</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">highs</span><span class="p">)</span>
+
+        <span class="n">gp_fitter</span> <span class="o">=</span> <span class="n">SklearnGPFit</span><span class="p">(</span><span class="n">n_tuning</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_tuning</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span> 
+                                 <span class="n">factr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">factr</span><span class="p">)</span>
+        <span class="c1"># draw all samples at once, so threshold does not matter</span>
+        <span class="n">iGp</span> <span class="o">=</span> <span class="n">IterativeGPFitting</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_redraw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
+                                 <span class="n">gp</span><span class="o">=</span><span class="n">gp_fitter</span><span class="p">,</span> 
+                                 <span class="n">performance_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">threshold_direction</span><span class="o">=</span><span class="s1">&#39;up&#39;</span><span class="p">,</span> 
+                                 <span class="n">fit_residuals</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">gp_results</span> <span class="o">=</span> <span class="n">iGp</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">integrand</span><span class="p">,</span> <span class="n">cont</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">,</span> 
+                <span class="n">add_samples</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">integral_result</span> <span class="o">=</span> <span class="n">kernel_integration</span><span class="p">(</span><span class="n">iGp</span><span class="p">,</span> <span class="n">cont</span><span class="p">,</span> <span class="n">gp_results</span><span class="p">,</span> <span class="n">return_std</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ResultDict</span><span class="p">(</span><span class="n">estimate</span><span class="o">=</span><span class="n">integral_result</span><span class="p">[</span><span class="s1">&#39;integral&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">return_std</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">integral_result</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">return_N</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;n_evals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../treeQuadrature.html">treeQuadrature package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

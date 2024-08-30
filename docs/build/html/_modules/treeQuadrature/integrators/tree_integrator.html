@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>treeQuadrature.integrators.tree_integrator &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for treeQuadrature.integrators.tree_integrator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">signature</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># parallel computing</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+
+<span class="kn">from</span> <span class="nn">.base_class</span> <span class="kn">import</span> <span class="n">Integrator</span>
+<span class="kn">from</span> <span class="nn">..container</span> <span class="kn">import</span> <span class="n">Container</span>
+<span class="kn">from</span> <span class="nn">..trees</span> <span class="kn">import</span> <span class="n">Tree</span><span class="p">,</span> <span class="n">SimpleTree</span>
+<span class="kn">from</span> <span class="nn">..container_integrators</span> <span class="kn">import</span> <span class="n">ContainerIntegral</span><span class="p">,</span> <span class="n">RandomIntegral</span>
+<span class="kn">from</span> <span class="nn">..samplers</span> <span class="kn">import</span> <span class="n">Sampler</span>
+<span class="kn">from</span> <span class="nn">..example_problems</span> <span class="kn">import</span> <span class="n">Problem</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">ResultDict</span>
+
+
+
+<div class="viewcode-block" id="individual_container_integral">
+<a class="viewcode-back" href="../../../treeQuadrature.integrators.html#treeQuadrature.integrators.tree_integrator.individual_container_integral">[docs]</a>
+<span class="k">def</span> <span class="nf">individual_container_integral</span><span class="p">(</span><span class="n">integral</span><span class="p">:</span> <span class="n">ContainerIntegral</span><span class="p">,</span> 
+                                <span class="n">cont</span><span class="p">:</span> <span class="n">Container</span><span class="p">,</span> <span class="n">integrand</span><span class="p">:</span> <span class="nb">callable</span><span class="p">,</span> 
+                                <span class="n">return_std</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform integration on an individual container.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    integral : ContainerIntegral</span>
+<span class="sd">        The integral method to be used.</span>
+<span class="sd">    cont : Container</span>
+<span class="sd">        The container on which to perform the integration.</span>
+<span class="sd">    integrand : callable</span>
+<span class="sd">        The integrand function to be integrated.</span>
+<span class="sd">    return_std : bool</span>
+<span class="sd">        Whether to return the standard deviation of the integral.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        A dictionary containing the results of the integration. </span>
+<span class="sd">        - &#39;estimate&#39; : the estimated integral value</span>
+<span class="sd">        - &#39;std&#39; : the standard deviation of the integral value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">integral</span><span class="p">,</span> <span class="s1">&#39;get_additional_params&#39;</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">integral</span><span class="o">.</span><span class="n">get_additional_params</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">return_std</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;return_std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">integral_results</span> <span class="o">=</span> <span class="n">integral</span><span class="o">.</span><span class="n">containerIntegral</span><span class="p">(</span><span class="n">cont</span><span class="p">,</span> <span class="n">integrand</span><span class="p">,</span> 
+                                                      <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="n">integral_results</span> <span class="o">=</span> <span class="n">integral</span><span class="o">.</span><span class="n">containerIntegral</span><span class="p">(</span><span class="n">cont</span><span class="p">,</span> <span class="n">integrand</span><span class="p">,</span>
+                                                      <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+    <span class="c1"># check results</span>
+    <span class="k">if</span> <span class="s1">&#39;integral&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">integral_results</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;results of containerIntegral does not have key &#39;integral&#39;&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">return_std</span> <span class="ow">and</span> <span class="s1">&#39;std&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">integral_results</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;results of containerIntegral does not have key &#39;std&#39;&quot;</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="n">integral_results</span><span class="p">,</span> <span class="n">cont</span></div>
+
+
+
+<div class="viewcode-block" id="TreeIntegrator">
+<a class="viewcode-back" href="../../../treeQuadrature.integrators.html#treeQuadrature.integrators.tree_integrator.TreeIntegrator">[docs]</a>
+<span class="k">class</span> <span class="nc">TreeIntegrator</span><span class="p">(</span><span class="n">Integrator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_N</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
+                 <span class="n">tree</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tree</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">integral</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ContainerIntegral</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sampler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the TreeIntegrator.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        base_N : int</span>
+<span class="sd">            The number of initial samples to draw.</span>
+<span class="sd">        tree : Tree, Optional</span>
+<span class="sd">            The tree to be used for the integration process.</span>
+<span class="sd">            Defaults to SimpleTree.</span>
+<span class="sd">        integral : ContainerIntegral, Optional</span>
+<span class="sd">            The integral method to be used on each container.</span>
+<span class="sd">            Defaults to RandomIntegral.</span>
+<span class="sd">        sampler : Sampler, Optional</span>
+<span class="sd">            The sampler to be used to draw initial samples.</span>
+<span class="sd">            If None, problem.rvs will be used.</span>
+<span class="sd">        parallel : bool, Optional</span>
+<span class="sd">            Whether to use parallel computing.</span>
+<span class="sd">            Defaults to True.</span>
+<span class="sd">        *args, **kwargs : Any</span>
+<span class="sd">            Additional arguments to be passed to the tree construction method.</span>
+<span class="sd">        </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.integrators import TreeIntegrator</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.splits import MinSseSplit</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.containerIntegration import RandomIntegral</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.example_problems import SimpleGaussian</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.trees import WeightedTree</span>
+<span class="sd">        &gt;&gt;&gt; # Define the problem</span>
+<span class="sd">        &gt;&gt;&gt; problem = SimpleGaussian(D=2)</span>
+<span class="sd">        &gt;&gt;&gt; volume_weighting = lambda container: container.volume</span>
+<span class="sd">        &gt;&gt;&gt; stopping_small_containers = lambda container: container.N &lt; 2</span>
+<span class="sd">        &gt;&gt;&gt; tree = WeightedTree(split=MinSseSplit(), max_splits=200,</span>
+<span class="sd">        &gt;&gt;&gt;     weighting_function=volume_weighting,</span>
+<span class="sd">        &gt;&gt;&gt;     stopping_condition=stopping_small_containers)</span>
+<span class="sd">        &gt;&gt;&gt; # Combine all compartments into a TreeIntegrator</span>
+<span class="sd">        &gt;&gt;&gt; integ_weighted = TreeIntegrator(base_N=1000, tree=tree, </span>
+<span class="sd">        &gt;&gt;&gt;                                 integral=RandomIntegral())</span>
+<span class="sd">        &gt;&gt;&gt; estimate = integ_weighted(problem)</span>
+<span class="sd">        &gt;&gt;&gt; print(&quot;error of random integral =&quot;,</span>
+<span class="sd">        &gt;&gt;&gt;       str(100 * np.abs(estimate - problem.answer) / problem.answer), &quot;%&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">tree</span> <span class="k">if</span> <span class="n">tree</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">SimpleTree</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integral</span> <span class="o">=</span> <span class="n">integral</span> <span class="k">if</span> <span class="n">integral</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">RandomIntegral</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_N</span> <span class="o">=</span> <span class="n">base_N</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span> <span class="o">=</span> <span class="n">parallel</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">Problem</span><span class="p">,</span> 
+                 <span class="n">return_N</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">return_containers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> 
+                 <span class="n">return_std</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">return_all</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> 
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResultDict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the integration process.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+<span class="sd">        problem : Problem</span>
+<span class="sd">            The integration problem to be solved</span>
+<span class="sd">        return_N : bool</span>
+<span class="sd">            if true, return the number of function evaluations</span>
+<span class="sd">        return_containers : bool</span>
+<span class="sd">            if true, return containers and their contributions as well</span>
+<span class="sd">        return_std : bool</span>
+<span class="sd">            if true, return the standard deviation estimate. </span>
+<span class="sd">            Ignored if self.integral does not have return_std attribute</span>
+<span class="sd">        verbose: bool, Optional</span>
+<span class="sd">            if true, print the stages (for debugging)</span>
+<span class="sd">            Defaults to False</span>
+<span class="sd">        *args, **kwargs : Any</span>
+<span class="sd">            Additional arguments to be passed to the tree construction method</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        -------</span>
+<span class="sd">        ResultDict</span>
+<span class="sd">            - &#39;estimate&#39; (float) : estimated integral value</span>
+<span class="sd">            - &#39;n_evals&#39; (int) :  number of function estiamtions, </span>
+<span class="sd">              if return_N is True</span>
+<span class="sd">            - &#39;containers&#39; (list[Container]) : list of Containers, </span>
+<span class="sd">              if return_containers is True</span>
+<span class="sd">            - &#39;contribtions&#39; (list[float]) : contributions of each </span>
+<span class="sd">              container in estimate, if return_containers is True</span>
+<span class="sd">            - &#39;stds&#39; (list[float]) : standard deviation of the </span>
+<span class="sd">              integral estimate in each container, if return_std is True</span>
+<span class="sd">        list[dict], list[Container]</span>
+<span class="sd">            if return_all, returns a list of raw results </span>
+<span class="sd">            from self.integral.containerIntegral</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; # You can use settings othe than default in the following way</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.integrators import TreeIntegrator</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.splits import MinSseSplit</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.containerIntegration import RandomIntegral</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.example_problems import SimpleGaussian</span>
+<span class="sd">        &gt;&gt;&gt; from treeQuadrature.trees import WeightedTree</span>
+<span class="sd">        &gt;&gt;&gt; # Define the problem</span>
+<span class="sd">        &gt;&gt;&gt; problem = SimpleGaussian(D=2)</span>
+<span class="sd">        &gt;&gt;&gt; # Define the a tree splitting containers with larger volume first</span>
+<span class="sd">        &gt;&gt;&gt; minSseSplit = MinSseSplit()</span>
+<span class="sd">        &gt;&gt;&gt; volume_weighting = lambda container: container.volume</span>
+<span class="sd">        &gt;&gt;&gt; stopping_small_containers = lambda container: container.N &lt; 2</span>
+<span class="sd">        &gt;&gt;&gt; tree = WeightedTree(split=minSseSplit, max_splits=50, </span>
+<span class="sd">        &gt;&gt;&gt;     weighting_function=volume_weighting, </span>
+<span class="sd">        &gt;&gt;&gt;     stopping_condition=stopping_small_containers)</span>
+<span class="sd">        &gt;&gt;&gt; # Combine all compartments into a TreeIntegrator</span>
+<span class="sd">        &gt;&gt;&gt; integ_weighted = TreeIntegrator(base_N=1000, tree=tree, integral=RandomIntegral())</span>
+<span class="sd">        &gt;&gt;&gt; estimate = integ_weighted(problem)</span>
+<span class="sd">        &gt;&gt;&gt; print(&quot;error of random integral =&quot;, </span>
+<span class="sd">        &gt;&gt;&gt;       str(100 * np.abs(estimate - problem.answer) / problem.answer), &quot;%&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draw_initial_samples</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_root_container</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+        <span class="n">leaf_containers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_tree</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">compute_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_return_std</span><span class="p">(</span><span class="n">return_std</span><span class="p">)</span>
+
+        <span class="n">results</span><span class="p">,</span> <span class="n">containers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">integrate_containers</span><span class="p">(</span><span class="n">leaf_containers</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> 
+                                                        <span class="n">compute_std</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compile_results</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">containers</span><span class="p">,</span> <span class="n">compute_std</span><span class="p">,</span> <span class="n">return_N</span><span class="p">,</span> 
+                                     <span class="n">return_containers</span><span class="p">,</span> <span class="n">return_all</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_draw_initial_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">Problem</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> 
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;drawing initial samples&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_N</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">lows</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">highs</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">integrand</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="s1">&#39;rvs&#39;</span><span class="p">):</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_N</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">integrand</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Cannot draw initial samples. &#39;</span>
+                               <span class="s1">&#39;Either problem should have rvs method, or specify self.sampler&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span>
+            <span class="s1">&#39;The output of problem.integrand must be a one-dimensional array, got shape </span><span class="si">{y.shape}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span>
+
+    <span class="k">def</span> <span class="nf">_construct_root_container</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">Problem</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Container</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> 
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;constructing root container&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Container</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mins</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">lows</span><span class="p">,</span> <span class="n">maxs</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">highs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_construct_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">:</span> <span class="n">Container</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">Problem</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> 
+                        <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Container</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;constructing tree&#39;</span><span class="p">)</span>
+        <span class="n">construct_tree_parameters</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">construct_tree</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="n">construct_tree_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">construct_tree_parameters</span><span class="p">}</span>
+        <span class="k">if</span> <span class="s1">&#39;verbose&#39;</span> <span class="ow">in</span> <span class="n">construct_tree_parameters</span><span class="p">:</span>
+            <span class="n">construct_tree_kwargs</span><span class="p">[</span><span class="s1">&#39;verbose&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="k">if</span> <span class="s1">&#39;integrand&#39;</span> <span class="ow">in</span> <span class="n">construct_tree_parameters</span><span class="p">:</span>
+            <span class="n">construct_tree_kwargs</span><span class="p">[</span><span class="s1">&#39;integrand&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">integrand</span>
+            
+        <span class="n">finished_containers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">construct_tree</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">construct_tree_kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">finished_containers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;No container obtained from construct_tree&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">n_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">cont</span><span class="o">.</span><span class="n">N</span> <span class="k">for</span> <span class="n">cont</span> <span class="ow">in</span> <span class="n">finished_containers</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">finished_containers</span><span class="p">)</span><span class="si">}</span><span class="s1"> containers with </span><span class="si">{</span><span class="n">n_samples</span><span class="si">}</span><span class="s1"> samples&#39;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">finished_containers</span>
+
+    <span class="k">def</span> <span class="nf">_check_return_std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_std</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">integral</span><span class="p">,</span> <span class="s1">&#39;containerIntegral&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">method</span><span class="p">:</span>
+            <span class="n">has_return_std</span> <span class="o">=</span> <span class="s1">&#39;return_std&#39;</span> <span class="ow">in</span> <span class="n">signature</span><span class="p">(</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;self.integral must have &#39;containerIntegral&#39; method&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_std</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_return_std</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">integral</span><span class="p">)</span><span class="si">}</span><span class="s1">.containerIntegral does not have &#39;</span>
+                <span class="s1">&#39;parameter return_std, will be ignored&#39;</span><span class="p">,</span> 
+                <span class="ne">UserWarning</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">return_std</span> <span class="ow">and</span> <span class="n">has_return_std</span>
+
+    <span class="k">def</span> <span class="nf">_compile_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">containers</span><span class="p">,</span> <span class="n">compute_std</span><span class="p">,</span> <span class="n">return_N</span><span class="p">,</span>
+                        <span class="n">return_containers</span><span class="p">,</span> <span class="n">return_all</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">return_all</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="n">containers</span>
+
+        <span class="n">contributions</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;integral&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">contributions</span><span class="p">)</span>
+
+        <span class="n">result_dict</span> <span class="o">=</span> <span class="n">ResultDict</span><span class="p">(</span><span class="n">estimate</span><span class="o">=</span><span class="n">G</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">compute_std</span><span class="p">:</span>
+            <span class="n">stds</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+            <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;stds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stds</span>
+
+        <span class="k">if</span> <span class="n">return_N</span><span class="p">:</span>
+            <span class="n">N</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">cont</span><span class="o">.</span><span class="n">N</span> <span class="k">for</span> <span class="n">cont</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">])</span>
+            <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;n_evals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="p">,</span> <span class="s1">&#39;n_splits&#39;</span><span class="p">):</span>
+                <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;n_splits&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">n_splits</span>
+
+        <span class="k">if</span> <span class="n">return_containers</span><span class="p">:</span>
+            <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;containers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">containers</span>
+            <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;contributions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">contributions</span>
+
+        <span class="k">if</span> <span class="n">compute_std</span><span class="p">:</span>
+            <span class="n">stds</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+            <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;stds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stds</span>
+
+        <span class="k">return</span> <span class="n">result_dict</span>
+
+<div class="viewcode-block" id="TreeIntegrator.integrate_containers">
+<a class="viewcode-back" href="../../../treeQuadrature.integrators.html#treeQuadrature.integrators.tree_integrator.TreeIntegrator.integrate_containers">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrate_containers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">containers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Container</span><span class="p">],</span> 
+                             <span class="n">problem</span><span class="p">:</span> <span class="n">Problem</span><span class="p">,</span>
+                             <span class="n">compute_std</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;integrating containers, parallel : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">containers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Got no container&quot;</span><span class="p">)</span>
+
+        <span class="c1"># for retracking containers </span>
+        <span class="n">modified_containers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+                <span class="n">futures</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">individual_container_integral</span><span class="p">,</span> 
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">integral</span><span class="p">,</span> <span class="n">cont</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">integrand</span><span class="p">,</span> 
+                                    <span class="n">compute_std</span><span class="p">):</span> <span class="n">cont</span>
+                    <span class="k">for</span> <span class="n">cont</span> <span class="ow">in</span> <span class="n">containers</span>
+                <span class="p">}</span>
+
+                <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+                    <span class="n">integral_results</span><span class="p">,</span> <span class="n">modified_cont</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">integral_results</span><span class="p">)</span>
+                    <span class="n">modified_containers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modified_cont</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">cont</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">:</span>
+                <span class="n">integral_results</span><span class="p">,</span> <span class="n">modified_cont</span> <span class="o">=</span> <span class="n">individual_container_integral</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">integral</span><span class="p">,</span> <span class="n">cont</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">integrand</span><span class="p">,</span> <span class="n">compute_std</span><span class="p">)</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">integral_results</span><span class="p">)</span>
+                <span class="n">modified_containers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modified_cont</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="n">modified_containers</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../treeQuadrature.html">treeQuadrature package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>treeQuadrature.gaussian_process.fit_gp &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for treeQuadrature.gaussian_process.fit_gp</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="c1"># for SklearnGPFit</span>
+<span class="kn">from</span> <span class="nn">sklearn.gaussian_process</span> <span class="kn">import</span> <span class="n">GaussianProcessRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.exceptions</span> <span class="kn">import</span> <span class="n">ConvergenceWarning</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">KFold</span>
+<span class="kn">from</span> <span class="nn">sklearn.gaussian_process.kernels</span> <span class="kn">import</span> <span class="n">Kernel</span><span class="p">,</span> <span class="n">RBF</span>
+<span class="kn">from</span> <span class="nn">.kernels</span> <span class="kn">import</span> <span class="n">Polynomial</span>
+
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">fmin_l_bfgs_b</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="kn">from</span> <span class="nn">..container</span> <span class="kn">import</span> <span class="n">Container</span>
+<span class="kn">from</span> <span class="nn">.scorings</span> <span class="kn">import</span> <span class="n">r2</span>
+
+
+<div class="viewcode-block" id="GPFit">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit">[docs]</a>
+<span class="k">class</span> <span class="nc">GPFit</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract base class for fitting Gaussian Process models.</span>
+
+<span class="sd">    Subclasses must implement the `fit_GP` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="GPFit.fit">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.fit">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">kernel</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Each run of fit should re-define self.gp</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        xs, ys : array like</span>
+<span class="sd">            the training dataset </span>
+<span class="sd">        kerenl : Any</span>
+<span class="sd">            the covariance (similarity measure)  </span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        the fitted GP model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="GPFit.predict">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.predict">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">return_std</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        xs : array like</span>
+<span class="sd">            the input</span>
+<span class="sd">        return_std : bool</span>
+<span class="sd">            whether return the std of the predictions or not</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        the predicted y (output) values and </span>
+<span class="sd">        standard deviation if return_std = True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="GPFit.create_kernel">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.create_kernel">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">create_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates and returns a kernel for the GP model.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        gp_params : dict</span>
+<span class="sd">            A dictionary of parameters required to create the kernel.</span>
+<span class="sd">            This may include parameters like ``length``, ``range``, ``degree``,</span>
+<span class="sd">            ``coef0``, etc., depending on the kernel type.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Any</span>
+<span class="sd">            The kernel instance to be used in the GP model.</span>
+
+<span class="sd">        Notes for Subclass Implementers:</span>
+<span class="sd">        --------------------------------</span>
+<span class="sd">        - When implementing this method in a subclass, you can use the ``KernelFactory``</span>
+<span class="sd">        to register and create kernels dynamically.</span>
+
+<span class="sd">        Example of Using KernelFactory:</span>
+<span class="sd">        -------------------------------</span>
+<span class="sd">        1. **Register a Kernel**:</span>
+<span class="sd">            To register a kernel (e.g., RBF kernel) with the ``KernelFactory``, </span>
+<span class="sd">            you can do this in the ``__init__`` method of your subclass::</span>
+
+<span class="sd">                KernelFactory.register_kernel(&#39;RBF&#39;, lambda length=10.0, range_=1e3: RBF(</span>
+<span class="sd">                    length_scale=length, length_scale_bounds=(length * (1 / range_), length * range_)))</span>
+
+<span class="sd">        2. **Create a Kernel**:</span>
+<span class="sd">            To create an instance of a registered kernel, use the ``create_kernel`` method::</span>
+
+<span class="sd">                def create_kernel(self, gp_params: Dict[str, Any]) -&gt; Any:</span>
+<span class="sd">                    kernel_type = gp_params.get(&#39;kernel_type&#39;, &#39;RBF&#39;)  # Default to RBF</span>
+<span class="sd">                    return KernelFactory.create_kernel(kernel_type, **gp_params)</span>
+
+<span class="sd">        This structure allows users to easily extend the GP model with new kernels </span>
+<span class="sd">        by registering them with the ``KernelFactory`` and ensuring that they can be </span>
+<span class="sd">        instantiated based on runtime parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">X_train_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArrayLike</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the training set used to fit the model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">y_train_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArrayLike</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the training labels (outputs) used to fit the model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">hyper_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the hyper-parameters of the fitted gp </span>
+<span class="sd">        as an dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">kernel_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the kernel used in gp </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+
+
+<div class="viewcode-block" id="KernelFactory">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.KernelFactory">[docs]</a>
+<span class="k">class</span> <span class="nc">KernelFactory</span><span class="p">:</span>
+    <span class="n">_registry</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="KernelFactory.register_kernel">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.KernelFactory.register_kernel">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_kernel</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kernel_class</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a new kernel class with the factory.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        - name: str : The name of the kernel to register.</span>
+<span class="sd">        - kernel_class: Callable : A callable that returns an instance of the kernel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">kernel_class</span></div>
+
+
+<div class="viewcode-block" id="KernelFactory.create_kernel">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.KernelFactory.create_kernel">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_kernel</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create an instance of a registered kernel.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        - name: str : The name of the kernel to create.</span>
+<span class="sd">        - kwargs: dict : Arguments required by the kernel&#39;s constructor.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        - An instance of the kernel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Kernel type &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is not registered.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SklearnGPFit">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit">[docs]</a>
+<span class="k">class</span> <span class="nc">SklearnGPFit</span><span class="p">(</span><span class="n">GPFit</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Default implementation of GP fitting using </span>
+<span class="sd">    sklearn.gaussian_process.GaussianProcessRegressor</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gp : sklearn.gaussian_process.GaussianProcessRegressor</span>
+<span class="sd">        the fitted Gaussian model. </span>
+<span class="sd">        must run fit_gp before accessing gp</span>
+<span class="sd">    n_tuning : int</span>
+<span class="sd">        Number of restarts of the optimizer for finding the </span>
+<span class="sd">        kernel&#39;s parameters.</span>
+<span class="sd">    ignore_warning : bool, optional (default=True)</span>
+<span class="sd">        If True, Convergence Warning of GP Regressor will be ignored.</span>
+<span class="sd">    optimizer : function</span>
+<span class="sd">        the optimizer used to tune hyper-parameters of gp</span>
+<span class="sd">        Default is fmin_l_bfgs_b</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; gp = DefaultGPFit()</span>
+<span class="sd">    &gt;&gt;&gt; kernel = sklearn.gaussian_process.kernels.RBF(1.0, (1e-2, 1e2))</span>
+<span class="sd">    &gt;&gt;&gt; gp.fit_gp(xs_train, ys_train, kernel)</span>
+<span class="sd">    &gt;&gt;&gt; ys_pred = gp_fitter.predict(xs_train)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_tuning</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span> <span class="n">factr</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e7</span><span class="p">,</span> 
+                 <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span>
+                 <span class="n">ignore_warning</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        n_tuning : int</span>
+<span class="sd">            Number of restarts of the optimizer for finding the </span>
+<span class="sd">            kernel&#39;s parameters.</span>
+<span class="sd">            Default : 10</span>
+<span class="sd">        factr : int or float</span>
+<span class="sd">            convergence criteria for fmin_l_bfgs_b optimiser</span>
+<span class="sd">            used to fit Gaussian Process. </span>
+<span class="sd">            Default : 1e7</span>
+<span class="sd">        max_iter : int</span>
+<span class="sd">            maximum number of iterations for fmin_l_bfgs_b optimiser</span>
+<span class="sd">            Default : 1e4</span>
+<span class="sd">        alpha : float, optional (default=1e-10)</span>
+<span class="sd">            small jitter added to the diagonal of kernel matrix</span>
+<span class="sd">            in GaussianProcessRegressor for numerical</span>
+<span class="sd">            stability</span>
+<span class="sd">        ignore_warning : bool, optional (default=True)</span>
+<span class="sd">            If True, Convergence Warning of GP Regressor will be ignored.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignore_warning</span> <span class="o">=</span> <span class="n">ignore_warning</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_tuning</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n_tuning must be an integer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_tuning</span> <span class="o">=</span> <span class="n">n_tuning</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">max_iter</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_iter must be an float or integer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;alpha must be an float&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">factr</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;factr must be an float or integer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factr</span> <span class="o">=</span> <span class="n">factr</span>
+
+        <span class="c1"># Register default kernels in the KernelFactory</span>
+        <span class="n">KernelFactory</span><span class="o">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s1">&#39;RBF&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">length</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e4</span><span class="p">):</span> <span class="n">RBF</span><span class="p">(</span>
+            <span class="n">length_scale</span><span class="o">=</span><span class="n">length</span><span class="p">,</span> <span class="n">length_scale_bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">))</span>
+
+        <span class="n">KernelFactory</span><span class="o">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s1">&#39;Polynomial&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">degree</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> 
+                                      <span class="n">coef0</span><span class="o">=</span><span class="mi">1</span><span class="p">:</span> <span class="n">Polynomial</span><span class="p">(</span><span class="n">degree</span><span class="o">=</span><span class="n">degree</span><span class="p">,</span> <span class="n">coef0</span><span class="o">=</span><span class="n">coef0</span><span class="p">))</span>
+    
+<div class="viewcode-block" id="SklearnGPFit.fit">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.fit">[docs]</a>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">Kernel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GaussianProcessRegressor</span><span class="p">:</span>
+        <span class="c1"># Define a constant mean function with the mean of ys</span>
+        <span class="n">gp</span> <span class="o">=</span> <span class="n">GaussianProcessRegressor</span><span class="p">(</span>
+            <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
+            <span class="n">n_restarts_optimizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_tuning</span><span class="p">,</span> 
+            <span class="n">optimizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Fit the GP model without convergence warnings</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_warning</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">ConvergenceWarning</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span> 
+                <span class="n">gp</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">ConvergenceWarning</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gp</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="o">=</span> <span class="n">gp</span>
+
+        <span class="k">return</span> <span class="n">gp</span></div>
+
+    
+    <span class="k">def</span> <span class="nf">_optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_func</span><span class="p">,</span> <span class="n">initial_theta</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">fmin_l_bfgs_b</span><span class="p">(</span><span class="n">obj_func</span><span class="p">,</span> <span class="n">initial_theta</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span> 
+                             <span class="n">maxiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">factr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">factr</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+    
+<div class="viewcode-block" id="SklearnGPFit.predict">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.predict">[docs]</a>
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">return_std</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;The Gaussian Process model is not trained. Please call &#39;fit_gp&#39; before &#39;predict&#39;.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_warning</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span> 
+                    <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">return_std</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span> 
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">return_std</span><span class="p">)</span>
+                
+            <span class="k">return</span> <span class="n">predictions</span></div>
+
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">X_train_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArrayLike</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;The Gaussian Process model is not trained. Please call &#39;fit_gp&#39; before &#39;predict&#39;.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">X_train_</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">y_train_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArrayLike</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;The Gaussian Process model is not trained. Please call &#39;fit_gp&#39; before &#39;predict&#39;.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">y_train_</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hyper_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;The Gaussian Process model is not trained. Please call &#39;fit_gp&#39; before &#39;predict&#39;.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">kernel_</span><span class="o">.</span><span class="n">get_params</span><span class="p">()</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">alpha_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArrayLike</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;The Gaussian Process model is not trained. Please call &#39;fit_gp&#39; before &#39;predict&#39;.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">alpha_</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">kernel_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Kernel</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;The Gaussian Process model is not trained. Please call &#39;fit_gp&#39; before &#39;predict&#39;.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">kernel_</span>
+        
+<div class="viewcode-block" id="SklearnGPFit.create_kernel">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.create_kernel">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="c1"># Get the kernel type, defaulting to &#39;RBF&#39;</span>
+        <span class="n">kernel_type</span> <span class="o">=</span> <span class="n">gp_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kernel_type&#39;</span><span class="p">,</span> <span class="s1">&#39;RBF&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Extract parameters relevant to the kernel type</span>
+        <span class="n">kernel_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">gp_params</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">&#39;kernel_type&#39;</span><span class="p">}</span>
+        
+        <span class="c1"># Create the kernel using the KernelFactory</span>
+        <span class="k">return</span> <span class="n">KernelFactory</span><span class="o">.</span><span class="n">create_kernel</span><span class="p">(</span><span class="n">kernel_type</span><span class="p">,</span> <span class="o">**</span><span class="n">kernel_params</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="gp_kfoldCV">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.gp_kfoldCV">[docs]</a>
+<span class="k">def</span> <span class="nf">gp_kfoldCV</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="n">GPFit</span><span class="p">,</span> 
+               <span class="n">n_splits</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">r2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform k-fold Cross-Validation (CV) to evaluate the </span>
+<span class="sd">    performance of a Gaussian Process model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xs : array-like, shape (n_samples, n_features)</span>
+<span class="sd">        Training data.</span>
+<span class="sd">    ys : array-like, shape (n_samples,)</span>
+<span class="sd">        Target values.</span>
+<span class="sd">    kernel : Any</span>
+<span class="sd">        The kernel specifying the covariance function of the GP.</span>
+<span class="sd">    gp_fitter : GPFitBase</span>
+<span class="sd">        An instance of a GPFitBase subclass for fitting the GP. </span>
+<span class="sd">    n_splits : int, optional (default=5)</span>
+<span class="sd">        Number of folds for cross-validation.</span>
+<span class="sd">    scoring : Callable, optional (default=predictive_ll)</span>
+<span class="sd">        A scoring function to evaluate the predictions. It must accept three </span>
+<span class="sd">        arguments: the true values, the predicted values and predicted variance</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    performance : float</span>
+<span class="sd">        Performance measure using k-fold CV based on the provided scoring function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ys</span><span class="p">),</span> <span class="p">(</span>
+        <span class="s2">&quot;The number of samples in xs and ys must match. &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;shape of xs : </span><span class="si">{</span><span class="n">xs</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;shape of ys : </span><span class="si">{</span><span class="n">ys</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
+    
+    <span class="n">kf</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="n">n_splits</span><span class="p">)</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">train_index</span><span class="p">,</span> <span class="n">test_index</span> <span class="ow">in</span> <span class="n">kf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">xs</span><span class="p">):</span>
+        <span class="n">xs_train</span><span class="p">,</span> <span class="n">xs_test</span> <span class="o">=</span> <span class="n">xs</span><span class="p">[</span><span class="n">train_index</span><span class="p">],</span> <span class="n">xs</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+        <span class="n">ys_train</span><span class="p">,</span> <span class="n">ys_test</span> <span class="o">=</span> <span class="n">ys</span><span class="p">[</span><span class="n">train_index</span><span class="p">],</span> <span class="n">ys</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+
+        <span class="n">gp</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">xs_train</span><span class="p">,</span> <span class="n">ys_train</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+
+        <span class="n">ys_pred</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xs_test</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">scoring</span><span class="p">(</span><span class="n">ys_test</span><span class="p">,</span> <span class="n">ys_pred</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+        <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="is_poor_fit">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.is_poor_fit">[docs]</a>
+<span class="k">def</span> <span class="nf">is_poor_fit</span><span class="p">(</span><span class="n">performance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+                <span class="n">threshold_direction</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">threshold_direction</span> <span class="o">==</span> <span class="s1">&#39;up&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">performance</span> <span class="o">&lt;=</span> <span class="n">threshold</span>
+    <span class="k">elif</span> <span class="n">threshold_direction</span> <span class="o">==</span> <span class="s1">&#39;down&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">performance</span> <span class="o">&gt;=</span> <span class="n">threshold</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;threshold_direction should be one of &#39;up&#39; and &#39;down&#39;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IterativeGPFitting">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting">[docs]</a>
+<span class="k">class</span> <span class="nc">IterativeGPFitting</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to perform iterative Gaussian Process (GP) fitting, </span>
+<span class="sd">    incresaing the number of samples by `n_samples` each time</span>
+<span class="sd">    until a performance criterion on </span>
+<span class="sd">    Cross Validation r2 score is met.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gp : GPFit</span>
+<span class="sd">        the gp fitter storing the gp model</span>
+<span class="sd">        default is SklearnGPFit</span>
+<span class="sd">    n_samples : int</span>
+<span class="sd">        increment of number of samples each time</span>
+<span class="sd">    n_splits : int, optional</span>
+<span class="sd">        number of K-fold cross-validation splits</span>
+<span class="sd">        if n_splits = 0, K-Fold CV will not be performed. </span>
+<span class="sd">    scoring : Callable, optional (default=predictive_ll)</span>
+<span class="sd">        A scoring function to evaluate the predictions. It must accept two </span>
+<span class="sd">        arguments: the true values and the predicted values.</span>
+<span class="sd">    max_redraw : int</span>
+<span class="sd">        Maximum number of iterations for the iterative process.</span>
+<span class="sd">        To control number of samples, </span>
+<span class="sd">        recommended not exceed 10</span>
+<span class="sd">    performance_threshold : float</span>
+<span class="sd">        Performance threshold for scoring to </span>
+<span class="sd">        stop the iterative process.</span>
+<span class="sd">    threshold_direction : str</span>
+<span class="sd">        one of &#39;up&#39; and &#39;down&#39;. </span>
+<span class="sd">        if &#39;up&#39;, accept the model if score &gt;= performance_threshold; </span>
+<span class="sd">        if &#39;down&#39;, accept the model if score &gt;= performance_threshold</span>
+<span class="sd">    fit_residuals : bool</span>
+<span class="sd">        if true, fit GP to residuals</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_redraw</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_splits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">performance_threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">threshold_direction</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;up&#39;</span><span class="p">,</span> 
+                 <span class="n">gp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GPFit</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scoring</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">fit_residuals</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
+
+        <span class="k">if</span> <span class="n">max_redraw</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;max_redraw must be a positive integer&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_redraw</span> <span class="o">=</span> <span class="n">max_redraw</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_threshold</span> <span class="o">=</span> <span class="n">performance_threshold</span>
+        <span class="k">if</span> <span class="n">threshold_direction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;up&#39;</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;thershold_direction should be one of &#39;up&#39; and &#39;down&#39;&quot;</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_direction</span> <span class="o">=</span> <span class="n">threshold_direction</span>
+        <span class="k">if</span> <span class="n">gp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gp</span> <span class="o">=</span> <span class="n">SklearnGPFit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="o">=</span> <span class="n">gp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_splits</span> <span class="o">=</span> <span class="n">n_splits</span>
+        <span class="k">if</span> <span class="n">scoring</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scoring</span> <span class="o">=</span> <span class="n">scoring</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scoring</span> <span class="o">=</span> <span class="n">r2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit_residuals</span> <span class="o">=</span> <span class="n">fit_residuals</span>
+
+<div class="viewcode-block" id="IterativeGPFitting.fit">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting.fit">[docs]</a>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">container</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Container</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Container</span><span class="p">]],</span> 
+                 <span class="n">kernel</span><span class="p">,</span> <span class="n">add_samples</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">initial_samples</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        fit GP on the container,</span>
+<span class="sd">        the results can be accessed in self.gp</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        f : callable</span>
+<span class="sd">            Function to evaluate the samples.</span>
+<span class="sd">        container : Container or List[Container]</span>
+<span class="sd">            Container object(s) to draw samples from </span>
+<span class="sd">            and track evaluations.</span>
+<span class="sd">        kernel : Any</span>
+<span class="sd">            the kernel used to fit GP</span>
+<span class="sd">        add_sample : bool, optional (default=True)</span>
+<span class="sd">            if true, add samples to the container(s)</span>
+<span class="sd">            iniital_samples will NOT be added</span>
+<span class="sd">        initial_samples: tuple, optional</span>
+<span class="sd">            if given, start the fit using initial_samples</span>
+<span class="sd">            (xs, ys)</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        dict</span>
+<span class="sd">            - performance (float) the performance of the best GP model under KFold CV</span>
+<span class="sd">            - y_mean (float) mean of the final training samples</span>
+<span class="sd">            - new_samples (list) if add_samples is False, a list of the new samples drawn</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">iteration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">all_xs</span><span class="p">,</span> <span class="n">all_ys</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="n">new_xs</span><span class="p">,</span> <span class="n">new_ys</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="k">while</span> <span class="n">iteration</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_redraw</span><span class="p">:</span>
+            <span class="c1"># Draw samples</span>
+            <span class="k">if</span> <span class="n">initial_samples</span> <span class="ow">and</span> <span class="n">iteration</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">initial_samples</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">initial_samples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">xs</span> <span class="o">=</span> <span class="n">initial_samples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">ys</span> <span class="o">=</span> <span class="n">initial_samples</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">samples</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">container</span><span class="p">)]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;initial_samples should be a tuple of length 2&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_samples_from_containers</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">xs</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">)</span>
+                    <span class="n">ys</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+                    <span class="n">samples</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">container</span><span class="p">)]</span>
+
+            <span class="c1"># Extract samples for fitting</span>
+            <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">])</span>
+            <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">])</span>
+
+            <span class="c1"># Collect samples</span>
+            <span class="k">if</span> <span class="n">all_xs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">all_xs</span> <span class="o">=</span> <span class="n">xs</span>
+                <span class="n">all_ys</span> <span class="o">=</span> <span class="n">ys</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">all_xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">all_xs</span><span class="p">,</span> <span class="n">xs</span><span class="p">])</span>
+                <span class="n">all_ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">all_ys</span><span class="p">,</span> <span class="n">ys</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_residuals</span><span class="p">:</span>
+                <span class="n">mean_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">all_ys</span><span class="p">)</span>
+                <span class="n">residuals</span> <span class="o">=</span> <span class="n">all_ys</span> <span class="o">-</span> <span class="n">mean_y</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mean_y</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">residuals</span> <span class="o">=</span> <span class="n">all_ys</span>
+
+            <span class="c1"># fit GP </span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_splits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># no cross validation</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">all_xs</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">)</span>
+                <span class="n">ys_pred</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">all_xs</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">)</span>
+                <span class="n">performance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scoring</span><span class="p">(</span><span class="n">residuals</span><span class="p">,</span> <span class="n">ys_pred</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_splits</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">performance</span> <span class="o">=</span> <span class="n">gp_kfoldCV</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="n">all_xs</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="n">residuals</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="p">,</span> 
+                                         <span class="n">scoring</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scoring</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_splits</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;n_splits cannot be negative&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Add samples to respective containers</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">initial_samples</span> <span class="ow">and</span> <span class="n">iteration</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">add_samples</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
+                        <span class="n">c</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_xs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+                    <span class="n">new_ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_poor_fit</span><span class="p">(</span><span class="n">performance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">performance_threshold</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">threshold_direction</span><span class="p">):</span>
+                <span class="k">break</span>
+
+            <span class="n">iteration</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Final fit with the full set of samples</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_splits</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">all_xs</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;performance&#39;</span><span class="p">:</span> <span class="n">performance</span><span class="p">,</span>
+            <span class="s1">&#39;y_mean&#39;</span><span class="p">:</span> <span class="n">mean_y</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">add_samples</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">new_xs</span> <span class="ow">and</span> <span class="n">new_ys</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;new_samples&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">new_xs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">new_ys</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">D</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">D</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">Container</span><span class="p">)</span> <span class="k">else</span> <span class="n">container</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">D</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;new_samples&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">D</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    
+<div class="viewcode-block" id="IterativeGPFitting.draw_samples_from_containers">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting.draw_samples_from_containers">[docs]</a>
+    <span class="k">def</span> <span class="nf">draw_samples_from_containers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">containers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Container</span><span class="p">],</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
+                                 <span class="n">f</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                                                            <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                                                            <span class="n">Container</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Draw samples randomly from multiple containers.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        containers : List[Container]</span>
+<span class="sd">            The list of containers to draw samples from.</span>
+<span class="sd">        n : int</span>
+<span class="sd">            The total number of samples to draw.</span>
+<span class="sd">        f : callable</span>
+<span class="sd">            The function to evaluate the samples.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        samples : List[Tuple[np.ndarray, np.ndarray, Container]]</span>
+<span class="sd">            A list of tuples, each containing samples, their evaluations, </span>
+<span class="sd">            and the container they were drawn from.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Calculate the total volume</span>
+        <span class="n">total_volume</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">volume</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">)</span>
+
+        <span class="c1"># Calculate the weights based on the volume of each container</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">volume</span> <span class="o">/</span> <span class="n">total_volume</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">]</span>
+
+        <span class="n">samples</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">containers</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+            <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">w</span><span class="p">))</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">samples</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">samples</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../treeQuadrature.html">treeQuadrature package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tests.html">tests package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

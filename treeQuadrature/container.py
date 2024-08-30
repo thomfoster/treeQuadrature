@@ -3,73 +3,6 @@ import warnings
 from typing import Optional, List
 
 
-class ArrayList:
-    """
-    A dynamic array implementation that resizes itself as elements are added.
-    
-    Attributes
-    ----------
-    D : int
-        The dimension of each data point to be stored in the array.
-    data : np.ndarray
-        The internal storage for the array elements, 
-        initialised with a default capacity.
-    capacity : int
-        The current maximum number of elements that 
-        the array can hold before needing to resize.
-    growth_factor : int
-        The factor by which the array's capacity increases when more space is needed.
-    freeSpace : int
-        The amount of unused space remaining in the array.
-    N : int
-        The current number of elements in the array.
-    
-    Methods
-    -------
-    add(xs)
-        Adds new elements to the array, resizing if necessary.
-    printer()
-        Prints the current state of the array, including its capacity, number of elements, and free space.
-    contents()
-        Returns the current elements stored in the array as a numpy array.
-    """
-    def __init__(self, D: int, growth_factor: int = 4, 
-                 initial_capacity: int=100):
-        self.D = D
-        self.data = np.empty(shape=(initial_capacity, self.D))
-        self.capacity = initial_capacity
-        self.growth_factor = growth_factor
-        # should always have N + freeSpace = capacity
-        self.freeSpace = initial_capacity  
-        self.N = 0
-
-    def add(self, xs):
-        n = xs.shape[0]
-        if self.freeSpace < n:
-            newCapacity = max(self.growth_factor * self.capacity, self.N + n)
-            newData = np.empty(shape=(newCapacity, self.D))
-            newData[:self.N] = self.data[:self.N]
-            self.data = newData
-            self.capacity = newCapacity
-            self.freeSpace = self.capacity - self.N
-
-        self.data[self.N:self.N + n] = xs
-        self.N += n
-        self.freeSpace = self.capacity - self.N
-
-    def printer(self):
-        print('D: ', self.D)
-        print('capacity: ', self.capacity)
-        print('N: ', self.N)
-        print('freeSpace: ', self.freeSpace)
-        print('contents: ')
-        print(self.contents)
-
-    @property
-    def contents(self):
-        return self.data[:self.N]
-
-
 class Container:
     '''
     Represents a hyper-rectangle in n-dim space
@@ -78,8 +11,6 @@ class Container:
 
     Attributes
     ----------
-    _X, _y : ArrayList
-        stores the samples and evaluations efficiently 
     mins, maxs : numpy.ndarray of shape (D,)
         the low and high boundaries of the 
         hyper-rectangle containers
@@ -129,6 +60,13 @@ class Container:
 
         X, y = self._handle_X_y(X, y)
 
+        # create empty lists to store samples and evaluations
+        self._X = []
+        self._y = []
+
+        X_filtered, y_filtered = self.filter_points(X, y)
+        self.add(X_filtered, y_filtered)
+
         self.D = X.shape[1]
 
         # if mins (maxs) are None, create unbounded container
@@ -139,15 +77,6 @@ class Container:
         self.is_finite = not np.isinf(self.volume)
         self.midpoint = (
             self.mins + self.maxs) / 2 if self.is_finite else np.nan
-
-        ### add sample points into the hidden ArrayList
-        # create empty ArrayList
-        self._X = ArrayList(D=self.D)
-        self._y = ArrayList(D=1)
-
-        # filter points
-        X_filtered, y_filtered = self.filter_points(X, y)
-        self.add(X_filtered, y_filtered)
 
     def _handle_min_max_bounds(self, bounds, default_value) -> np.ndarray:
         """Handle different types of min/max bounds."""
@@ -243,16 +172,16 @@ class Container:
         """
         # rearrange the shapes
         new_X, new_y = self._handle_X_y(new_X, new_y)
-        # filter out points outside the container
+        
         new_X, new_y = self.filter_points(new_X, new_y)
 
-        self._X.add(new_X)
-        self._y.add(new_y)
+        self._X.append(new_X)
+        self._y.append(new_y)
 
     @property
     def N(self) -> int:
         """Number of samples"""
-        return self._X.N
+        return sum(x.shape[0] for x in self._X)
 
     @property
     def X(self) -> np.ndarray:
@@ -263,7 +192,7 @@ class Container:
         ------
         numpy.ndarray of shape (N, D)
         """
-        return self._X.contents
+        return np.vstack(self._X)
 
     @property
     def y(self) -> np.ndarray:
@@ -274,7 +203,7 @@ class Container:
         ------
         numpy.ndarray of shape (N, 1)
         """
-        return self._y.contents
+        return np.vstack(self._y)
 
     def rvs(self, n: int) -> np.ndarray:
         """

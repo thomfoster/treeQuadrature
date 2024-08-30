@@ -13,7 +13,7 @@ samplers = [tq.samplers.UniformSampler(),
 @pytest.mark.parametrize('sampler', samplers)
 @pytest.mark.parametrize('D', [1, 2, 5])
 def test_sampler(sampler, D):
-    problem = tq.example_problems.PyramidProblem(D)
+    problem = tq.example_problems.Pyramid(D)
 
     N = 1000
 

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from ..container import Container
 
+
 class Split(ABC):
     """
     Abstract base class for splitting a container into containers.

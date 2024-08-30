@@ -7,15 +7,20 @@ from ..container import Container
 from ..splits import Split, MinSseSplit
 
 
-
 class SimpleTree(Tree):
     """
-    Construct the tree using a simple queue (with no priority). 
+    Construct the tree using a simple queue (with no priority).
     Stopping Criteria: when all containers hold less than P samples.
     """
-    def __init__(self, split: Split=MinSseSplit(), 
-                 P: int = 40, max_iter: int = 2000,
-                 *args, **kwargs):
+
+    def __init__(
+        self,
+        split: Split = MinSseSplit(),
+        P: int = 40,
+        max_iter: int = 2000,
+        *args,
+        **kwargs,
+    ):
         """
         Initialize the SimpleTree.
 
@@ -32,17 +37,17 @@ class SimpleTree(Tree):
         self.split = split
         self.P = P
         self.max_iter = max_iter
-        
 
-    def construct_tree(self, root: Container, verbose: bool=False, 
-                       max_iter=1e3) -> List[Container]:
+    def construct_tree(
+        self, root: Container, verbose: bool = False, max_iter=1e3
+    ) -> List[Container]:
         """
         Construct a tree of containers.
 
         Parameters
         ----------
         root : Container
-            The root container with all initial samples. 
+            The root container with all initial samples.
         verbose : bool, optional
             Whether to print verbose output, by default False.
         max_iter : int, optional
@@ -78,27 +83,30 @@ class SimpleTree(Tree):
                 else:
                     for child in children:
                         q.put(child)
-            
+
             if iteration_count % 100 == 0 and verbose:  # Log every 100 iterations
                 elapsed_time = time.time() - start_time
-                print(f"Iteration {iteration_count}: Queue size = {q.qsize()}, "
+                print(
+                    f"Iteration {iteration_count}: Queue size = {q.qsize()}, "
                     f"number of containers = {len(finished_containers)}, "
-                    f"Elapsed time = {elapsed_time:.2f}s")
-                
+                    f"Elapsed time = {elapsed_time:.2f}s"
+                )
+
         total_time = time.time() - start_time
         if verbose:
             print(f"Total finished containers: {len(finished_containers)}")
             print(f"Total iterations: {iteration_count}")
             print(f"Total time taken: {total_time:.2f}s")
-        
+
         if iteration_count == max_iter:
             warnings.warn(
-                'maximum iterations reached for constructing the tree, '
-                'either incresae max_iter or check split and samples', 
-                RuntimeWarning)
+                "maximum iterations reached for constructing the tree, "
+                "either incresae max_iter or check split and samples",
+                RuntimeWarning,
+            )
             # append containers left
             while not q.empty():
                 c = q.get()
                 finished_containers.append(c)
-                
+
         return finished_containers

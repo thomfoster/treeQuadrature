@@ -1,4 +1,12 @@
 from .base_class import Problem
 from .bayes_problems import BayesProblem, SimpleGaussian, Camel, QuadCamel, Gaussian
-from .simple_problems import Pyramid, Quadratic, ExponentialProduct, ProductPeak, CornerPeak, C0, Discontinuous
+from .simple_problems import (
+    Pyramid,
+    Quadratic,
+    ExponentialProduct,
+    ProductPeak,
+    CornerPeak,
+    C0,
+    Discontinuous,
+)
 from .complex_problems import Ripple, Oscillatory

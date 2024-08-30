@@ -19,12 +19,14 @@ class SmcIntegrator(Integrator):
         Number of samples to draw.
     sampler
     """
-    def __init__(self, N: int, sampler: Optional[Sampler]=None):
+
+    def __init__(self, N: int, sampler: Optional[Sampler] = None):
         self.N = N
         self.sampler = sampler
 
-    def __call__(self, problem: Problem, return_N: bool=False, 
-                 return_std: bool=False) -> ResultDict:
+    def __call__(
+        self, problem: Problem, return_N: bool = False, return_std: bool = False
+    ) -> ResultDict:
         """
         Perform the integration process.
 
@@ -50,15 +52,16 @@ class SmcIntegrator(Integrator):
             xs = problem.p.rvs(self.N)
             ys = problem.integrand(xs)
         else:
-            raise ValueError('problem is not BayesProblem, and '
-                             'integrator does not have sampler')
+            raise ValueError(
+                "problem is not BayesProblem, and " "integrator does not have sampler"
+            )
         # Evaluate the likelihood at these samples
         G = np.mean(ys)
         std_G = np.std(ys) / np.sqrt(self.N)  # Standard deviation of the mean
 
         ret = ResultDict(estimate=G)
         if return_N:
-            ret['n_evals'] = self.N
+            ret["n_evals"] = self.N
         if return_std:
-            ret['std'] = std_G
+            ret["std"] = std_G
         return ret

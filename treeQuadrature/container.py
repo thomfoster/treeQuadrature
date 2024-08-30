@@ -4,7 +4,7 @@ from typing import Optional, List
 
 
 class Container:
-    '''
+    """
     Represents a hyper-rectangle in n-dim space
     with finite volume
     and the samples it holds.
@@ -12,7 +12,7 @@ class Container:
     Attributes
     ----------
     mins, maxs : numpy.ndarray of shape (D,)
-        the low and high boundaries of the 
+        the low and high boundaries of the
         hyper-rectangle containers
     volume : float
         volume of the container
@@ -23,13 +23,13 @@ class Container:
 
     Properties
     ----------
-    N : int 
+    N : int
         number of samples (also number of evaluations)
     X, y : numpy.ndarray
-        samples and evaluations 
+        samples and evaluations
         X is numpy.ndarray of shape (N, D)
         y is numpy.ndarray of shape (N, 1)
-    '''
+    """
 
     def __init__(self, X: np.ndarray, y: np.ndarray, mins=None, maxs=None):
         """
@@ -45,9 +45,9 @@ class Container:
         """
 
         if np.any(mins == np.inf):
-            raise ValueError(f'mins cannot have np.inf, got {mins}')
+            raise ValueError(f"mins cannot have np.inf, got {mins}")
         if np.any(maxs == -np.inf):
-            raise ValueError(f'maxs cannot have -np.inf, got {maxs}')
+            raise ValueError(f"maxs cannot have -np.inf, got {maxs}")
 
         X, y = self._handle_X_y(X, y)
 
@@ -58,14 +58,13 @@ class Container:
         self.D = X.shape[1]
 
         # if mins (maxs) are None, create unbounded container
-        self.mins = self._handle_min_max_bounds(mins, -np.inf) 
+        self.mins = self._handle_min_max_bounds(mins, -np.inf)
         self.maxs = self._handle_min_max_bounds(maxs, np.inf)
 
         self.volume = np.prod(self.maxs - self.mins)
         self.is_finite = not np.isinf(self.volume)
-        self.midpoint = (
-            self.mins + self.maxs) / 2 if self.is_finite else np.nan
-        
+        self.midpoint = (self.mins + self.maxs) / 2 if self.is_finite else np.nan
+
         X_filtered, y_filtered = self.filter_points(X, y)
         self.add(X_filtered, y_filtered)
 
@@ -76,11 +75,11 @@ class Container:
         elif isinstance(bounds, list):
             # dimensionality checks
             if len(bounds) != self.D:
-                raise ValueError('bound should have length D')
+                raise ValueError("bound should have length D")
             return np.array(bounds)
         elif isinstance(bounds, np.ndarray):
             if bounds.shape[0] != self.D:
-                raise ValueError('bound should have length D')
+                raise ValueError("bound should have length D")
             return bounds
         else:
             return np.array([default_value] * self.D)
@@ -89,25 +88,34 @@ class Container:
         """Handle the input X and y arrays"""
         # basic checks
         if X.ndim != 2:
-            raise ValueError(f"X must be a 2-dimensional array, got {X.ndim} dimensions")
+            raise ValueError(
+                f"X must be a 2-dimensional array, got {X.ndim} dimensions"
+            )
         if (y.ndim != 2 or y.shape[1] != 1) and y.ndim != 1:
             raise ValueError(
                 "y must be a 1-dimensional array, or 2-dimensional array"
                 f" with shape (N, 1), got shape {y.shape}"
             )
         if X.shape[0] != y.shape[0]:
-            raise ValueError("The number of samples in X and y must be the same, "
-                             f"got {X.shape[0]} and {y.shape[0]}")
-        
+            raise ValueError(
+                "The number of samples in X and y must be the same, "
+                f"got {X.shape[0]} and {y.shape[0]}"
+            )
+
         if y.ndim == 1:
             ret_y = y.reshape(-1, 1)
         else:
             ret_y = y.copy()
 
         return X, ret_y
-        
-    def filter_points(self, X: np.ndarray, y: Optional[np.ndarray]=None, 
-                      return_bool: bool=False, warning: bool=False):
+
+    def filter_points(
+        self,
+        X: np.ndarray,
+        y: Optional[np.ndarray] = None,
+        return_bool: bool = False,
+        warning: bool = False,
+    ):
         """
         Check whether all the points X are in the container
         and return a numpy.ndarray with those in the container. \n
@@ -126,14 +134,14 @@ class Container:
         warning : bool, optional
             if true, throw a warning if some points are outside
             Defaults to False
-        
+
         Returns
         -------
         np.ndarray, np.ndarray or bool
-            Two arrays: one of the points that are within the container, 
+            Two arrays: one of the points that are within the container,
             and another of the corresponding y values.
             bool: indicates whether all points are inside the container
-        
+
         """
 
         in_bounds = np.all((X >= self.mins) & (X <= self.maxs), axis=1)
@@ -144,7 +152,7 @@ class Container:
                     "Some points are out of the container bounds: "
                     f"indices {np.where(~in_bounds)[0]}"
                 )
-        else: 
+        else:
             inside = True
 
         if return_bool:
@@ -184,7 +192,7 @@ class Container:
     def rvs(self, n: int) -> np.ndarray:
         """
         Draw uniformly random samples from the container
-        
+
         Attribute
         ---------
         n : int
@@ -206,17 +214,18 @@ class Container:
                 # Lower bound is infinite: sample from a exponential distribution
                 rs[:, d] = self.maxs[d] - np.random.exponential(scale=1.0, size=n)
             elif np.isinf(self.maxs[d]):
-                # Upper bound is infinite: sample from a exponential distribution 
+                # Upper bound is infinite: sample from a exponential distribution
                 rs[:, d] = self.mins[d] + np.random.exponential(scale=1.0, size=n)
             else:
                 # Both bounds are finite: sample uniformly between the bounds
-                rs[:, d] = np.random.uniform(low=self.mins[d], high=self.maxs[d], 
-                                             size=n)
+                rs[:, d] = np.random.uniform(
+                    low=self.mins[d], high=self.maxs[d], size=n
+                )
 
         return rs
 
-    def split(self, split_dimension: int, split_value: float) -> List['Container']:
-        '''
+    def split(self, split_dimension: int, split_value: float) -> List["Container"]:
+        """
         Divide perpendicular to an axis
 
         Parameters
@@ -225,11 +234,11 @@ class Container:
             the axis to split along
         split_value : float
             the value to split at
-        
+
         Return
         ------
         list of two sub-containers
-        '''
+        """
 
         # Partition samples
         idxs = self.X[:, split_dimension] <= split_value
@@ -250,9 +259,7 @@ class Container:
         right_mins[split_dimension] = split_value
 
         # Create new Container instances
-        left_container = Container(
-            lX, ly, mins=left_mins, maxs=left_maxs)
-        right_container = Container(
-            rX, ry, mins=right_mins, maxs=right_maxs)
+        left_container = Container(lX, ly, mins=left_mins, maxs=left_maxs)
+        right_container = Container(rX, ry, mins=right_mins, maxs=right_maxs)
 
         return [left_container, right_container]

@@ -1,5 +1,5 @@
-from .smc_integrator import SmcIntegrator # noqa
-from .vegas_integrator import VegasIntegrator # noqa
+from .smc_integrator import SmcIntegrator  # noqa
+from .vegas_integrator import VegasIntegrator  # noqa
 from .base_class import Integrator
 from .tree_integrator import TreeIntegrator
 from .bmc_integrator import BayesMcIntegrator

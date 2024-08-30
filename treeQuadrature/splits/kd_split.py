@@ -8,6 +8,7 @@ class KdSplit(Split):
     """
     Find the axis with the greatest variance and split perpendicular to it.
     """
+
     def split(self, container):
         samples = container.X
 
@@ -18,8 +19,7 @@ class KdSplit(Split):
         # Calculate the median value for splitting
         unique_values = np.unique(samples[:, split_dimension])
         if len(unique_values) < 2:
-            warnings.warn('no enough unique values to split', 
-                          RuntimeWarning)
+            warnings.warn("no enough unique values to split", RuntimeWarning)
             return [container]
         median = np.median(unique_values)
 

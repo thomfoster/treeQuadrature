@@ -5,7 +5,7 @@ import time
 
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import KernelIntegral, AdaptiveRbfIntegral
-from treeQuadrature.integrators import TreeIntegrator
+from treeQuadrature.integrator import TreeIntegrator
 from treeQuadrature.exampleProblems import Camel, SimpleGaussian, QuadCamel
 from treeQuadrature.container import Container
 from treeQuadrature.trees import SimpleTree

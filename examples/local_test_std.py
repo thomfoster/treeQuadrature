@@ -1,4 +1,4 @@
-from treeQuadrature.integrators import BayesMcIntegrator, TreeIntegrator
+from treeQuadrature.integrator import BayesMcIntegrator, TreeIntegrator
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral
 from treeQuadrature.trees import SimpleTree
 from treeQuadrature.splits import KdSplit

@@ -4,7 +4,7 @@ import pandas as pd
 
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import MidpointIntegral
-from treeQuadrature.integrators import TreeIntegrator
+from treeQuadrature.integrator import TreeIntegrator
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.container import Container
 from treeQuadrature.trees import SimpleTree

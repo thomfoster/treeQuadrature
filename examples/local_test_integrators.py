@@ -5,9 +5,9 @@ from treeQuadrature.compare_integrators import test_integrators
 from treeQuadrature.containerIntegration.gpIntegral import KernelIntegral
 from treeQuadrature.exampleProblems import SimpleGaussian, Camel, QuadCamel, ExponentialProductProblem, QuadraticProblem, RippleProblem, OscillatoryProblem, ProductPeakProblem, CornerPeakProblem, DiscontinuousProblem, C0Problem
 from treeQuadrature.containerIntegration import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral
-from treeQuadrature.integrators.treeIntegrator import TreeIntegrator
+from treeQuadrature.integrator.treeIntegrator import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit
-from treeQuadrature.integrators import DistributedTreeIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator, BatchGpIntegrator
+from treeQuadrature.integrator import DistributedTreeIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator, BatchGpIntegrator
 from treeQuadrature.samplers import McmcSampler, LHSImportanceSampler, UniformSampler, ImportanceSampler
 from treeQuadrature.trees import LimitedSampleTree
 

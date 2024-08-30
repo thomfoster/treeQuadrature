@@ -1,6 +1,6 @@
 from treeQuadrature.compare_integrators import test_integrator_performance_with_params
 from treeQuadrature.exampleProblems import Camel
-from treeQuadrature.integrators import TreeIntegrator
+from treeQuadrature.integrator import TreeIntegrator
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral
 from treeQuadrature.trees import SimpleTree
 

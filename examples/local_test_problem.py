@@ -1,8 +1,8 @@
 from curses.ascii import SI
 from treeQuadrature.exampleProblems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem, ExponentialProductProblem, QuadCamel
-from treeQuadrature.integrators import BatchGpIntegrator, DistributedGpTreeIntegrator, SmcIntegrator, DistributedTreeIntegrator, VegasIntegrator
+from treeQuadrature.integrator import BatchGpIntegrator, DistributedGpTreeIntegrator, SmcIntegrator, DistributedTreeIntegrator, VegasIntegrator
 from treeQuadrature.containerIntegration import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
-from treeQuadrature.integrators.treeIntegrator import TreeIntegrator
+from treeQuadrature.integrator.treeIntegrator import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit
 from treeQuadrature.samplers import ImportanceSampler, UniformSampler, McmcSampler, SobolSampler, LHSImportanceSampler
 from treeQuadrature import compare_integrators, Container

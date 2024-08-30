@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import KernelIntegral
-from treeQuadrature.integrators import TreeIntegrator
+from treeQuadrature.integrator import TreeIntegrator
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.container import Container
 

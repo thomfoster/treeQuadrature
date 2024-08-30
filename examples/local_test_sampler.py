@@ -3,7 +3,7 @@ from treeQuadrature.samplers import Sampler, ImportanceSampler, McmcSampler, Sob
 from treeQuadrature import Container
 from treeQuadrature.visualisation import plot_containers
 
-problem = QuadCamel(D=2)
+problem = RippleProblem(D=2)
 
 iSampler = ImportanceSampler()
 mcmcSampler = McmcSampler()
@@ -23,10 +23,11 @@ def test_sampler(sampler: Sampler, N: int):
         assert X.shape[0] == N
 
     y = problem.integrand(X)
+    print(y.shape)
     root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
     plot_containers([root], [1.0], 
                    xlim=[problem.lows[0], problem.highs[0]], 
                    ylim=[problem.lows[1], problem.highs[1]], plot_samples=True)
     
-test_sampler(aiSampler, 10_000)
+test_sampler(mcmcSampler, 10_000)

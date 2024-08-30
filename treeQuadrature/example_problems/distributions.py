@@ -1,15 +1,12 @@
-import numpy as np
-from abc import ABC, abstractmethod
-
 from scipy.stats import multivariate_normal
+from abc import ABC, abstractmethod
+import numpy as np
 
-# TODO: These multimodal distributions I've created - I'm not sure they're
-# exactly what the say they are. Check with Ben whether the which_dist approach
-# works.
 
 class Distribution(ABC):
     """
     An abstract framework for distributions
+    for defining BayesProblem.
     """
     def __init__(self, D):
         self.D = D  # dimensions of the distribution
@@ -48,6 +45,8 @@ class Distribution(ABC):
         """
         pass
 
+
+### Distributions
 class Uniform(Distribution):
     """
     Uniform distribution

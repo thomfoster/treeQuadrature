@@ -1,7 +1,6 @@
 import treeQuadrature.splits # noqa
 import treeQuadrature.samplers # noqa
 import treeQuadrature.container_integrators # noqa
-import treeQuadrature.distributions # noqa
 import treeQuadrature.utils # noqa
 import treeQuadrature.visualisation # noqa
 import treeQuadrature.integrators # noqa

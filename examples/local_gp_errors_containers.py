@@ -1,5 +1,5 @@
 from treeQuadrature.exampleProblems import QuadraticProblem, ExponentialProductProblem, Problem
-from treeQuadrature.integrator import TreeIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RandomIntegral, PolyIntegral, ContainerIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.samplers import ImportanceSampler

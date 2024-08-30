@@ -1,6 +1,6 @@
 from treeQuadrature.exampleProblems import Camel
 from treeQuadrature.containerIntegration import RandomIntegral, RandomIntegral
-from treeQuadrature.integrator import TreeIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.splits import KdSplit
 from treeQuadrature.trees import LimitedSampleTree
 from treeQuadrature.compare_integrators import test_integrators

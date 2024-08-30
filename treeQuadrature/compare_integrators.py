@@ -1,5 +1,5 @@
 from .exampleProblems import Problem
-from .integrator import TreeIntegrator, Integrator
+from .integrators import TreeIntegrator, Integrator
 from .containerIntegration import ContainerIntegral
 from .visualisation import plotContainers
 from .container import Container

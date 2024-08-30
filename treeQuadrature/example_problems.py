@@ -1,4 +1,4 @@
-from . import exampleDistributions as dists
+from . import example_distributions as dists
 from .utils import handle_bound
 from .container import Container
 

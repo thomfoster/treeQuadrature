@@ -1,9 +1,9 @@
-from .distributedTreentegrator import DistributedTreeIntegrator
+from .distributed_tree_integrator import DistributedTreeIntegrator
 from ..samplers import Sampler
-from ..containerIntegration.gpIntegral import IterativeGpIntegral
+from ..container_integrators.gp_integral import IterativeGpIntegral
 from ..container import Container
 from ..trees import Tree
-from ..exampleProblems import Problem
+from ..example_problems import Problem
 
 from typing import Optional, List
 import numpy as np

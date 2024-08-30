@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import KernelIntegral
+from treeQuadrature.container_integrators import KernelIntegral
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.exampleProblems import Camel
+from treeQuadrature.example_problems import Camel
 from treeQuadrature.container import Container
 
 D = 13

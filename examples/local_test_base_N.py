@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import MidpointIntegral
+from treeQuadrature.container_integrators import MidpointIntegral
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.exampleProblems import Camel
+from treeQuadrature.example_problems import Camel
 from treeQuadrature.container import Container
 from treeQuadrature.trees import SimpleTree
 

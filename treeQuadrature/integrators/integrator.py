@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from ..exampleProblems import Problem
-from typing import Union, Tuple, Any
+from ..example_problems import Problem
+from typing import Any
 
 class Integrator(ABC):
     """

@@ -1,6 +1,6 @@
 from ..container import Container
-from .gaussianProcess import IterativeGPFitting, is_poor_fit
-from .visualisation import plotGP
+from .fit_gp import IterativeGPFitting, is_poor_fit
+from .visualisation import plot_gp
 
 from typing import Callable
 from sklearn.metrics import mean_squared_error
@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error
 def default_criterion(container: Container) -> bool:
     return True
 
-def GP_diagnosis(igp: IterativeGPFitting, container: Container, 
+def gp_diagnosis(igp: IterativeGPFitting, container: Container, 
                  criterion: Callable[[Container], 
                                      bool]=default_criterion, 
                                      plot: bool=False) -> None:
@@ -53,5 +53,5 @@ def GP_diagnosis(igp: IterativeGPFitting, container: Container,
 
     # posterior mean plot
     if xs.shape[1] == 1 and criterion(container) and plot:
-        plotGP(igp.gp, xs, ys, 
+        plot_gp(igp.gp, xs, ys, 
                mins=container.mins, maxs=container.maxs)

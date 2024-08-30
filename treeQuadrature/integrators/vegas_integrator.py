@@ -1,7 +1,7 @@
 import vegas
 
 from .integrator import Integrator
-from ..exampleProblems import Problem
+from ..example_problems import Problem
 
 class ShapeAdapter:
     def __init__(self, f):

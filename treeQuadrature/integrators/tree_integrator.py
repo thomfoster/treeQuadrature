@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from typing import List, Optional
 from inspect import signature
 
@@ -11,9 +10,9 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from .integrator import Integrator
 from ..container import Container
 from ..trees import Tree, SimpleTree
-from ..containerIntegration import ContainerIntegral, RandomIntegral
+from ..container_integrators import ContainerIntegral, RandomIntegral
 from ..samplers import Sampler
-from ..exampleProblems import Problem
+from ..example_problems import Problem
 
 
 
@@ -145,7 +144,7 @@ class TreeIntegrator(Integrator):
         >>> from treeQuadrature.integrators import TreeIntegrator
         >>> from treeQuadrature.splits import MinSseSplit
         >>> from treeQuadrature.containerIntegration import RandomIntegral
-        >>> from treeQuadrature.exampleProblems import SimpleGaussian
+        >>> from treeQuadrature.example_problems import SimpleGaussian
         >>> from treeQuadrature.trees import WeightedTree
         >>> # Define the problem
         >>> problem = SimpleGaussian(D=2)

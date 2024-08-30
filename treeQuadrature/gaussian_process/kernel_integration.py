@@ -5,7 +5,7 @@ from sklearn.gaussian_process.kernels import RBF as SklearnRBF
 import numpy as np
 from typing import Callable, Optional, Tuple
 
-from .gaussianProcess import GPFit, IterativeGPFitting
+from .fit_gp import GPFit, IterativeGPFitting
 from ..container import Container
 from .kernels import Polynomial
 

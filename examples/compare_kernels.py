@@ -1,7 +1,7 @@
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.exampleProblems import QuadraticProblem
+from treeQuadrature.example_problems import QuadraticProblem
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, PolyIntegral
+from treeQuadrature.container_integrators import AdaptiveRbfIntegral, PolyIntegral
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature.compare_integrators import test_container_integrals
 from treeQuadrature.trees import SimpleTree

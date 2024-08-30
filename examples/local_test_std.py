@@ -1,9 +1,9 @@
 from treeQuadrature.integrators import BayesMcIntegrator, TreeIntegrator
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral
+from treeQuadrature.container_integrators import AdaptiveRbfIntegral
 from treeQuadrature.trees import SimpleTree
 from treeQuadrature.splits import KdSplit
-from treeQuadrature.exampleProblems import SimpleGaussian
-from treeQuadrature.visualisation import plotContainers
+from treeQuadrature.example_problems import SimpleGaussian
+from treeQuadrature.visualisation import plot_containers
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     error = 100 * np.abs(result['estimate'] - problem.answer) / problem.answer
     print(f'Relative Error: {error:.2f} %')
-    # plotContainers(containers, contributions, 
+    # plot_containers(containers, contributions, 
     #             xlim=[-1.0, 1.0], ylim=[-1.0, 1.0],
     #             integrand=problem.integrand, plot_samples=True, 
     #             dimensions=[0, 1])

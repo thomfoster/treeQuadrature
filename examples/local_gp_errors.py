@@ -1,10 +1,10 @@
-from treeQuadrature.exampleProblems import QuadraticProblem, ExponentialProductProblem, Gaussian
+from treeQuadrature.example_problems import QuadraticProblem, ExponentialProductProblem, Gaussian
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RandomIntegral
+from treeQuadrature.container_integrators import AdaptiveRbfIntegral, RandomIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.trees import SimpleTree
 
-from treeQuadrature.visualisation import plotContainers, plotIntegrand
+from treeQuadrature.visualisation import plot_containers, plot_integrand
 
 import numpy as np
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
         print(f'solving {str(problem)}')
 
         # if problem.D == 2:
-        #     plotIntegrand(problem.integrand, D, xlim=[problem.lows[0], problem.highs[0]], 
+        #     plot_integrand(problem.integrand, D, xlim=[problem.lows[0], problem.highs[0]], 
         #                   ylim=[problem.lows[1], problem.highs[1]])
 
         print(f'Analytic solution {problem.answer}')
@@ -52,11 +52,11 @@ if __name__ == '__main__':
         container_volumes = [cont.volume for cont in containers]
 
         # if problem.D == 2:
-        #     plotContainers(containers, signed_errors, title='Plot of Signed Absolute Errors', 
+        #     plot_containers(containers, signed_errors, title='Plot of Signed Absolute Errors', 
         #                 xlim=[-1.0, 1.0], ylim=[-1.0, 1.0], plot_samples=True, colors='coolwarm', 
         #                 c_bar_labels='Errors', integrand=problem.integrand)
         
-        #     plotContainers(containers, length_scales, title='Plot of length scales of RBF kernel', 
+        #     plot_containers(containers, length_scales, title='Plot of length scales of RBF kernel', 
         #                 xlim=[-1.0, 1.0], ylim=[-1.0, 1.0], plot_samples=False,
         #                 c_bar_labels='Length scale', integrand=problem.integrand)
         

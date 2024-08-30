@@ -2,7 +2,7 @@ import numpy as np
 from typing import Optional
 
 from .integrator import Integrator
-from ..exampleProblems import Problem, BayesProblem
+from ..example_problems import Problem, BayesProblem
 from ..samplers import Sampler
 
 class SmcIntegrator(Integrator):

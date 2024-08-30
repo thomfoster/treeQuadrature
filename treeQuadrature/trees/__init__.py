@@ -1,4 +1,4 @@
 from .tree import Tree
-from .simpleTree import SimpleTree
-from .weightedTree import WeightedTree
-from .limitedSampleTree import LimitedSampleTree
+from .simple_tree import SimpleTree
+from .weighted_tree import WeightedTree
+from .limited_sample_tree import LimitedSampleTree

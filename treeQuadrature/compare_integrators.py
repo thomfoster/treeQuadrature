@@ -1,7 +1,7 @@
-from .exampleProblems import Problem
+from .example_problems import Problem
 from .integrators import TreeIntegrator, Integrator
-from .containerIntegration import ContainerIntegral
-from .visualisation import plotContainers
+from .container_integrators import ContainerIntegral
+from .visualisation import plot_containers
 from .container import Container
 
 import warnings, time, csv, os, multiprocessing, itertools
@@ -81,7 +81,7 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         Default is None.
     **kwargs : Any
         kwargs that should be used by integrator.__call__ method 
-        or the plotContainers method
+        or the plot_containers method
     """
     if integrator_specific_kwargs is None:
         integrator_specific_kwargs = {}
@@ -180,10 +180,10 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
             if plot:
                 if xlim is None:
                     raise ValueError('xlim must be provided for plotting')
-                plot_params = signature(plotContainers).parameters
+                plot_params = signature(plot_containers).parameters
                 applicable_kwargs = {k: v for k, v in kwargs.items() if k in plot_params}
                 title = applicable_kwargs.pop('title', default_title)
-                plotContainers(containers, contributions, 
+                plot_containers(containers, contributions, 
                                xlim=xlim, ylim=ylim,
                                integrand=problem.integrand, 
                                title=title, dimensions=dimensions, 

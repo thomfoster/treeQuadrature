@@ -1,4 +1,4 @@
-from .kdSplit import KdSplit # noqa
-from .uniformSplit import UniformSplit # noqa
-from .minSseSplit import MinSseSplit # noqa
+from .kd_split import KdSplit # noqa
+from .uniform_split import UniformSplit # noqa
+from .min_sse_split import MinSseSplit # noqa
 from .split import Split

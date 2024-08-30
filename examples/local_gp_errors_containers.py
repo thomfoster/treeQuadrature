@@ -1,6 +1,6 @@
-from treeQuadrature.exampleProblems import QuadraticProblem, ExponentialProductProblem, Problem
+from treeQuadrature.example_problems import QuadraticProblem, ExponentialProductProblem, Problem
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, RandomIntegral, PolyIntegral, ContainerIntegral
+from treeQuadrature.container_integrators import AdaptiveRbfIntegral, RandomIntegral, PolyIntegral, ContainerIntegral
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.samplers import ImportanceSampler
 from treeQuadrature.trees import SimpleTree

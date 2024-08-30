@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Callable, Optional
 
-from .containerIntegral import ContainerIntegral
+from .container_integral import ContainerIntegral
 from ..container import Container
 from ..samplers import Sampler, UniformSampler
 

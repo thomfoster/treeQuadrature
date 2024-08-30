@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import time
 
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import KernelIntegral, AdaptiveRbfIntegral
+from treeQuadrature.container_integrators import KernelIntegral, AdaptiveRbfIntegral
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.exampleProblems import Camel, SimpleGaussian, QuadCamel
+from treeQuadrature.example_problems import Camel, SimpleGaussian, QuadCamel
 from treeQuadrature.container import Container
 from treeQuadrature.trees import SimpleTree
 

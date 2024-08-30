@@ -1,8 +1,8 @@
 from git import Tree
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
+from treeQuadrature.example_problems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, KernelIntegral
+from treeQuadrature.container_integrators import AdaptiveRbfIntegral, KernelIntegral
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature.compare_integrators import test_container_integrals
 from treeQuadrature.trees import SimpleTree

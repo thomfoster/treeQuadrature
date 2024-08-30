@@ -1,14 +1,13 @@
-from ..exampleProblems import Problem
+from ..example_problems import Problem
 from .integrator import Integrator
 from ..samplers import Sampler, UniformSampler
 from ..container import Container
-from ..gaussianProcess import kernel_integration, IterativeGPFitting, SklearnGPFit
+from ..gaussian_process import kernel_integration, IterativeGPFitting, SklearnGPFit
 
 from sklearn.gaussian_process.kernels import RBF, Kernel
-import numpy as np
 
 default_sampler = UniformSampler()
-default_kernel = kernel = RBF(1.0, (1e-2, 1e2))
+default_kernel = kernel = RBF(1.0, (1e-3, 1e3))
 
 class BayesMcIntegrator(Integrator):
     def __init__(self, N: int, kernel: Kernel=default_kernel, 

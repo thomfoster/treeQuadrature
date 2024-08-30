@@ -12,7 +12,7 @@ import warnings
 
 from .container import Container
 
-def plotContainers(containers: List[Container], contributions: List[float], 
+def plot_containers(containers: List[Container], contributions: List[float], 
                    xlim: List[float], ylim: Optional[List[float]]=None, 
                    integrand: Optional[Callable]=None, 
                    title: Optional[str]=None, 
@@ -56,7 +56,7 @@ def plotContainers(containers: List[Container], contributions: List[float],
         2D plot. 
         Default : 'Contributions'
     kwargs : Any, optional
-        additional arguments for _plotContainers1D and _plotContainers2D
+        additional arguments for _plot_containers_1D and _plot_containers_2D
     """
 
     assert len(containers) == len(contributions), (
@@ -78,10 +78,10 @@ def plotContainers(containers: List[Container], contributions: List[float],
             )
 
     if containers[0].D == 1:
-        _plotContainers1D(containers, contributions, xlim, 
+        _plot_containers_1D(containers, contributions, xlim, 
                           integrand, title, plot_samples, font_size, **kwargs)
     elif len(dimensions) == 2:
-        _plotContainers2D(containers, contributions, xlim, ylim, title, 
+        _plot_containers_2D(containers, contributions, xlim, ylim, title, 
                           plot_samples, dimensions[0], dimensions[1], 
                           colors, c_bar_labels, font_size, **kwargs)
     else:
@@ -91,7 +91,7 @@ def plotContainers(containers: List[Container], contributions: List[float],
              )
 
 
-def _plotContainers2D(containers, contributions, xlim, ylim, title, 
+def _plot_containers_2D(containers, contributions, xlim, ylim, title, 
                       plot_samples, dim1, dim2, colors, c_bar_labels, font_size, 
                       c_bar_tick_size=12):
     fig = plt.figure(figsize=(8,8))
@@ -103,7 +103,7 @@ def _plotContainers2D(containers, contributions, xlim, ylim, title,
     norm = plt.Normalize(min(contributions), max(contributions))
 
     for container, contribution in zip(containers, contributions):
-        plotContainer(ax, container, dim1, dim2, 
+        plot_container(ax, container, dim1, dim2, 
                       plot_samples=plot_samples, facecolor=cmap(norm(contribution)), alpha=0.4)
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -119,7 +119,7 @@ def _plotContainers2D(containers, contributions, xlim, ylim, title,
     ax.tick_params(axis='both', labelsize=font_size)
     plt.show()
 
-def _plotContainers1D(containers, contributions, xlim, integrand, title, plot_samples, font_size):
+def _plot_containers_1D(containers, contributions, xlim, integrand, title, plot_samples, font_size):
     if integrand is not None:
         ### plot the integrand
         x_values = np.linspace(xlim[0], xlim[1], 2000).reshape(-1, 1)
@@ -160,7 +160,7 @@ def _plotContainers1D(containers, contributions, xlim, integrand, title, plot_sa
 
     plt.show()
 
-def plotContainer(ax: Axes, container: Container, dim1: int, dim2: int, 
+def plot_container(ax: Axes, container: Container, dim1: int, dim2: int, 
                   **kwargs):
     '''
     Plot a container on the provided axes.
@@ -215,7 +215,7 @@ def plotContainer(ax: Axes, container: Container, dim1: int, dim2: int,
     )
     ax.add_patch(rect)
 
-def plotIntegrand(integrand, D, xlim, ylim=None, n_points=500, levels=10, 
+def plot_integrand(integrand, D, xlim, ylim=None, n_points=500, levels=10, 
                   file_path: Optional[str]=None):
     """
     Plot the integrand
@@ -246,13 +246,13 @@ def plotIntegrand(integrand, D, xlim, ylim=None, n_points=500, levels=10,
     """
 
     if D == 1:
-        _plot1D(integrand, xlim, n_points, file_path)
+        _plot_integrand_1D(integrand, xlim, n_points, file_path)
     elif D == 2:
-        _plot2D(integrand, xlim, ylim, levels, n_points, file_path)
+        _plot_integrand_2D(integrand, xlim, ylim, levels, n_points, file_path)
     else:
         raise Exception('only supports 1D and 2D problems')
 
-def _plot1D(f, xlim, n_points, file_path):
+def _plot_integrand_1D(f, xlim, n_points, file_path):
     x = np.linspace(xlim[0], xlim[1], n_points).reshape(-1, 1)
     ys = f(x)
 
@@ -266,7 +266,7 @@ def _plot1D(f, xlim, n_points, file_path):
     else:
         plt.show()
 
-def _plot2D(f, xlim, ylim, levels, n_points, file_path):
+def _plot_integrand_2D(f, xlim, ylim, levels, n_points, file_path):
     """
     plot Contour lines of a 2D distribution 
     Automatically adapts the grid to significant values

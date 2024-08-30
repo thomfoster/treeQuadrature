@@ -1,15 +1,12 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from inspect import signature
 import numpy as np
-import warnings
-
 from typing import Optional, List
 
-from .treeIntegrator import TreeIntegrator
-from ..containerIntegration import ContainerIntegral
-from ..trees import Tree, SimpleTree
+from .tree_integrator import TreeIntegrator
+from ..container_integrators import ContainerIntegral
+from ..trees import Tree
 from ..samplers import Sampler
-from ..exampleProblems import Problem
+from ..example_problems import Problem
 from ..container import Container
 
 

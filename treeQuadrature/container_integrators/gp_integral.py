@@ -5,12 +5,12 @@ import numpy as np
 import warnings
 from abc import abstractmethod
 
-from ..gaussianProcess import IterativeGPFitting, GP_diagnosis, kernel_integration, GPFit, SklearnGPFit
-from ..gaussianProcess.kernelIntegration import poly_post
-from .containerIntegral import ContainerIntegral
+from ..gaussian_process import IterativeGPFitting, gp_diagnosis, kernel_integration, GPFit, SklearnGPFit
+from ..gaussian_process.kernel_integration import poly_post
+from .container_integral import ContainerIntegral
 from ..container import Container
-from ..gaussianProcess.kernels import Polynomial
-from ..gaussianProcess.scorings import r2
+from ..gaussian_process.kernels import Polynomial
+from ..gaussian_process.scorings import r2
 from ..samplers import Sampler, UniformSampler
 
 class KernelIntegral(ContainerIntegral):
@@ -193,7 +193,7 @@ class KernelIntegral(ContainerIntegral):
 
         ### GP diagnosis
         if self.check_GP:
-            GP_diagnosis(iGP, container)
+            gp_diagnosis(iGP, container)
         
         ret = kernel_integration(iGP, container, gp_results, 
                                             return_std)
@@ -370,7 +370,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
             
         ### GP diagnosis
         if self.check_GP:
-            GP_diagnosis(iGP, container, plot=True)
+            gp_diagnosis(iGP, container, plot=True)
 
         ret = kernel_integration(iGP, container, gp_results, 
                                              return_std)

@@ -44,11 +44,11 @@ if args.wandb_project == "by_problem_name":
     args.wandb_project = args.problem
 
 if args.problem == 'SimpleGaussian':
-    problem = tq.exampleProblems.SimpleGaussian
+    problem = tq.example_problems.SimpleGaussian
 elif args.problem == 'Camel':
-    problem = tq.exampleProblems.Camel
+    problem = tq.example_problems.Camel
 elif args.problem == 'QuadCamel':
-    problem = tq.exampleProblems.QuadCamel
+    problem = tq.example_problems.QuadCamel
 else:
     raise Exception(f'Specified problem {args.problem} is not recognised - try CaptialisedCamelCase')
 

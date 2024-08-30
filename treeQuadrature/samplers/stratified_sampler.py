@@ -1,5 +1,4 @@
 from .sampler import Sampler
-from ..exampleProblems import Problem
 
 import numpy as np
 from typing import Tuple

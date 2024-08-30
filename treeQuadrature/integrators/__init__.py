@@ -1,8 +1,8 @@
-from .smcIntegrator import SmcIntegrator # noqa
-from .vegasIntegrator import VegasIntegrator # noqa
+from .smc_integrator import SmcIntegrator # noqa
+from .vegas_integrator import VegasIntegrator # noqa
 from .integrator import Integrator
-from .treeIntegrator import TreeIntegrator
-from .bayesMcIntegrator import BayesMcIntegrator
-from .batchGpIntegrator import BatchGpIntegrator
-from .distributedTreentegrator import DistributedTreeIntegrator
-from .distributedGpIntegrator import DistributedGpTreeIntegrator
+from .tree_integrator import TreeIntegrator
+from .bmc_integrator import BayesMcIntegrator
+from .batch_gp_integrator import BatchGpIntegrator
+from .distributed_tree_integrator import DistributedTreeIntegrator
+from .distributed_gp_integrator import DistributedGpTreeIntegrator

@@ -10,7 +10,7 @@ treeQuadrature/__init__.py
 treeQuadrature/compare_integrators.py
 treeQuadrature/container.py
 treeQuadrature/exampleDistributions.py
-treeQuadrature/exampleProblems.py
+treeQuadrature/example_problems.py
 treeQuadrature/queues.py
 treeQuadrature/utils.py
 treeQuadrature/visualisation.py

@@ -1,7 +1,7 @@
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.exampleProblems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem, RippleProblem, Camel
+from treeQuadrature.example_problems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem, RippleProblem, Camel
 from treeQuadrature.splits import MinSseSplit
-from treeQuadrature.containerIntegration import AdaptiveRbfIntegral, MidpointIntegral, RandomIntegral
+from treeQuadrature.container_integrators import AdaptiveRbfIntegral, MidpointIntegral, RandomIntegral
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature.compare_integrators import test_container_integrals
 

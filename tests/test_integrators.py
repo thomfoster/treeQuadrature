@@ -14,7 +14,7 @@ import numpy as np
 def test_io(integrator_instance):
     """Checks each integrator has the desired IO for an integrator"""
 
-    problem = tq.exampleProblems.SimpleGaussian(3)
+    problem = tq.example_problems.SimpleGaussian(3)
 
     res = integrator_instance(problem)
     assert isinstance(res['estimate'], float)
@@ -27,7 +27,7 @@ def test_io(integrator_instance):
 
 @pytest.mark.parametrize("integrator_instance", [
     tq.integrators.TreeIntegrator(
-        base_N=0, integral=tq.containerIntegration.MidpointIntegral(), 
+        base_N=0, integral=tq.container_integrators.MidpointIntegral(), 
         tree=tq.trees.LimitedSampleTree(N=500, active_N=100, 
                                         split=tq.splits.KdSplit(), 
                                         weighting_function=lambda container: container.volume)), 
@@ -36,14 +36,14 @@ def test_io(integrator_instance):
                                                weighting_function=lambda container: container.volume, 
                                                max_splits=20, 
                                                stopping_condition=lambda container: container.N < 2), 
-        integral=tq.containerIntegration.MidpointIntegral()),
+        integral=tq.container_integrators.MidpointIntegral()),
     tq.integrators.TreeIntegrator(200, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()), 
-                                    integral=tq.containerIntegration.MidpointIntegral()),
+                                    integral=tq.container_integrators.MidpointIntegral()),
     tq.integrators.BatchGpIntegrator(200, 40, tq.splits.KdSplit(), 
-                                    tq.containerIntegration.KernelIntegral(n_splits=0))
+                                    tq.container_integrators.KernelIntegral(n_splits=0))
 ])
 def test_treeIntegrator_io(integrator_instance):
-    problem = tq.exampleProblems.SimpleGaussian(1)
+    problem = tq.example_problems.SimpleGaussian(1)
 
     res = integrator_instance(problem)
     assert isinstance(res['estimate'], float)
@@ -57,17 +57,17 @@ def test_treeIntegrator_io(integrator_instance):
     assert len(res['contributions']) == len(res['containers'])
 
 @pytest.mark.parametrize("integrator_instance", [
-    tq.integrators.TreeIntegrator(300, integral=tq.containerIntegration.KernelIntegral(n_splits=0)),
-    tq.integrators.TreeIntegrator(300, integral=tq.containerIntegration.AdaptiveRbfIntegral(n_splits=0)),
-    tq.integrators.TreeIntegrator(300, integral=tq.containerIntegration.MedianIntegral()),
-    tq.integrators.TreeIntegrator(1000, integral=tq.containerIntegration.RandomIntegral()),
+    tq.integrators.TreeIntegrator(300, integral=tq.container_integrators.KernelIntegral(n_splits=0)),
+    tq.integrators.TreeIntegrator(300, integral=tq.container_integrators.AdaptiveRbfIntegral(n_splits=0)),
+    tq.integrators.TreeIntegrator(300, integral=tq.container_integrators.MedianIntegral()),
+    tq.integrators.TreeIntegrator(1000, integral=tq.container_integrators.RandomIntegral()),
     tq.integrators.BayesMcIntegrator(200),
     tq.integrators.SmcIntegrator(300),
     tq.integrators.BatchGpIntegrator(300, 40, tq.splits.KdSplit(), 
-                                    tq.containerIntegration.KernelIntegral(n_splits=0))
+                                    tq.container_integrators.KernelIntegral(n_splits=0))
 ])
 def test_return_std(integrator_instance):
-    problem = tq.exampleProblems.SimpleGaussian(1)
+    problem = tq.example_problems.SimpleGaussian(1)
 
     res = integrator_instance(problem, return_std=True)
     if "TreeIntegrator" in str(integrator_instance):
@@ -89,11 +89,11 @@ splits = [
 ]
 
 integrals = [
-    tq.containerIntegration.MedianIntegral(),
-    tq.containerIntegration.MidpointIntegral(),
-    tq.containerIntegration.RandomIntegral(),
-    tq.containerIntegration.RandomIntegral(eval=np.median),
-    tq.containerIntegration.KernelIntegral(n_samples=5, n_tuning=1, 
+    tq.container_integrators.MedianIntegral(),
+    tq.container_integrators.MidpointIntegral(),
+    tq.container_integrators.RandomIntegral(),
+    tq.container_integrators.RandomIntegral(eval=np.median),
+    tq.container_integrators.KernelIntegral(n_samples=5, n_tuning=1, 
                                         max_iter=100,
                                         max_redraw=0, n_splits=0)
 ]
@@ -113,7 +113,7 @@ def test_SimpleIntegrator(D, N, P, split, integral):
     if "MedianIntegral" in str(integral) and "UniformSplit" in str(split):
         return
     
-    problem = tq.exampleProblems.SimpleGaussian(D)
+    problem = tq.example_problems.SimpleGaussian(D)
     integ = tq.integrators.TreeIntegrator(N, tq.trees.SimpleTree(P=P, split=split), 
                                           integral=integral)
     _ = integ(problem)
@@ -141,7 +141,7 @@ def test_QueueIntegrator(
     if np.isinf(max_splits) and active_N > 0:
         return
 
-    problem = tq.exampleProblems.SimpleGaussian(D)
+    problem = tq.example_problems.SimpleGaussian(D)
     tree = tq.trees.WeightedTree(split=split, 
         weighting_function=weighting_function,
         active_N=active_N, max_splits=max_splits, 
@@ -187,7 +187,7 @@ def test_LimitedSampleIntegrator(
     if "MedianIntegral" in str(integral) and "UniformSplit" in str(split):
         return
 
-    problem = tq.exampleProblems.SimpleGaussian(D)
+    problem = tq.example_problems.SimpleGaussian(D)
     active_tree = tq.trees.LimitedSampleTree(N=N, active_N=active_N, 
                                         split=split, queue=queue,
                                         weighting_function=weighting_function)
@@ -202,7 +202,7 @@ def test_LimitedSampleIntegrator(
 @pytest.mark.parametrize("split", splits)
 @pytest.mark.parametrize("integral", integrals)
 def test_DistributedTreeIntegrator(D, max_samples, split, integral):
-    problem = tq.exampleProblems.SimpleGaussian(D)
+    problem = tq.example_problems.SimpleGaussian(D)
     integ = tq.integrators.DistributedTreeIntegrator(7500, max_samples, integral,
                                                        max_container_samples=50)
     

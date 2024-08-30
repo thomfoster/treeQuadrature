@@ -37,10 +37,10 @@ treeQuadrature.exampleDistributions module
    :undoc-members:
    :show-inheritance:
 
-treeQuadrature.exampleProblems module
+treeQuadrature.example_problems module
 -------------------------------------
 
-.. automodule:: treeQuadrature.exampleProblems
+.. automodule:: treeQuadrature.example_problems
    :members:
    :undoc-members:
    :show-inheritance:

@@ -8,11 +8,11 @@ from concurrent.futures import ThreadPoolExecutor
 
 from ..splits import Split
 from .integrator import Integrator
-from ..containerIntegration import ContainerIntegral
+from ..container_integrators import ContainerIntegral
 from ..samplers import Sampler, UniformSampler
 from ..container import Container
-from ..exampleProblems import Problem
-from ..gaussianProcess import kernel_integration, IterativeGPFitting
+from ..example_problems import Problem
+from ..gaussian_process import kernel_integration, IterativeGPFitting
 
 
 default_sampler = UniformSampler()

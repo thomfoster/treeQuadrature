@@ -1,7 +1,7 @@
-from treeQuadrature.exampleProblems import PyramidProblem, RippleProblem, Camel, QuadCamel
+from treeQuadrature.example_problems import PyramidProblem, RippleProblem, Camel, QuadCamel
 from treeQuadrature.samplers import Sampler, ImportanceSampler, McmcSampler, SobolSampler, StratifiedSampler, AdaptiveImportanceSampler, LHSImportanceSampler
 from treeQuadrature import Container
-from treeQuadrature.visualisation import plotContainers
+from treeQuadrature.visualisation import plot_containers
 
 problem = QuadCamel(D=2)
 
@@ -25,7 +25,7 @@ def test_sampler(sampler: Sampler, N: int):
     y = problem.integrand(X)
     root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
-    plotContainers([root], [1.0], 
+    plot_containers([root], [1.0], 
                    xlim=[problem.lows[0], problem.highs[0]], 
                    ylim=[problem.lows[1], problem.highs[1]], plot_samples=True)
     

@@ -1,6 +1,6 @@
 ### test the container itself.
 
-from treeQuadrature.exampleProblems import Gaussian
+from treeQuadrature.example_problems import Gaussian
 import numpy as np
 
 def test_Gaussian(D):

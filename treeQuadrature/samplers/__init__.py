@@ -1,8 +1,8 @@
 from .sampler import Sampler
-from .uniformSampler import UniformSampler
-from .importanceSampler import ImportanceSampler
-from .mcmcSampler import McmcSampler
-from .lowDiscrepancySampler import SobolSampler
-from .stratifiedSampler import StratifiedSampler
-from .combinedSampler import AdaptiveImportanceSampler, LHSImportanceSampler
-from .mixedSampler import MixedSampler
+from .uniform_sampler import UniformSampler
+from .importance_sampler import ImportanceSampler
+from .mcmc_sampler import McmcSampler
+from .low_discrepancy_samplers import SobolSampler
+from .stratified_sampler import StratifiedSampler
+from .combined_samplers import AdaptiveImportanceSampler, LHSImportanceSampler
+from .mixed_sampler import MixedSampler

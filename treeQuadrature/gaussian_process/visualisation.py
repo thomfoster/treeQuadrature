@@ -2,10 +2,10 @@ import numpy as np
 from typing import Optional
 import matplotlib.pyplot as plt
 
-from .gaussianProcess import GPFit
+from .fit_gp import GPFit
 
 
-def plotGP(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
+def plot_gp(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
            mins: np.ndarray, maxs: np.ndarray, plot_ci: Optional[bool]=True):
     """
     Plot the Gaussian Process posterior mean and the data points.
@@ -24,18 +24,18 @@ def plotGP(gp: GPFit, xs: np.ndarray, ys: np.ndarray,
         If True, the confidence interval will be plotted. Default is True.
     """
     if xs.shape[1] == 1:
-        _plotGP1D(gp, xs, ys, mins[0], maxs[0], plot_ci)
+        _plot_GP_1D(gp, xs, ys, mins[0], maxs[0], plot_ci)
     elif xs.shape[1] == 2:
         assert len(mins) == 2 and len(maxs) == 2, (
             'mins and maxs must have two elements for 2-dimensional problems'
             )
-        _plotGP2D(gp, xs, ys, mins[0], maxs[0], mins[1], maxs[1], plot_ci)
+        _plot_GP_2D(gp, xs, ys, mins[0], maxs[0], mins[1], maxs[1], plot_ci)
     else:
         raise ValueError(
             'This function only supports 1-dimensional and 2-dimensional problems'
             )
 
-def _plotGP1D(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
+def _plot_GP_1D(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
            x_min: float, x_max: float, plot_ci: Optional[bool]=True):
     """
     Plot the Gaussian Process posterior mean
@@ -83,7 +83,7 @@ def _plotGP1D(gp: GPFit, xs: np.ndarray, ys: np.ndarray,
     plt.show()
 
 
-def _plotGP2D(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
+def _plot_GP_2D(gp: GPFit, xs: np.ndarray, ys: np.ndarray, 
            x_min: float, x_max: float, y_min: float, y_max: float, 
            plot_ci: Optional[bool]=True):
     """

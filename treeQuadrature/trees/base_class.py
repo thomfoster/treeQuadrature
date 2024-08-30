@@ -6,7 +6,8 @@ from ..container import Container
 
 class Tree(ABC):
     @abstractmethod
-    def construct_tree(self, root: Container, *args, **kwargs) -> List[Container]:
+    def construct_tree(self, root: Container,
+                       *args, **kwargs) -> List[Container]:
         """
         Construct a tree from the given data.
 

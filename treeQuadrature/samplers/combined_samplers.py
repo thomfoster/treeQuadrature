@@ -6,7 +6,8 @@ from scipy.stats import qmc
 
 
 class AdaptiveImportanceSampler(Sampler):
-    def __init__(self, strata_per_dim: int = 10, oversample_factor: int = 5):
+    def __init__(self, strata_per_dim: int = 10,
+                 oversample_factor: int = 5):
         """
         Initialise the TwoStageSampler.
 
@@ -32,7 +33,8 @@ class AdaptiveImportanceSampler(Sampler):
         **kwargs
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Two-stage sampling that first adapts to the integrand's values
+        Two-stage sampling that first adapts to
+        the integrand's values
         and then applies importance sampling.
 
         Parameters
@@ -40,11 +42,13 @@ class AdaptiveImportanceSampler(Sampler):
         n : int
             Number of samples.
         mins, maxs : np.ndarray
-            1-dimensional arrays of the lower bounds and upper bounds.
+            1-dimensional arrays of the
+            lower bounds and upper bounds.
         f : callable
             The integrand function to be sampled.
         max_samples_per_region : int, optional
-            Maximum number of samples allowed in any given region to prevent over-sampling.
+            Maximum number of samples allowed in any
+            given region to prevent over-sampling.
 
         Returns
         -------
@@ -57,12 +61,16 @@ class AdaptiveImportanceSampler(Sampler):
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 
         total_strata = self.strata_per_dim**D
-        samples_per_stratum = max(1, (n * self.oversample_factor) // total_strata)
+        samples_per_stratum = max(
+            1, (n * self.oversample_factor) // total_strata)
 
         xs_stage1, ys_stage1 = [], []
-        strata = self.subdivide_domain(self.strata_per_dim, mins, maxs)
+        strata = self.subdivide_domain(self.strata_per_dim,
+                                       mins, maxs)
         for low, high in strata:
-            stratum_samples = np.random.uniform(low, high, (samples_per_stratum, D))
+            stratum_samples = np.random.uniform(
+                low, high, (samples_per_stratum, D)
+            )
             stratum_values = f(stratum_samples)
             xs_stage1.append(stratum_samples)
             ys_stage1.append(stratum_values)
@@ -78,8 +86,12 @@ class AdaptiveImportanceSampler(Sampler):
             uniform_samples = np.random.uniform(
                 mins, maxs, (n - len(non_zero_indices), D)
             )
-            xs = np.vstack([xs_stage1[non_zero_indices], uniform_samples])
-            ys = np.concatenate([ys_stage1[non_zero_indices], f(uniform_samples)])
+            xs = np.vstack(
+                [xs_stage1[non_zero_indices], uniform_samples]
+            )
+            ys = np.concatenate(
+                [ys_stage1[non_zero_indices], f(uniform_samples)]
+            )
         else:
             indices = np.random.choice(
                 non_zero_indices,
@@ -133,7 +145,8 @@ class LHSImportanceSampler(Sampler):
         **kwargs
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Latin Hypercube Sampling (LHS) combined with importance sampling.
+        Latin Hypercube Sampling (LHS) combined
+        with importance sampling.
 
         Parameters
         ----------
@@ -169,7 +182,8 @@ class LHSImportanceSampler(Sampler):
         # Avoid division by zero or numerical instability
         total_lhs_values = np.sum(lhs_values)
         if total_lhs_values == 0 or np.isnan(total_lhs_values):
-            # Fallback to uniform sampling if the function values are too small or unstable
+            # Fallback to uniform sampling if
+            # the function values are too small or unstable
             probabilities = np.ones(lhs_values.shape) / lhs_values.size
         else:
             probabilities = lhs_values / total_lhs_values
@@ -188,16 +202,21 @@ class LHSImportanceSampler(Sampler):
         # Ensure that there are enough non-zero probability samples
         non_zero_indices = np.nonzero(probabilities)[0]
         if len(non_zero_indices) < n:
-            # If not enough, fallback to uniform sampling for remaining samples
+            # If not enough, fallback to uniform sampling
             uniform_samples = np.random.uniform(
                 mins, maxs, (n - len(non_zero_indices), D)
             )
-            xs = np.vstack([lhs_samples[non_zero_indices], uniform_samples])
-            ys = np.concatenate([lhs_values[non_zero_indices], f(uniform_samples)])
+            xs = np.vstack(
+                [lhs_samples[non_zero_indices], uniform_samples]
+            )
+            ys = np.concatenate(
+                [lhs_values[non_zero_indices], f(uniform_samples)]
+            )
         else:
             # Perform importance sampling
             indices = np.random.choice(
-                non_zero_indices, size=n, replace=False, p=probabilities.flatten()
+                non_zero_indices, size=n,
+                replace=False, p=probabilities.flatten()
             )
             xs = lhs_samples[indices]
             ys = lhs_values[indices]

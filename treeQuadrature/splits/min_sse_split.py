@@ -14,41 +14,56 @@ class MinSseSplit(Split):
     Attributes
     ----------
     min_samples_leaf : int, optional (default=1)
-        The minimum number of samples required to be in each resulting leaf.
-        This prevents creating very small partitions that might not generalize well.
+        The minimum number of samples required to be
+        in each resulting leaf. \n
+        This prevents creating very small partitions
+        that might not generalize well.
 
     dimension_weights : callable, optional (default=None)
-        A function that computes weights for selecting dimensions during splitting.
+        A function that computes weights for selecting
+        dimensions during splitting. \n
 
         This function should accept the container object as input,
         and return a 1D array of weights corresponding to each dimension.
 
         - **Parameters:**
-            - **container (Container):** The container holding the samples and target values.
+            - **container (Container):**
+                The container holding the samples and target values.
 
         - **Returns:**
-            - **weights (np.ndarray):** A 1D array with a weight for each dimension.
+            - **weights (np.ndarray):**
+                A 1D array with a weight for each dimension.
 
-        If None, all dimensions are equally likely to be chosen for splitting.
+        If None, all dimensions are equally
+        likely to be chosen for splitting.
 
     scoring_function : callable, optional (default=None)
         A custom function to evaluate the quality of potential splits.
 
         This function should accept the following parameters:
-        the sum of squares of the target values on both sides of the split,
-        and the number of samples on each side.
-        It should return a numerical score representing the quality of the split.
+        the sum of squares of the target values
+        on both sides of the split,
+        and the number of samples on each side. \n
+        It should return a numerical score
+        representing the quality of the split.
 
         - **Parameters:**
-            - **sum_left (float):** Sum of the target values in the left split.
-            - **sum_right (float):** Sum of the target values in the right split.
-            - **sum_sq_left (float):** Sum of the squares of the target values in the left split.
-            - **sum_sq_right (float):** Sum of the squares of the target values in the right split.
-            - **count_left (int):** Number of samples in the left split.
-            - **count_right (int):** Number of samples in the right split.
+            - **sum_left (float):**
+                Sum of the target values in the left split.
+            - **sum_right (float):**
+                Sum of the target values in the right split.
+            - **sum_sq_left (float):**
+                Sum of the squares of the target values in the left split.
+            - **sum_sq_right (float):**
+                Sum of the squares of the target values in the right split.
+            - **count_left (int):**
+                Number of samples in the left split.
+            - **count_right (int):**
+                Number of samples in the right split.
 
         - **Returns:**
-            - **score (float):** A numerical value representing the split quality, where a lower
+            - **score (float):** A numerical value representing
+              the split quality, where a lower
               score indicates a better split.
 
         If None, the default sum of squared errors (SSE) is used.
@@ -69,12 +84,14 @@ class MinSseSplit(Split):
         self.dimension_weights = dimension_weights
         self.scoring_function = scoring_function or self.default_sse_score
         # Clamping between 0 and 1
-        self.dimension_proportion = max(0, min(dimension_proportion, 1))
+        self.dimension_proportion = max(0, min(
+            dimension_proportion, 1))
 
     def split(self, container: Container):
         """
         Split the container into two sub-containers that minimises
-        the sum of squared errors (SSE) or another user-defined scoring function.
+        the sum of squared errors (SSE) or another
+        user-defined scoring function.
 
         Parameters
         ----------
@@ -84,7 +101,8 @@ class MinSseSplit(Split):
         Returns
         -------
         List[Container]
-            A list containing two sub-containers resulting from the best split found.
+            A list containing two sub-containers
+            resulting from the best split found.
         """
         samples = container.X
         dims = samples.shape[1]
@@ -95,7 +113,8 @@ class MinSseSplit(Split):
             dimension_weights = self.dimension_weights(container)
 
             # Remove negative values and normalize weights
-            dimension_weights = np.clip(dimension_weights, a_min=0, a_max=None)
+            dimension_weights = np.clip(dimension_weights,
+                                        a_min=0, a_max=None)
             total_weight = np.sum(dimension_weights)
 
             # If total weight is zero, assign equal probability
@@ -108,9 +127,12 @@ class MinSseSplit(Split):
             dimension_probs = np.ones(dims) / dims
 
         # Select a proportion of dimensions based on dimension_proportion
-        num_dimensions_to_select = max(1, int(self.dimension_proportion * dims))
+        num_dimensions_to_select = max(1, int(
+            self.dimension_proportion * dims))
         selected_dimensions = np.random.choice(
-            range(dims), size=num_dimensions_to_select, replace=False, p=dimension_probs
+            range(dims),
+            size=num_dimensions_to_select,
+            replace=False, p=dimension_probs
         )
 
         best_dimension = -1
@@ -119,7 +141,9 @@ class MinSseSplit(Split):
 
         # Evaluate splits
         for dim in selected_dimensions:
-            thresh, score = self.evaluate_split(samples, ys, dim, self.min_samples_leaf)
+            thresh, score = self.evaluate_split(samples,
+                                                ys, dim,
+                                                self.min_samples_leaf)
             if score < best_score:
                 best_dimension = dim
                 best_thresh = thresh
@@ -131,16 +155,20 @@ class MinSseSplit(Split):
 
         lcont, rcont = container.split(best_dimension, best_thresh)
 
-        if np.any(lcont.mins == lcont.maxs) or np.any(rcont.mins == rcont.maxs):
+        if np.any(lcont.mins == lcont.maxs) or (
+            np.any(rcont.mins == rcont.maxs)
+        ):
             warnings.warn(
-                "Split resulted in a zero-volume container; reverting to original container"
+                "Split resulted in a zero-volume container; "
+                "reverting to original container"
             )
             return [container]
 
         return [lcont, rcont]
 
     def evaluate_split(
-        self, samples: np.ndarray, ys: np.ndarray, dim: int, min_samples_leaf: int
+        self, samples: np.ndarray, ys: np.ndarray,
+        dim: int, min_samples_leaf: int
     ):
         """
         Evaluate the best split for a given dimension.
@@ -172,9 +200,11 @@ class MinSseSplit(Split):
 
         return self.findMinSplit(xss, yss, min_samples_leaf)
 
-    def findMinSplit(self, xs: np.ndarray, ys: np.ndarray, min_samples_leaf: int):
+    def findMinSplit(self, xs: np.ndarray, ys: np.ndarray,
+                     min_samples_leaf: int):
         """
-        Partition xs and ys such that the custom scoring function is minimized.
+        Partition xs and ys such that the custom scoring
+        function is minimised.
 
         Arguments
         --------

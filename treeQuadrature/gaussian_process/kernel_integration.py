@@ -25,13 +25,17 @@ def get_length_scale(kernel):
             return kernel.lengthscale
         else:
             raise AttributeError(
-                "The kernel does not have a recognizable length scale attribute."
+                "The kernel does not have a recognizable "
+                "length scale attribute."
             )
     except AttributeError as e:
-        raise TypeError(f"Unsupported kernel type: {type(kernel)}") from e
+        raise TypeError(
+            f"Unsupported kernel type: {type(kernel)}"
+        ) from e
 
 
-def rbf_mean_post(gp: GPFit, container: Container, gp_results: dict):
+def rbf_mean_post(gp: GPFit, container: Container,
+                  gp_results: dict):
     """
     calculate the posterior mean of integral using RBF kernel
 
@@ -41,8 +45,10 @@ def rbf_mean_post(gp: GPFit, container: Container, gp_results: dict):
         the posterior mean fo integral and partial mean of kernel
     """
 
-    ### Extract necessary information
-    l = get_length_scale(gp.kernel_)
+    # ==============================
+    # Extract necessary information
+    # ==============================
+    length_scale = get_length_scale(gp.kernel_)
 
     xs = gp.X_train_
 
@@ -52,10 +58,13 @@ def rbf_mean_post(gp: GPFit, container: Container, gp_results: dict):
 
     K_inv_y = gp.alpha_.reshape(-1)
 
-    ### apply the formulae using scipy.erf
-    erf_b = erf((b - xs) / (np.sqrt(2) * l))
-    erf_a = erf((a - xs) / (np.sqrt(2) * l))
-    k_tilde = (erf_b - erf_a).prod(axis=1) * ((l * np.sqrt(np.pi / 2)) ** container.D)
+    # ==================================
+    # apply the formulae using scipy.erf
+    # ==================================
+    erf_b = erf((b - xs) / (np.sqrt(2) * length_scale))
+    erf_a = erf((a - xs) / (np.sqrt(2) * length_scale))
+    k_tilde = (erf_b - erf_a).prod(axis=1) * (
+        (length_scale * np.sqrt(np.pi / 2)) ** container.D)
 
     try:
         y_mean = gp_results["y_mean"]
@@ -72,24 +81,29 @@ def rbf_var_post(
     jitter: float = 1e-8,
     threshold: float = 1e10,
 ):
-    """calculate the posterior variance of integral estimate obtained using RBF kernel"""
+    """
+    calculate the posterior variance of integral
+    estimate obtained using RBF kernel
+    """
     b = container.maxs  # right boarder
     a = container.mins  # left boarder
 
     xs = gp.X_train_
 
-    l = gp.kernel_.length_scale
+    length_scale = gp.kernel_.length_scale
 
     def integrand(x_j_prime, a_j, b_j):
-        return erf((b_j - x_j_prime) / (np.sqrt(2) * l)) - erf(
-            (a_j - x_j_prime) / (np.sqrt(2) * l)
+        return erf((b_j - x_j_prime) / (
+            np.sqrt(2) * length_scale)) - erf(
+            (a_j - x_j_prime) / (
+                np.sqrt(2) * length_scale)
         )
 
     result = 1
     for j in range(container.D):
         integ_j, _ = quad(integrand, a[j], b[j], args=(a[j], b[j]))
         result *= integ_j
-    k_mean = l * np.sqrt(np.pi / 2) * result
+    k_mean = length_scale * np.sqrt(np.pi / 2) * result
 
     K = gp.kernel_(xs)
     if np.linalg.cond(K) > threshold:
@@ -112,7 +126,8 @@ def poly_post(
     threshold: float = 1e10,
 ) -> Tuple[float, float]:
     """
-    Calculate the posterior mean and variance of the integral estimate using a polynomial kernel.
+    Calculate the posterior mean and variance of
+    the integral estimate using a polynomial kernel.
 
     Parameters
     ----------
@@ -121,16 +136,18 @@ def poly_post(
     container : Container
         The container object that holds the boundaries.
     gp_results : dict
-        Results from gp.fit() necessary for performing the kernel integral.
+        Results from gp.fit() necessary
+        for performing the kernel integral.
     d : int
         The degree of the polynomial kernel.
     c : float
         The coefficient in the polynomial kernel.
     jitter : float, optional
-        Small value added to the diagonal of the kernel matrix to ensure stability.
+        Small value added to the diagonal of
+        the kernel matrix to ensure stability. \n
         Defaults to 1e-8.
     threshold : float, optional
-        Condition number threshold for the kernel matrix.
+        Condition number threshold for the kernel matrix. \n
         Defaults to 1e10.
 
     Returns
@@ -150,11 +167,13 @@ def poly_post(
 
     k_tilde = np.zeros(xs.shape[0])
 
-    # Compute the kernel partial mean (k_tilde) and mean (y_mean) integral
+    # Compute the kernel partial mean (k_tilde)
+    # and mean (y_mean) integral
     for j in range(1, d + 1):
         coeff = binom(d, j) * c ** (d - j)
         integral = np.prod(
-            [(b[k] ** (j + 1) - a[k] ** (j + 1)) / (j + 1) for k in range(container.D)]
+            [(b[k] ** (j + 1) - a[k] ** (j + 1)) / (j + 1)
+             for k in range(container.D)]
         )
         k_tilde += coeff * np.prod(xs**j, axis=1) * integral
 
@@ -163,7 +182,8 @@ def poly_post(
     except KeyError:
         raise KeyError("Cannot find y_mean in gp_results")
 
-    posterior_mean = np.dot(K_inv_y, k_tilde) + y_mean * container.volume
+    posterior_mean = np.dot(K_inv_y, k_tilde) + \
+        y_mean * container.volume
 
     if return_std:
         # Compute the kernel mean (k_mean) integral for posterior variance
@@ -172,7 +192,8 @@ def poly_post(
             coeff = binom(d, j) * c ** (d - j)
             integral = np.prod(
                 [
-                    (b[k] ** (j + 1) - a[k] ** (j + 1)) / (j + 1)
+                    (b[k] ** (j + 1) -
+                     a[k] ** (j + 1)) / (j + 1)
                     for k in range(container.D)
                 ]
             )
@@ -184,7 +205,8 @@ def poly_post(
             K += np.eye(K.shape[0]) * jitter
         K_inv = np.linalg.inv(K)
 
-        posterior_variance = k_mean - np.dot(k_tilde.T, np.dot(K_inv, k_tilde))
+        posterior_variance = k_mean - np.dot(
+            k_tilde.T, np.dot(K_inv, k_tilde))
     else:
         posterior_variance = None
 
@@ -218,23 +240,29 @@ def kernel_integration(
         When True, return the standard deviation of GP estimation.
     kernel_mean_post : function, optional
         Must be provided if not using RBF kernel. \n
-        Takes a GPFit, Container, and dictionary (gp fitting results),
+        Takes a GPFit, Container,
+        and dictionary (gp fitting results),
         and returns a float (integral estimate).
     kernel_var_post : function, optional
         Must be provided if not using RBF kernel. \n
-        Takes a GPFit, Container, and returns a float (posterior variance).
+        Takes a GPFit, Container,
+        and returns a float (posterior variance).
     kernel_post : function, optional
         Alternative to kernel_mean_post, kernel_var_post. \n
         Must take GPFit, Container, dict (gp fitting results),
-        and return_std : bool, and return estimate and var_post simultaneously.
+        and return_std : bool, and
+        return estimate and var_post simultaneously.
     kernel_params : dict, optional
         Additional parameters specific to the kernel functions.
 
     Returns
     -------
     dict
-        - integral (float): The integral estimate.
-        - std (float): The standard deviation of the integral (if return_std is True).
+        - integral (float):
+            The integral estimate.
+        - std (float):
+            The standard deviation of the integral
+            (if return_std is True).
     """
     gp = igp.gp
 

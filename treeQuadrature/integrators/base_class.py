@@ -11,7 +11,8 @@ class Integrator(ABC):
     """
 
     @abstractmethod
-    def __call__(self, problem: Problem, return_N: bool, **kwargs: Any) -> ResultDict:
+    def __call__(self, problem: Problem, return_N: bool,
+                 **kwargs: Any) -> ResultDict:
         """
         Perform integration on the given problem.
 

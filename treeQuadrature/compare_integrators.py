@@ -3,8 +3,12 @@ from .integrators import TreeIntegrator, Integrator
 from .container_integrators import ContainerIntegral
 from .visualisation import plot_containers
 from .container import Container
-
-import warnings, time, csv, os, multiprocessing, itertools
+import warnings
+import time
+import csv
+import os
+import multiprocessing
+import itertools
 
 from inspect import signature
 import numpy as np
@@ -12,13 +16,16 @@ from typing import List, Optional, Any
 from traceback import print_exc
 
 
-def integrator_wrapper(integrator, problem, verbose, result_queue, specific_kwargs={}):
+def integrator_wrapper(integrator, problem, verbose,
+                       result_queue, specific_kwargs={}):
     parameters = signature(integrator).parameters
     try:
         if verbose >= 2 and "verbose" in parameters:
-            result = integrator(problem, return_N=True, verbose=True, **specific_kwargs)
+            result = integrator(problem, return_N=True,
+                                verbose=True, **specific_kwargs)
         else:
-            result = integrator(problem, return_N=True, **specific_kwargs)
+            result = integrator(problem, return_N=True,
+                                **specific_kwargs)
         result_queue.put({"result": result})
     except Exception as e:
         result_queue.put({"exception": e})
@@ -62,30 +69,33 @@ def compare_integrators(
     integrators : List[Integrator]
         A list of integrator instances to be compared.
     problem : Problem
-        The problem instance containing the integrand and true answer.
+        The problem instance containing
+        the integrand and true answer.
     plot : bool, optional
-        Whether to plot the contributions of the integrators.
+        Whether to plot the contributions of the integrators. \n
         Default is False.
     plot_samples : bool, optional
-        Whether to plot samples on the figure produced.
+        Whether to plot samples on the figure produced. \n
         Default is True.
         Will be ignored if plot=False.
     verbose : int, optional
         If 0, print no message;
         if 1, print the test runs;
-        if 2, print the messages within integrators.
+        if 2, print the messages within integrators. \n
         Default is 1.
     xlim, ylim : List[float], optional
-        The limits for the plot containers.
+        The limits for the plot containers. \n
         Will not be used when plot=False.
     dimensions : List[float], optional
         Which dimensions to plot for higher dimensional problems.
     n_repeat : int, optional
-        Number of times to repeat the integration and average the results.
+        Number of times to repeat the integration
+        and average the results. \n
         Default is 1.
     integrator_specific_kwargs : dict, optional
-        A dictionary where the keys are names of integrators and the values are
-        dictionaries of specific arguments to be passed to those integrators.
+        A dictionary where the keys are names of integrators
+        and the values are dictionaries of specific arguments
+        to be passed to those integrators. \n
         Default is None.
     **kwargs : Any
         kwargs that should be used by integrator.__call__ method
@@ -95,7 +105,8 @@ def compare_integrators(
         integrator_specific_kwargs = {}
 
     for i, integrator in enumerate(integrators):
-        integrator_name = getattr(integrator, "name", f"integrator[{i}]")
+        integrator_name = getattr(integrator, "name",
+                                  f"integrator[{i}]")
 
         if verbose >= 1:
             print(f"Testing {integrator_name}")
@@ -105,12 +116,15 @@ def compare_integrators(
         times = []
 
         integrator_params = signature(integrator.__call__).parameters
-        applicable_kwargs = {k: v for k, v in kwargs.items() if k in integrator_params}
+        applicable_kwargs = {k: v for k, v in kwargs.items()
+                             if k in integrator_params}
 
         if hasattr(integrator, "tree"):
-            construct_tree_params = signature(integrator.tree.construct_tree).parameters
+            construct_tree_params = signature(
+                integrator.tree.construct_tree).parameters
             applicable_kwargs.update(
-                {k: v for k, v in kwargs.items() if k in construct_tree_params}
+                {k: v for k, v in kwargs.items()
+                 if k in construct_tree_params}
             )
 
         if hasattr(integrator, "integral"):
@@ -118,7 +132,8 @@ def compare_integrators(
                 integrator.integral.containerIntegral
             ).parameters
             applicable_kwargs.update(
-                {k: v for k, v in kwargs.items() if k in container_params}
+                {k: v for k, v in kwargs.items()
+                 if k in container_params}
             )
 
         # Prepare common arguments
@@ -132,7 +147,8 @@ def compare_integrators(
 
         # Merge common arguments with applicable kwargs
         integration_args.update(applicable_kwargs)
-        integration_args.update(integrator_specific_kwargs.get(integrator_name, {}))
+        integration_args.update(
+            integrator_specific_kwargs.get(integrator_name, {}))
 
         for i in range(n_repeat):
             if verbose >= 1:
@@ -142,7 +158,8 @@ def compare_integrators(
                 # Perform integration
                 result = integrator(problem, **integration_args)
             except Exception as e:
-                print(f"Error during integration with {integrator_name}: {e}")
+                print("Error during integration with "
+                      f"{integrator_name}: {e}")
                 print_exc()
                 continue
 
@@ -165,7 +182,8 @@ def compare_integrators(
         std_time = np.std(times)
 
         if problem.answer != 0:
-            errors = 100 * (np.array(estimates) - problem.answer) / problem.answer
+            errors = 100 * (
+                np.array(estimates) - problem.answer) / problem.answer
             avg_error = np.mean(errors)
             std_error = np.std(errors)
             error_name = "Signed Relative error"
@@ -196,7 +214,8 @@ def compare_integrators(
                     raise ValueError("xlim must be provided for plotting")
                 plot_params = signature(plot_containers).parameters
                 applicable_kwargs = {
-                    k: v for k, v in kwargs.items() if k in plot_params
+                    k: v for k, v in kwargs.items()
+                    if k in plot_params
                 }
                 title = applicable_kwargs.pop("title", default_title)
                 plot_containers(
@@ -210,18 +229,21 @@ def compare_integrators(
                     **applicable_kwargs,
                 )
         elif plot:
-            warnings.warn("Result of integrator has no containers to plot", UserWarning)
+            warnings.warn(
+                "Result of integrator has no containers to plot",
+                UserWarning)
 
-        print(f"----------------------------------")
+        print("----------------------------------")
 
 
-## protection to code interruption
+# protection to code interruption
 def load_existing_results(output_file: str) -> dict:
     if not os.path.exists(output_file):
         return {}
     with open(output_file, mode="r", newline="") as file:
         reader = csv.DictReader(file)
-        return {(row["integrator"], row["problem"]): row for row in reader}
+        return {(row["integrator"], row["problem"]): row
+                for row in reader}
 
 
 def write_results(
@@ -318,18 +340,21 @@ def test_integrators(
             print(f"testing Probelm: {problem_name}")
 
         for i, integrator in enumerate(integrators):
-            integrator_name = getattr(integrator, "name", f"integrator[{i}]")
+            integrator_name = getattr(integrator, "name",
+                                      f"integrator[{i}]")
 
             # Check if the result already exists and is valid
             key = (integrator_name, problem_name)
             if (
                 key in existing_results
                 and existing_results[key]["estimate"] != ""
-                and (existing_results[key]["integrator"] not in retest_integrators)
+                and (existing_results[key]["integrator"]
+                     not in retest_integrators)
             ):
                 if verbose >= 1:
                     print(
-                        f"Skipping {integrator_name} for {problem_name}: already completed."
+                        f"Skipping {integrator_name} "
+                        f"for {problem_name}: already completed."
                     )
                 results.append(existing_results[key])
                 continue
@@ -341,7 +366,8 @@ def test_integrators(
             n_evals_list = []
             total_time_taken = 0
 
-            specific_kwargs = integrator_specific_kwargs.get(integrator.name, {}).copy()
+            specific_kwargs = integrator_specific_kwargs.get(
+                integrator.name, {}).copy()
 
             if "integrand" in specific_kwargs:
                 specific_kwargs["integrand"] = problem.integrand
@@ -354,14 +380,16 @@ def test_integrators(
 
                 process = multiprocessing.Process(
                     target=integrator_wrapper,
-                    args=(integrator, problem, verbose, result_queue, specific_kwargs),
+                    args=(integrator, problem, verbose,
+                          result_queue, specific_kwargs),
                 )
                 process.start()
                 process.join(timeout=max_time)
 
                 if process.is_alive():
                     print(
-                        f"Time limit exceeded for {integrator_name} on {problem_name}, "
+                        "Time limit exceeded for "
+                        f"{integrator_name} on {problem_name}, "
                         "increase max_time or change the problem/integrator"
                     )
                     process.terminate()
@@ -418,7 +446,8 @@ def test_integrators(
                 avg_time_taken = total_time_taken / n_repeat
 
                 if problem.answer != 0:
-                    errors = 100 * (estimates - problem.answer) / problem.answer
+                    errors = 100 * (
+                        estimates - problem.answer) / problem.answer
                     avg_error = f"{np.mean(errors):.4f} %"
                     error_std = f"{np.std(errors):.4f} %"
                     error_name = "Signed Relative error"
@@ -447,25 +476,30 @@ def test_integrators(
             existing_results[key] = new_result
 
             # Write results incrementally to ensure recovery
-            write_results(output_file, [new_result], is_first_run, fieldnames)
+            write_results(
+                output_file, [new_result],
+                is_first_run, fieldnames)
             is_first_run = False
 
     write_results(
-        output_file, list(existing_results.values()), True, fieldnames, mode="w"
+        output_file, list(
+            existing_results.values()), True, fieldnames, mode="w"
     )
 
     print(f"Results saved to {output_file}")
 
 
 def _test_integrals_single_problem(
-    problem, integrals: ContainerIntegral, integrator: TreeIntegrator, verbose: int
+    problem, integrals: ContainerIntegral,
+    integrator: TreeIntegrator, verbose: int
 ):
     """Test container integrators on the same tree"""
     return_values = [[] for _ in range(len(integrals))]
 
     # construct tree
     X, y = integrator.sampler.rvs(
-        integrator.base_N, problem.lows, problem.highs, problem.integrand
+        integrator.base_N, problem.lows,
+        problem.highs, problem.integrand
     )
 
     root = Container(X, y, mins=problem.lows, maxs=problem.highs)
@@ -520,12 +554,14 @@ def test_container_integrals(
     output_file : str
         The file path to save the results as a CSV.
     n_repeat : int
-        Number of times to repeat the integration and average the results.
+        Number of times to repeat the integration
+        \and average the results.
     verbose : int, optional
         Level of verbosity (default is 1):
-            0 - print no messages.
-            1 - print basic progress messages.
-            2 - print detailed progress messages, including each repetition.
+            0 - print no messages. \n
+            1 - print basic progress messages. \n
+            2 - print detailed progress messages,
+            including each repetition.
     """
     existing_results = load_existing_results(output_file)
     n_integrals = len(integrals)
@@ -559,7 +595,9 @@ def test_container_integrals(
             print(f"testing Probelm: {problem_name}")
 
         key = (integral_names[0], problem_name)
-        if key in existing_results and existing_results[key]["estimate"] != "":
+        if key in existing_results and (
+            existing_results[key]["estimate"] != ""
+        ):
             if verbose >= 1:
                 print(f"Skipping {problem_name}: already completed.")
             final_results[key] = existing_results[key]
@@ -593,7 +631,8 @@ def test_container_integrals(
                 avg_estimate = np.mean(integral_estimates)
                 avg_n_evals = int(np.mean(n_evals_list[i]))
 
-                errors = 100 * (integral_estimates - problem.answer) / problem.answer
+                errors = 100 * (
+                    integral_estimates - problem.answer) / problem.answer
                 avg_error = f"{np.median(errors):.4f} %"
                 error_std = f"{np.std(errors):.4f} %"
                 error_name = "Signed Relative error"
@@ -617,13 +656,18 @@ def test_container_integrals(
 
             # Update the existing results
             for i in range(n_integrals):
-                final_results[(integral_names[i], problem_name)] = new_results[i]
+                final_results[
+                    (integral_names[i], problem_name)
+                ] = new_results[i]
 
             # Write results incrementally to ensure recovery
-            write_results(output_file, new_results, is_first_run, fieldnames)
+            write_results(output_file, new_results,
+                          is_first_run, fieldnames)
         is_first_run = False
 
-    write_results(output_file, list(final_results.values()), True, fieldnames, mode="w")
+    write_results(
+        output_file, list(final_results.values()),
+        True, fieldnames, mode="w")
     print(f"Results saved to {output_file}")
 
 
@@ -649,20 +693,25 @@ def test_integrator_performance_with_params(
     problem : Problem
         The problem instance containing the integrand and true answer.
     param_grid : dict
-        Dictionary where keys are parameter names and values are lists of parameter values to test.
+        Dictionary where keys are parameter names
+        and values are lists of parameter values to test.
         Example: {'base_N': [1000, 5000], 'P': [40, 60]}
     output_file : str, optional
-        The file path to save the results as a CSV. Default is 'results.csv'.
+        The file path to save the results as a CSV. \n
+        Default is 'results.csv'.
     max_time : float, optional
-        Maximum allowed time (in seconds) for each integration. Default is 60.0 seconds.
+        Maximum allowed time (in seconds) for each integration. \n
+        Default is 60.0 seconds.
     verbose : int, optional
         if 1, print the problem and integrator being tested;
         if 2, print details of each integrator as well;
         if 0, print nothing. Default is 1.
     seed : int, optional
-        specify the randomness seed for reproducibility. Default is 2024.
+        specify the randomness seed for reproducibility. \n
+        Default is 2024.
     n_repeat : int, optional
-        Number of times to repeat the integration and average the results. Default is 1.
+        Number of times to repeat the integration
+        and average the results. Default is 1.
     kwargs : Any
         arguments required for integrator.__call__ method
     """
@@ -698,7 +747,8 @@ def test_integrator_performance_with_params(
     for param in param_grid:
         if not hasattr(integrator, param):
             raise ValueError(
-                f"Integrator does not have a attribute '{param}' specified in param_grid"
+                "Integrator does not have a attribute "
+                f"'{param}' specified in param_grid"
             )
 
     # Generate combinations of parameter values
@@ -711,9 +761,12 @@ def test_integrator_performance_with_params(
     for params in param_combinations:
         key = tuple(params.items())
 
-        if key in existing_results and existing_results[key]["estimate"] != "":
+        if key in existing_results and (
+            existing_results[key]["estimate"] != ""
+        ):
             if verbose >= 1:
-                print(f"Skipping combination {params}: already completed.")
+                print(f"Skipping combination {params}: "
+                      "already completed.")
             results.append(existing_results[key])
             continue
 
@@ -743,7 +796,8 @@ def test_integrator_performance_with_params(
 
             if process.is_alive():
                 print(
-                    f"Time limit exceeded for {integrator.name} with {params}, "
+                    "Time limit exceeded for "
+                    f"{integrator.name} with {params}, "
                     "increase max_time or change the problem/integrator"
                 )
                 process.terminate()
@@ -802,7 +856,8 @@ def test_integrator_performance_with_params(
             avg_time_taken = total_time_taken / n_repeat
 
             if problem.answer != 0:
-                errors = 100 * (estimates - problem.answer) / problem.answer
+                errors = 100 * (
+                    estimates - problem.answer) / problem.answer
                 avg_error = f"{np.mean(errors):.4f} %"
                 error_std = f"{np.std(errors):.4f} %"
                 error_name = "Signed Relative error"
@@ -832,11 +887,13 @@ def test_integrator_performance_with_params(
         existing_results[key] = new_result
 
         # Write results incrementally to ensure recovery
-        write_results(output_file, [new_result], is_first_run, fieldnames)
+        write_results(output_file, [new_result],
+                      is_first_run, fieldnames)
         is_first_run = False
 
     write_results(
-        output_file, list(existing_results.values()), True, fieldnames, mode="w"
+        output_file, list(existing_results.values()),
+        True, fieldnames, mode="w"
     )
 
     print(f"Results saved to {output_file}")

@@ -25,7 +25,8 @@ class SmcIntegrator(Integrator):
         self.sampler = sampler
 
     def __call__(
-        self, problem: Problem, return_N: bool = False, return_std: bool = False
+        self, problem: Problem, return_N: bool = False,
+        return_std: bool = False
     ) -> ResultDict:
         """
         Perform the integration process.
@@ -37,15 +38,19 @@ class SmcIntegrator(Integrator):
         return_N : bool, optional
             If True, return the number of samples used.
         return_std : bool, optional
-            If True, return the standard deviation of the Monte Carlo estimate.
+            If True, return the standard deviation of
+            the Monte Carlo estimate.
 
         Return
         -------
         dict
             with the following keys:
-            - 'estimate' (float) : estimated integral value
-            - 'n_evals' (int) :  number of function estiamtions, if return_N is True
-            - 'std' (float) : standard deviation of the estimate, if return_std is True
+            - 'estimate' (float) :
+                estimated integral value
+            - 'n_evals' (int) :
+                number of function estiamtions, if return_N is True
+            - 'std' (float) :
+                standard deviation of the estimate, if return_std is True
         """
         # Draw N samples from the prior distribution
         if isinstance(problem, BayesProblem):
@@ -53,7 +58,8 @@ class SmcIntegrator(Integrator):
             ys = problem.integrand(xs)
         else:
             raise ValueError(
-                "problem is not BayesProblem, and " "integrator does not have sampler"
+                "problem is not BayesProblem, and "
+                "integrator does not have sampler"
             )
         # Evaluate the likelihood at these samples
         G = np.mean(ys)

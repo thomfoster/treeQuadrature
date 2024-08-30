@@ -10,7 +10,8 @@ class MixedSampler(Sampler):
     """
 
     def __init__(
-        self, samplers: List[Sampler], proportions: Optional[List[float]] = None
+        self, samplers: List[Sampler],
+        proportions: Optional[List[float]] = None
     ):
         """
         Arguments
@@ -28,12 +29,14 @@ class MixedSampler(Sampler):
         else:
             if len(proportions) != len(samplers):
                 raise ValueError(
-                    "Length of proportions must match the number of samplers."
+                    "Length of proportions must "
+                    "match the number of samplers."
                 )
             self.proportions = proportions
 
         # Normalize proportions to sum to 1
-        self.proportions = np.array(self.proportions) / np.sum(self.proportions)
+        self.proportions = np.array(
+            self.proportions) / np.sum(self.proportions)
 
     def rvs(
         self, n: int, mins: np.ndarray, maxs: np.ndarray, f: callable, **kwargs
@@ -70,9 +73,12 @@ class MixedSampler(Sampler):
         all_values = []
 
         # Draw samples from each sampler
-        for sampler, num_samples in zip(self.samplers, samples_distribution):
+        for sampler, num_samples in zip(
+            self.samplers, samples_distribution
+        ):
             if num_samples > 0:
-                samples, values = sampler.rvs(num_samples, mins, maxs, f, **kwargs)
+                samples, values = sampler.rvs(
+                    num_samples, mins, maxs, f, **kwargs)
                 all_samples.append(samples)
                 all_values.append(values)
 

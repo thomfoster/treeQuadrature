@@ -60,9 +60,12 @@ class ResultDict(MutableMapping):
             - n_evals (int): The number of evaluations.
             - std (float): The standard deviation of the estimate. \n
             For tree integrators:
-            - containers (List[Container]): The containers used in the integration process.
-            - contributions (List[float]): The contributions of each container to the estimate.
-            - stds (List[float]): The standard deviations of the contributions.
+            - containers (List[Container]):
+                The containers used in the integration process.
+            - contributions (List[float]):
+                The contributions of each container to the estimate.
+            - stds (List[float]):
+                The standard deviations of the contributions.
 
         Example
         -------
@@ -94,31 +97,36 @@ class ResultDict(MutableMapping):
                 )
         elif key == "n_evals":
             if not isinstance(value, int):
-                raise TypeError(f"'n_evals' must be an int, got {type(value).__name__}")
+                raise TypeError("'n_evals' must be an int, "
+                                f"got {type(value).__name__}")
         elif key == "containers":
             if not isinstance(value, list) or not all(
                 isinstance(v, Container) for v in value
             ):
                 raise TypeError(
-                    f"'containers' must be a List[Container], got {type(value).__name__}"
+                    "'containers' must be a List[Container], "
+                    f"got {type(value).__name__}"
                 )
         elif key == "contributions":
             if not isinstance(value, list) or not all(
                 isinstance(v, float) for v in value
             ):
                 raise TypeError(
-                    f"'contributions' must be a List[float], got {type(value).__name__}"
+                    "'contributions' must be a List[float], "
+                    f"got {type(value).__name__}"
                 )
         elif key == "stds":
             if not isinstance(value, list) or not all(
                 isinstance(v, float) for v in value
             ):
                 raise TypeError(
-                    f"'stds' must be a List[float], got {type(value).__name__}"
+                    "'stds' must be a List[float], "
+                    f"got {type(value).__name__}"
                 )
         elif key == "std":
             if not isinstance(value, float):
-                raise TypeError(f"'std' must be a float, got {type(value).__name__}")
+                raise TypeError("'std' must be a float, "
+                                f"got {type(value).__name__}")
 
         self._data[key] = value
 
@@ -142,5 +150,6 @@ class ResultDict(MutableMapping):
 
     def setdefault(self, key: str, default: Any = None) -> Any:
         if key == "estimate" and not isinstance(default, float):
-            raise TypeError(f"'estimate' must be a float, got {type(default).__name__}")
+            raise TypeError("'estimate' must be a float, "
+                            f"got {type(default).__name__}")
         return self._data.setdefault(key, default)

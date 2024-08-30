@@ -49,7 +49,9 @@ class RandomIntegral(ContainerIntegral):
         self, container: Container, f: Callable, return_std: bool = False
     ):
 
-        xs, ys = self.sampler.rvs(self.n_samples, container.mins, container.maxs, f)
+        xs, ys = self.sampler.rvs(self.n_samples,
+                                  container.mins, container.maxs,
+                                  f)
         # check samples are correct
         if xs.shape[0] != ys.shape[0]:
             raise ValueError(

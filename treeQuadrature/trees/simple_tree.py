@@ -1,6 +1,7 @@
 from queue import SimpleQueue
 from typing import List
-import time, warnings
+import time
+import warnings
 
 from .base_class import Tree
 from ..container import Container
@@ -84,7 +85,8 @@ class SimpleTree(Tree):
                     for child in children:
                         q.put(child)
 
-            if iteration_count % 100 == 0 and verbose:  # Log every 100 iterations
+            # Log every 100 iterations
+            if iteration_count % 100 == 0 and verbose:
                 elapsed_time = time.time() - start_time
                 print(
                     f"Iteration {iteration_count}: Queue size = {q.qsize()}, "

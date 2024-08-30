@@ -6,7 +6,8 @@ from typing import Tuple, List
 class Sampler(ABC):
     @abstractmethod
     def rvs(
-        self, n: int, mins: np.ndarray, maxs: np.ndarray, f: callable, *args, **kwargs
+        self, n: int, mins: np.ndarray, maxs: np.ndarray,
+        f: callable, *args, **kwargs
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         A method to generate random samples
@@ -56,7 +57,10 @@ class Sampler(ABC):
             mins = mins.reshape(-1)
             maxs = maxs.reshape(-1)
         elif mins.ndim != 1:
-            raise ValueError("mins and maxs must be one dimensional arrays," "got ")
+            raise ValueError("mins and maxs must be "
+                             "one dimensional arrays, got "
+                             f"mins: {mins.shape}, "
+                             f"maxs: {maxs.shape}")
 
         return mins, maxs, mins.shape[0]
 
@@ -84,7 +88,9 @@ class Sampler(ABC):
         """
         strata = []
         for indices in np.ndindex(*(strata_per_dim,) * len(mins)):
-            sub_low = mins + (maxs - mins) * np.array(indices) / strata_per_dim
-            sub_high = mins + (maxs - mins) * (np.array(indices) + 1) / strata_per_dim
+            sub_low = mins + (maxs - mins) * \
+                np.array(indices) / strata_per_dim
+            sub_high = mins + (maxs - mins) * \
+                (np.array(indices) + 1) / strata_per_dim
             strata.append((sub_low, sub_high))
         return strata

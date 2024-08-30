@@ -15,7 +15,8 @@ class ShapeAdapter:
 
 class VegasIntegrator(Integrator):
     """
-    Integrator that uses the VEGAS algorithm for adaptive Monte Carlo integration.
+    Integrator that uses the VEGAS algorithm for
+    adaptive Monte Carlo integration.
 
     Parameters
     ----------
@@ -30,7 +31,8 @@ class VegasIntegrator(Integrator):
         self.n_iter = n_iter
         self.n_adaptive = n_adaptive
 
-    def __call__(self, problem: Problem, return_N: bool = False) -> ResultDict:
+    def __call__(self, problem: Problem,
+                 return_N: bool = False) -> ResultDict:
         """
         Perform the integration process using the VEGAS algorithm.
 
@@ -45,8 +47,10 @@ class VegasIntegrator(Integrator):
         -------
         dict
             with the following keys:
-            - 'estimate' (float) : estimated integral value
-            - 'n_evals' (int) :  number of function estiamtions, if return_N is True
+            - 'estimate' (float):
+                estimated integral value
+            - 'n_evals' (int):
+                number of function estiamtions, if return_N is True
         """
         domain_bounds = []
         for i in range(problem.D):

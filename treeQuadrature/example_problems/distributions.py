@@ -22,7 +22,8 @@ class Distribution(ABC):
         n : int
             number of samples
         *args, **kwargs : Any
-            Additional arguments and keyword arguments for generating the random variates.
+            Additional arguments and keyword arguments
+            for generating the random variates.
 
         Return
         -------
@@ -35,11 +36,17 @@ class Distribution(ABC):
     @abstractmethod
     def pdf(self, X, *args, **kwargs) -> np.ndarray:
         """
-        Calculate the probability density function (pdf) at given point x.
+        Calculate the probability density function (pdf)
+        at given point x.
 
-        Args:
-            X: array of points on which the pdf value should be evaluated
-            *args, **kwargs: Additional arguments and keyword arguments for the pdf computation.
+        Parameters:
+        -----------
+
+        X : np.ndarray
+            array of points on which the pdf value should be evaluated
+        *args, **kwargs: Any
+            Additional arguments and
+            keyword arguments for the pdf computation.
 
         Returns: numpy.ndarray
             The probability densities at x_i (rows of X)
@@ -47,7 +54,9 @@ class Distribution(ABC):
         pass
 
 
-### Distributions
+# =====================
+# Example Distributions
+# =====================
 class Uniform(Distribution):
     """
     Uniform distribution
@@ -71,14 +80,17 @@ class Uniform(Distribution):
             return np.array(value)
 
     def rvs(self, n):
-        return np.random.uniform(low=self.low, high=self.high, size=(n, self.D))
+        return np.random.uniform(low=self.low,
+                                 high=self.high, size=(n, self.D))
 
     def pdf(self, X):
         within_bounds = np.all((X >= self.low) & (X <= self.high), axis=1)
-        pdfVal = np.prod(self.high - self.low)  # Volume of the hyperrectangle
+        # Volume of the hyperrectangle
+        pdfVal = np.prod(self.high - self.low)
 
         # Calculate the PDF values
-        pdf_values = np.where(within_bounds, 1 / pdfVal, 0).reshape(X.shape[0], 1)
+        pdf_values = np.where(
+            within_bounds, 1 / pdfVal, 0).reshape(X.shape[0], 1)
         return pdf_values
 
 
@@ -104,7 +116,9 @@ class MultivariateNormal(Distribution):
             self.cov = cov * np.eye(D)
         else:
             self.cov = np.array(cov)
-            assert self.cov.shape == (D, D), "Covariance matrix must be of shape (D, D)"
+            assert self.cov.shape == (D, D), (
+                "Covariance matrix must be of shape (D, D), "
+            )
 
         # Check if the covariance matrix is positive definite
         eigenvalues = np.linalg.eigvals(self.cov)

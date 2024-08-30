@@ -7,7 +7,8 @@ from ..utils import handle_bound
 
 class ProductPeak(Problem):
     def __init__(
-        self, D: int, u: Optional[np.ndarray] = None, a: Optional[np.ndarray] = None
+        self, D: int, u: Optional[np.ndarray] = None,
+        a: Optional[np.ndarray] = None
     ):
         """
         Initialize a product peak problem with the given parameters.
@@ -17,19 +18,23 @@ class ProductPeak(Problem):
         D : int
             The dimension of the problem.
         u : np.ndarray or None, optional
-            The location of the peaks in each dimension. If None, it is set
-            to be evenly spaced between 0.2 and 0.8 across the dimensions.
+            The location of the peaks in each dimension.
+            If None, it is set to be evenly spaced
+            between 0.2 and 0.8 across the dimensions.
         a : np.ndarray or None, optional
-            The sharpness of the peaks in each dimension. If None, it is set
-            to an array of ones, meaning equal sharpness in all dimensions.
+            The sharpness of the peaks in each dimension.
+            If None, it is set to an array of ones,
+            meaning equal sharpness in all dimensions.
 
         Notes
         -----
         `ProductPeak` is a multidimensional integration problem where the
-        integrand has peaks at specific locations in each dimension, controlled by
-        the vector `u`. The sharpness of these peaks is determined by the vector `a`,
-        where larger values of `a` result in sharper peaks, meaning the function values
-        drop off more quickly as you move away from the peak location.
+        integrand has peaks at specific locations in each dimension,
+        controlled by the vector `u`. \n
+        The sharpness of these peaks is determined by the vector `a`,
+        where larger values of `a` result in sharper peaks,
+        meaning the function values drop off more quickly as you
+        move away from the peak location.
 
         The integration domain is always [0, 1]^D
         """
@@ -43,7 +48,9 @@ class ProductPeak(Problem):
             self.u = u
 
         self.answer = np.prod(
-            self.a * (np.arctan(self.a * (1 - self.u)) + np.arctan(self.a * self.u))
+            self.a * (
+                np.arctan(self.a * (1 - self.u)) +
+                np.arctan(self.a * self.u))
         )
 
     def integrand(self, X) -> np.ndarray:
@@ -53,14 +60,17 @@ class ProductPeak(Problem):
         Mathematically, the integrand function is defined as:
 
         .. math::
-            f(x) = \frac{1}{\prod_{i=1}^D \left(a_i^{-2} + (x_i - u_i)^2 \right)}
+            f(x) = \\frac{1}{\\prod_{i=1}^D \\left(a_i^{-2} +
+            (x_i - u_i)^2 \\right)}
 
         where:
-        - \( x = (x_1, x_2, \dots, x_D) \) is the input vector.
-        - \( u = (u_1, u_2, \dots, u_D) \) is a vector representing the peak location.
-        - \( a = (a_1, a_2, \dots, a_D) \) is a vector controlling the
+        - \\( x = (x_1, x_2, \\dots, x_D) \\) is the input vector.
+        - \\( u = (u_1, u_2, \\dots, u_D) \\) is
+            a vector representing the peak location.
+        - \\( a = (a_1, a_2, \\dots, a_D) \\) is
+            a vector controlling the
             sharpness of the peak along each dimension.
-        - \( D \) is the dimension of the input space.
+        - \\( D \\) is the dimension of the input space.
 
         Parameters
         ----------
@@ -73,7 +83,8 @@ class ProductPeak(Problem):
             the function value evaluated at X
         """
         X = self.handle_input(X)
-        f = [1 / np.prod(self.a ** (-2.0) + (x - self.u) ** 2) for x in X]
+        f = [1 / np.prod(
+            self.a ** (-2.0) + (x - self.u) ** 2) for x in X]
         return np.array(f).reshape(-1, 1)
 
     def __str__(self) -> str:
@@ -83,24 +94,28 @@ class ProductPeak(Problem):
 class CornerPeak(Problem):
     def __init__(self, D: int, a: Optional[np.ndarray] = None):
         """
-        Initialize a corner peak problem with the given parameters.
+        Initialize a corner peak problem
+        with the given parameters.
 
         Parameters
         ----------
         D : int
             The dimension of the problem.
         a : np.ndarray or None, optional
-            A vector controlling the "steepness" of the corner peak in each dimension.
+            A vector controlling the "steepness"
+            of the corner peak in each dimension. \n
             If None, it defaults to an array of ones,
             meaning equal steepness in all dimensions.
 
         Notes
         -----
-        `CornerPeak` is a multidimensional integration problem where the
-        integrand has a peak located near the corner of the domain [0, 1]^D.
-        The steepness of the peak is controlled by the vector `a`.
+        `CornerPeak` is a multidimensional integration problem
+        where the integrand has a peak located
+        near the corner of the domain [0, 1]^D.
+        The steepness of the peak is controlled by the vector `a`. \n
         Larger values of `a` result in a steeper
-        peak, meaning the function value drops off more quickly as you move away from
+        peak, meaning the function value drops
+        off more quickly as you move away from
         the corner where the peak is located.
         """
         super().__init__(D, lows=0.0, highs=1.0)
@@ -121,7 +136,7 @@ class CornerPeak(Problem):
         Corner Peak integrand function.
 
         .. math::
-        f(x) = \left(1 + \sum_{i=1}^{D} a_i \cdot x_i\right)^{-(D+1)}
+        f(x) = \\left(1 + \\sum_{i=1}^{D} a_i \\cdot x_i\\right)^{-(D+1)}
 
         where:
         - :math:`x` is a vector of input values,
@@ -153,7 +168,8 @@ class CornerPeak(Problem):
 
 class C0(Problem):
     def __init__(
-        self, D: int, u: Optional[np.ndarray] = None, a: Optional[np.ndarray] = None
+        self, D: int, u: Optional[np.ndarray] = None,
+        a: Optional[np.ndarray] = None
     ):
         """
         Initialize the C0 problem with the given parameters.
@@ -163,17 +179,19 @@ class C0(Problem):
         D : int
             The dimensionality of the problem.
         u : np.ndarray or None, optional
-            The location parameter that shifts the peak of the function.
+            The location parameter that shifts the peak of the function. \n
             If None, defaults to a linearly spaced array between 0.2 and 0.8.
         a : np.ndarray or None, optional
-            A vector controlling the rate of decay of the function.
-            If None, defaults to an array of ones, meaning equal decay in all dimensions.
+            A vector controlling the rate of decay of the function. \n
+            If None, defaults to an array of ones,
+            meaning equal decay in all dimensions.
 
         Notes
         -----
         `C0` is a multidimensional integration problem where the
-        integrand is a smooth, exponentially decaying function. The function
-        is centered around the vector `u`, and its rate of decay is controlled
+        integrand is a smooth, exponentially decaying function. \n
+        The function is centered around the vector `u`,
+        and its rate of decay is controlled
         by the vector `a`.
         """
         super().__init__(D, lows=0.0, highs=1.0)
@@ -186,7 +204,8 @@ class C0(Problem):
             self.u = u
 
         self.answer = np.prod(
-            (2 - np.exp(-self.a * self.u) - np.exp(-self.a * (1 - self.u))) / self.a
+            (2 - np.exp(-self.a * self.u) -
+             np.exp(-self.a * (1 - self.u))) / self.a
         )
 
     def integrand(self, X) -> np.ndarray:
@@ -194,17 +213,18 @@ class C0(Problem):
         C0 integrand function.
 
         .. math::
-        f(X) = \exp\left(-\sum_{i=1}^{D} a_i \cdot |x_i - u_i|\right)
+        f(X) = \\exp\\left(-\\sum_{i=1}^{D} a_i \\cdot |x_i - u_i|\\right)
 
         where:
 
-        - \(X = (x_1, x_2, \dots, x_D)\) is the input vector,
-        - \(a = (a_1, a_2, \dots, a_D)\) is a vector of coefficients,
-        - \(u = (u_1, u_2, \dots, u_D)\) is the vector of center points.
+        - \\(X = (x_1, x_2, \\dots, x_D)\\) is the input vector,
+        - \\(a = (a_1, a_2, \\dots, a_D)\\) is a vector of coefficients,
+        - \\(u = (u_1, u_2, \\dots, u_D)\\) is the vector of center points.
 
         The function represents an exponential decay based on the
         sum of weighted absolute differences between each component
-        of the input vector and the corresponding component of the center vector.
+        of the input vector and the corresponding
+        component of the center vector.
 
         Parameters
         ----------
@@ -228,9 +248,10 @@ class Discontinuous(Problem):
     """
     A problem with a discontinuous integrand function.
 
-    The integrand is designed to be discontinuous at specified points `u1` and `u2`.
-    The function value drops to zero beyond these thresholds, creating a discontinuity
-    in the domain.
+    The integrand is designed to be discontinuous at
+    specified points `u1` and `u2`. \n
+    The function value drops to zero beyond these thresholds,
+    creating a discontinuity in the domain.
 
     Attributes
     ----------
@@ -268,19 +289,20 @@ class Discontinuous(Problem):
         Discontinuous integrand function.
 
         The Discontinuous integrand function is defined as:
-    
+
         .. math::
-            f(X) = 
-            \begin{cases} 
-            \exp\left(\sum_{i=1}^{D} a_i \cdot x_i\right) & \text{if } X \text{ lies in the specified region}, \\
-            0 & \text{otherwise}
-            \end{cases}
-        
+            f(X) =
+            \\begin{cases}
+            \\exp\\left(\\sum_{i=1}^{D} a_i \\cdot x_i\\right) &
+            \\text{if } X \\text{ lies in the specified region}, \\\\
+            0 & \\text{otherwise}
+            \\end{cases}
+
         where:
-        
-        - \(X = (x_1, x_2, \dots, x_D)\) is the input vector,
-        - \(a = (a_1, a_2, \dots, a_D)\) is a vector of coefficients,
-        - \(u_1, u_2\) are predefined thresholds.
+
+        - \\(X = (x_1, x_2, \\dots, x_D)\\) is the input vector,
+        - \\(a = (a_1, a_2, \\dots, a_D)\\) is a vector of coefficients,
+        - \\(u_1, u_2\\) are predefined thresholds.
 
         Parameters
         ----------
@@ -295,10 +317,12 @@ class Discontinuous(Problem):
         X = self.handle_input(X)
         dotprods = np.array([np.dot(x, self.a) for x in X])
         if self.D == 1:
-            f = np.array([np.where(x[0] > self.u1, 0, 1) for x in X]) * np.exp(dotprods)
+            f = np.array([np.where(x[0] > self.u1, 0, 1)
+                          for x in X]) * np.exp(dotprods)
         else:
             f = np.array(
-                [np.where((x[0] > self.u1 or x[1] > self.u2), 0, 1) for x in X]
+                [np.where((x[0] > self.u1 or x[1] > self.u2), 0, 1)
+                 for x in X]
             ) * np.exp(dotprods)
 
         return f.reshape(-1, 1)
@@ -323,15 +347,18 @@ class Discontinuous(Problem):
         if isinstance(xs, list):
             xs = np.array(xs)
         elif not isinstance(xs, np.ndarray):
-            raise TypeError("xs must be either a list or numpy.ndarray")
+            raise TypeError(
+                "xs must be either a list or numpy.ndarray")
 
         if xs.ndim == 2 and xs.shape[1] == self.D:
             return xs
-        elif xs.ndim == 1 and xs.shape[0] == self.D:  # array with one sample
+        elif xs.ndim == 1 and xs.shape[0] == self.D:
+            # array with one sample
             return xs.reshape(1, -1)
         else:
             raise ValueError(
-                "xs must be either two dimensional array of shape (N, D)"
+                "xs must be either two dimensional array "
+                "of shape (N, D), "
                 "or one dimensional array of shape (D,)"
             )
 
@@ -397,7 +424,8 @@ class Quadratic(Problem):
 
     def exact_integral(self, mins, maxs):
         """
-        Calculate the exact integral from mins to maxs for the sum of squares polynomial.
+        Calculate the exact integral from mins to maxs
+        for the sum of squares polynomial.
 
         Parameters
         ----------
@@ -417,7 +445,8 @@ class Quadratic(Problem):
 
         for i in range(D):
             term = (maxs[i] ** 3 - mins[i] ** 3) / 3
-            product = np.prod([maxs[j] - mins[j] for j in range(D) if j != i])
+            product = np.prod([maxs[j] - mins[j]
+                               for j in range(D) if j != i])
             integral_sum += term * product
 
         return integral_sum
@@ -438,7 +467,8 @@ class ExponentialProduct(Problem):
             dimension
         """
         super().__init__(D, lows=-1.0, highs=1.0)
-        self.answer = self.exact_integral(self.lows, self.highs)
+        self.answer = self.exact_integral(
+            self.lows, self.highs)
 
     def integrand(self, X) -> np.ndarray:
         """
@@ -460,7 +490,8 @@ class ExponentialProduct(Problem):
 
     def exact_integral(self, mins, maxs):
         """
-        Calculate the exact integral from mins to maxs for the product of exponentials.
+        Calculate the exact integral from mins to maxs
+        for the product of exponentials.
 
         Parameters
         ----------
@@ -475,7 +506,10 @@ class ExponentialProduct(Problem):
         float
             The value of the integral.
         """
-        return np.prod([np.exp(maxs[i]) - np.exp(mins[i]) for i in range(len(mins))])
+        return np.prod([
+            np.exp(maxs[i]) - np.exp(mins[i])
+            for i in range(len(mins))
+        ])
 
     def __str__(self) -> str:
         return f"ExponentialProduct(D={self.D})"

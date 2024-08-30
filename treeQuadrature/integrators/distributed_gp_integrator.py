@@ -21,7 +21,8 @@ def individual_container_integral(
     previous_samples: Optional[dict] = None,
 ):
     """
-    Perform the container integral with the option to pass in previous samples.
+    Perform the container integral with the option
+    to pass in previous samples.
 
     Parameters
     ----------
@@ -60,7 +61,8 @@ def individual_container_integral(
     n_previous = cont.N
 
     integral_results, new_samples = integral.containerIntegral(
-        cont, integrand, return_std=return_std, previous_samples=container_samples
+        cont, integrand, return_std=return_std,
+        previous_samples=container_samples
     )
 
     if cont.N - n_previous != n_samples:
@@ -143,7 +145,9 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
         all_containers = []
         all_results = []
 
-        sample_allocation = [self.min_container_samples for _ in range(len(containers))]
+        sample_allocation = [
+            self.min_container_samples for _ in range(len(containers))
+        ]
         if total_samples + sum(sample_allocation) > self.max_n_samples:
             raise ValueError(
                 "not enough samples to fit first run of GP"
@@ -152,10 +156,14 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
 
         while total_samples < self.max_n_samples and len(containers) > 0:
             if verbose:
-                print(f"largest container allocation {max(sample_allocation)}")
+                print(
+                    "largest container allocation "
+                    f"{max(sample_allocation)}"
+                )
 
             container_sample_map = {
-                id(cont): sample_allocation[i] for i, cont in enumerate(containers)
+                id(cont): sample_allocation[i]
+                for i, cont in enumerate(containers)
             }
             if self.parallel:
                 with ProcessPoolExecutor() as executor:
@@ -176,7 +184,9 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
                     new_samples_dict = {}
                     for future in as_completed(futures):
                         container_id = futures[future]
-                        integral_results, container, new_samples = future.result()
+                        integral_results, container, new_samples = (
+                            future.result()
+                        )
                         results.append((integral_results, container))
                         new_samples_dict[container] = new_samples
 
@@ -201,7 +211,8 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
                     total_samples += container_sample_map[id(cont)]
 
             if verbose:
-                print(f"Total samples used: {total_samples}/{self.max_n_samples}")
+                print("Total samples used: "
+                      f"{total_samples}/{self.max_n_samples}")
 
             if total_samples >= self.max_n_samples:
                 containers = [cont for _, cont in results]
@@ -229,7 +240,8 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
 
             # Sort containers by performance gain (delta)
             ranked_containers_results = sorted(
-                results, key=lambda x: container_performances[x[1]], reverse=True
+                results, key=lambda x: container_performances[x[1]],
+                reverse=True
             )
 
             # Allocate samples dynamically based on performance gain
@@ -249,7 +261,9 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
             # Separate out containers that received 0 samples
             containers_for_next_iteration = []
             updated_sample_allocation = []
-            for idx, (result, container) in enumerate(ranked_containers_results):
+            for idx, (result, container) in enumerate(
+                ranked_containers_results
+            ):
                 if sample_allocation[idx] > 0:
                     containers_for_next_iteration.append(container)
                     updated_sample_allocation.append(sample_allocation[idx])
@@ -288,21 +302,25 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
         container_performances: dict,
     ) -> List[int]:
         """
-        Allocate samples to containers based on their performance gain, with a strict cap on the number
+        Allocate samples to containers based on their performance gain,
+        with a strict cap on the number
         of samples allocated to any single container in this iteration.
 
         Parameters
         ----------
         ranked_containers_results : list
-            A list of tuples where each tuple contains a result dictionary and a container,
+            A list of tuples where each tuple
+            contains a result dictionary and a container,
             sorted by performance gain.
         available_samples : int
             The total number of samples available to be allocated.
         max_per_container : int, optional
-            The maximum number of samples to allocate to any single container in this iteration.
+            The maximum number of samples to
+            allocate to any single container in this iteration. \n
             Defaults to 1000.
         container_iterations : dict
-            Dictionary tracking the number of iterations each container has undergone.
+            Dictionary tracking the number of
+            iterations each container has undergone.
         max_iterations_per_container : int
             The maximum number of iterations allowed per container.
         container_performances : dict
@@ -311,7 +329,8 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
         Returns
         -------
         List[int]
-            A list containing the number of samples allocated to each container.
+            A list containing the number of
+            samples allocated to each container.
         """
         min_performance = min(container_performances.values(), default=0)
 
@@ -324,9 +343,12 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
                 weights.append(0)
                 continue
 
-            delta_performance = container_performances.get(container, 0) + shift
-            # Use np.clip to ensure the log does not produce negative results
-            weight = np.log(np.clip(delta_performance, 1e-10, None)) + 1
+            delta_performance = container_performances.get(
+                container, 0) + shift
+            # Use np.clip to ensure the log does not
+            # produce negative results
+            weight = np.log(np.clip(
+                delta_performance, 1e-10, None)) + 1
             weights.append(weight)
 
         weights = np.array(weights)
@@ -338,7 +360,8 @@ class DistributedGpTreeIntegrator(DistributedTreeIntegrator):
             # Uniform allocation if all weights are zero
             normalized_weights = np.ones_like(weights) / len(weights)
 
-        allocation = np.floor(normalized_weights * available_samples).astype(int)
+        allocation = np.floor(
+            normalized_weights * available_samples).astype(int)
         allocated_samples = np.sum(allocation)
         discrepancy = available_samples - allocated_samples
 

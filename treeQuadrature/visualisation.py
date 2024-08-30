@@ -67,7 +67,8 @@ def plot_containers(
 
     assert len(containers) == len(contributions), (
         "The length of containers and contributions must be the same, "
-        f"got {len(containers)} containers and {len(contributions)} contributions"
+        f"got {len(containers)} containers and "
+        f"{len(contributions)} contributions"
     )
 
     # check dimensions
@@ -166,12 +167,14 @@ def _plot_containers_1D(
     containers, contributions, xlim, integrand, title, plot_samples, font_size
 ):
     if integrand is not None:
-        ### plot the integrand
+        # plot the integrand
         x_values = np.linspace(xlim[0], xlim[1], 2000).reshape(-1, 1)
         y_values = integrand(x_values)
         plt.plot(x_values, y_values, label="Integrand", color="blue")
 
-    ### Plot the contributions as a bar chart
+    # ======================
+    # Contribution Bar Chart
+    # ======================
     container_centers = []
     container_widths = []
 
@@ -192,7 +195,9 @@ def _plot_containers_1D(
         label="Contributions",
     )
 
-    ### plot samples
+    # ================
+    # Plotting Samples
+    # ================
     if plot_samples:
         all_samples = np.concatenate(
             [container.X for container in containers if container.X.size > 0]
@@ -205,7 +210,9 @@ def _plot_containers_1D(
             label="Samples",
         )
 
-    ### Setting the canvas
+    # ==============
+    # Setting Canvas
+    # ==============
     plt.xlim(xlim)
     # labels and legend
     plt.xlabel("x", fontsize=font_size)
@@ -213,14 +220,16 @@ def _plot_containers_1D(
     if title:
         plt.title(title, fontsize=font_size * 1.2)
     else:
-        plt.title("Integrand and Container Contributions", fontsize=font_size * 1.2)
+        plt.title("Integrand and Container Contributions",
+                  fontsize=font_size * 1.2)
     plt.legend(fontsize=font_size)
     plt.tick_params(axis="both", labelsize=font_size)
 
     plt.show()
 
 
-def plot_container(ax: Axes, container: Container, dim1: int, dim2: int, **kwargs):
+def plot_container(ax: Axes, container: Container,
+                   dim1: int, dim2: int, **kwargs):
     """
     Plot a container on the provided axes.
 
@@ -259,7 +268,8 @@ def plot_container(ax: Axes, container: Container, dim1: int, dim2: int, **kwarg
     # Plotting container samples
     if plot_samples:
         ax.scatter(
-            container.X[:, dim1], container.X[:, dim2], color="navy", s=s, alpha=0.3
+            container.X[:, dim1], container.X[:, dim2],
+            color="navy", s=s, alpha=0.3
         )
 
     # Plot container boundary
@@ -340,7 +350,7 @@ def _plot_integrand_2D(f, xlim, ylim, levels, n_points, file_path):
     X, Y = np.meshgrid(x, y)
     Z = np.array([[f([xs, ys])[0, 0] for xs in x] for ys in y])
 
-    ## adapt the window to PDF
+    # adapt the window to PDF
     threshold = 1e-3
     mask = Z > threshold
 
@@ -351,9 +361,9 @@ def _plot_integrand_2D(f, xlim, ylim, levels, n_points, file_path):
     min_col, max_col = np.where(cols)[0][[0, -1]]
 
     # Trim the X, Y, Z arrays
-    X_trimmed = X[min_row : max_row + 1, min_col : max_col + 1]
-    Y_trimmed = Y[min_row : max_row + 1, min_col : max_col + 1]
-    Z_trimmed = Z[min_row : max_row + 1, min_col : max_col + 1]
+    X_trimmed = X[min_row:max_row + 1, min_col:max_col + 1]
+    Y_trimmed = Y[min_row:max_row + 1, min_col:max_col + 1]
+    Z_trimmed = Z[min_row:max_row + 1, min_col:max_col + 1]
 
     contour = plt.contour(
         X_trimmed, Y_trimmed, Z_trimmed, levels=levels, cmap="viridis"
@@ -442,7 +452,8 @@ def plot_errors(
 
     Usage
     -----
-    >>> all_data = pd.read_csv('your_data.csv')  # Load your data into a DataFrame
+    >>> # Load your data into a DataFrame
+    >>> all_data = pd.read_csv('your_data.csv')
     >>> genres = ["SimpleGaussian", "Camel", "QuadCamel"]
     >>> plot_errors(all_data, genres)
     """
@@ -458,7 +469,9 @@ def plot_errors(
                 raise ValueError(f"Integrator {integrator} not found in data")
 
     if display_names and len(display_names) != len(integrators):
-        raise ValueError("'display_names' should have the same length as integrators")
+        raise ValueError(
+            "'display_names' should have the same length as integrators"
+        )
 
     plt.rcParams.update({"font.size": font_size})
 
@@ -473,12 +486,17 @@ def plot_errors(
 
     # Define a color map to ensure consistent colors for each integrator
     color_map = plt.get_cmap("tab10")
-    color_dict = {integrator: color_map(i) for i, integrator in enumerate(integrators)}
+    color_dict = {
+        integrator: color_map(i)
+        for i, integrator in enumerate(integrators)
+    }
 
     offsets = np.linspace(-offset, offset, len(integrators))
 
     for genre in genres:
-        genre_data = data[data["problem"].str.contains(genre, na=False, case=False)]
+        genre_data = data[
+            data["problem"].str.contains(genre, na=False, case=False)
+        ]
 
         if genre_data.empty:
             print(f"Genre {genre} not found in the 'problem' column")
@@ -486,7 +504,9 @@ def plot_errors(
 
         dimensions = genre_data["Dimension"].unique()
         if len(dimensions) == 0:
-            warnings.warn(f"no data available for problem {genre}, will be skipped")
+            warnings.warn(
+                f"no data available for problem {genre}, will be skipped"
+            )
             continue
 
         dimensions.sort()
@@ -497,7 +517,9 @@ def plot_errors(
         min_error = np.inf
 
         for idx, integrator in enumerate(integrators):
-            genre_integrator_data = genre_data[genre_data["integrator"] == integrator]
+            genre_integrator_data = genre_data[
+                genre_data["integrator"] == integrator
+            ]
             errors = []
             error_stds = []
             all_errors_list = []
@@ -511,10 +533,13 @@ def plot_errors(
                     continue
 
                 error_list_str = data_dim["errors"].values[0]
-                if isinstance(error_list_str, float) and np.isnan(error_list_str):
+                if isinstance(error_list_str, float) and (
+                    np.isnan(error_list_str)
+                ):
                     continue
                 else:
-                    error_list = list(map(float, error_list_str.strip("[]").split()))
+                    error_list = list(map(float,
+                                          error_list_str.strip("[]").split()))
 
                 error_std = float(data_dim["error_std"].values[0])
                 if plot_absolute and (
@@ -559,7 +584,8 @@ def plot_errors(
                         label=f"{integrator} Std",
                     )
                 else:
-                    plt.errorbar(x_offset, errors, yerr=error_stds, fmt="o", capsize=5)
+                    plt.errorbar(x_offset, errors, yerr=error_stds,
+                                 fmt="o", capsize=5)
 
             label = display_names[idx] if display_names else integrator
             plt.plot(x_offset, errors, label=label, marker="o", color=color)
@@ -583,15 +609,17 @@ def plot_errors(
             plt.ylabel("Absolute Error", fontsize=axis_label_font_size)
         else:
             plt.ylabel(
-                f'{data["error_type"].values[0]} (%)', fontsize=axis_label_font_size
+                f'{data["error_type"].values[0]} (%)',
+                fontsize=axis_label_font_size
             )
         plt.ylim(y_lim)
         plt.legend(fontsize=legend_font_size)
         plt.grid(grid)
         if filename_prefix:
-            plt.savefig(f"figures/{filename_prefix}{genre}_error_plot.png")
+            file_path = f"figures/{filename_prefix}{genre}_error_plot.png"
+            plt.savefig(file_path)
             plt.close()
-            print(f"Figure saved to figures/{filename_prefix}{genre}_error_plot.png")
+            print(f"Figure saved to {file_path}")
         else:
             plt.savefig(f"figures/{genre}_error_plot.png")
             plt.close()
@@ -640,7 +668,8 @@ def plot_times(
 
     Usage
     -----
-    >>> all_data = pd.read_csv('your_data.csv')  # Load your data into a DataFrame
+    >>> # Load your data into a DataFrame
+    >>> all_data = pd.read_csv('your_data.csv')
     >>> genres = ["SimpleGaussian", "Camel", "QuadCamel"]
     >>> plot_times(all_data, 'figures/time', genres)
     """
@@ -657,7 +686,9 @@ def plot_times(
                 raise ValueError(f"Integrator {integrator} not found in data")
 
     if len(display_names) != len(integrators):
-        raise ValueError("'display_names' should have the same length as integrators")
+        raise ValueError(
+            "'display_names' should have the same length as integrators"
+            )
 
     data["Dimension"] = data["problem"].str.extract(r"D=(\d+)").astype(int)
 
@@ -665,21 +696,27 @@ def plot_times(
         genre_data = data[data["problem"].str.contains(genre)]
         dimensions = genre_data["Dimension"].unique()
         if len(dimensions) == 0:
-            warnings.warn(f"no data available for problem {genre}, will be skipped")
+            warnings.warn(
+                f"no data available for problem {genre}, will be skipped"
+            )
             continue
         dimensions.sort()
 
         plt.figure(figsize=(14, 10))
 
         for i, integrator in enumerate(integrators):
-            genre_integrator_data = genre_data[genre_data["integrator"] == integrator]
+            genre_integrator_data = genre_data[
+                genre_data["integrator"] == integrator
+            ]
             times = []
 
             for dim in dimensions:
                 data_dim = genre_integrator_data[
                     genre_integrator_data["Dimension"] == dim
                 ]
-                if not data_dim.empty and data_dim["time_taken"].values[0] != "":
+                if not data_dim.empty and (
+                    data_dim["time_taken"].values[0] != ""
+                ):
                     time = data_dim["time_taken"].values[0]
                     try:
                         time = float(time)
@@ -706,17 +743,22 @@ def plot_times(
                 plt.grid(True)
                 plt.tight_layout()
                 if filename_prefix:
+                    file_path = "figures/{}{}_time_plot_{}.png".format(
+                        filename_prefix, genre, integrator
+                    )
+                    plt.savefig(file_path)
+                    plt.close()
+                    print(
+                        f"Figure saved to {file_path}"
+                    )
+                else:
                     plt.savefig(
-                        f"figures/{filename_prefix}{genre}_time_plot_{integrator}.png"
+                        f"figures/{genre}_time_plot_{integrator}.png"
                     )
                     plt.close()
                     print(
-                        f"Figure saved to figures/{filename_prefix}{genre}_time_plot_{integrator}.png"
-                    )
-                else:
-                    plt.savefig(f"figures/{genre}_time_plot_{integrator}.png")
-                    plt.close()
-                    print(f"Figure saved to figures/{genre}_time_plot_{integrator}.png")
+                        "Figure saved to figures/"
+                        f"{genre}_time_plot_{integrator}.png")
 
         if same_figure:
             if title:
@@ -730,7 +772,9 @@ def plot_times(
             if filename_prefix:
                 plt.savefig(f"figures/{filename_prefix}{genre}_time_plot.png")
                 plt.close()
-                print(f"Figure saved to figures/{filename_prefix}{genre}_time_plot.png")
+                print(
+                    "Figure saved to figures/"
+                    f"{filename_prefix}{genre}_time_plot.png")
             else:
                 plt.savefig(f"figures/{genre}_time_plot.png")
                 plt.close()

@@ -47,7 +47,8 @@ class WeightedTree(Tree):
         weighting_function: Callable[[Container], float],
         max_splits: int = float("inf"),
         active_N: int = 0,
-        stopping_condition: Callable[[Container], bool] = default_stopping_condition,
+        stopping_condition: Callable[[Container],
+                                     bool] = default_stopping_condition,
         split: Optional[Split] = None,
         queue: Optional[ReservoirQueue] = None,
         *args,
@@ -80,7 +81,9 @@ class WeightedTree(Tree):
         """
         super().__init__(*args, **kwargs)
 
-        if np.isinf(max_splits) and (stopping_condition == default_stopping_condition):
+        if np.isinf(max_splits) and (
+            stopping_condition == default_stopping_condition
+        ):
             raise Exception(
                 "Integrator with never terminate - either provide a stopping"
                 + "condition or a maximum number of splits (max_splits)"
@@ -91,9 +94,10 @@ class WeightedTree(Tree):
         self.split = split if split is not None else MinSseSplit()
         self.weighting_function = weighting_function
         self.stopping_condition = stopping_condition
-        self.queue = (
-            queue if queue is not None else ReservoirQueue(accentuation_factor=100)
-        )
+        if queue is None:
+            self.queue = ReservoirQueue(accentuation_factor=100)
+        else:
+            self.queue = queue
 
     def construct_tree(
         self,
@@ -147,7 +151,8 @@ class WeightedTree(Tree):
 
                 self.n_splits += 1
 
-            if iteration_count % 100 == 0 and verbose:  # Log every 100 iterations
+            # Log every 100 iterations
+            if iteration_count % 100 == 0 and verbose:
                 elapsed_time = time.time() - start_time
                 print(
                     f"Iteration {iteration_count}: Queue size = {q.qsize()}, "

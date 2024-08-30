@@ -1,5 +1,6 @@
 from typing import List, Callable, Optional
-import time, warnings
+import time
+import warnings
 
 from .base_class import Tree
 from ..container import Container
@@ -38,12 +39,14 @@ class LimitedSampleTree(Tree):
         self.weighting_function = weighting_function
         self.active_N = active_N
         self.split = split
-        self.queue = (
-            queue if queue is not None else ReservoirQueue(accentuation_factor=100)
-        )
+        if queue is None:
+            self.queue = ReservoirQueue(accentuation_factor=100)
+        else:
+            self.queue = queue
 
     def construct_tree(
-        self, root: Container, integrand: Callable, verbose: bool = False, max_iter=1e3
+        self, root: Container, integrand: Callable,
+        verbose: bool = False, max_iter=1e3
     ) -> List[Container]:
         """
         Actively refine the containers with samples.
@@ -105,12 +108,13 @@ class LimitedSampleTree(Tree):
                 weight = self.weighting_function(child)
                 if weight == 0:
                     warnings.warn(
-                        f"Container has 0 weight, mins: {child.mins}, maxs: {child.maxs}"
-                        f"volume: {child.volume}"
+                        f"Container has 0 weight, mins: {child.mins}, "
+                        f"maxs: {child.maxs}, volume: {child.volume}"
                     )
                 q.put(child, weight)
 
-            if iteration_count % 100 == 0 and verbose:  # Log every 100 iterations
+            # Log every 100 iterations
+            if iteration_count % 100 == 0 and verbose:
                 elapsed_time = time.time() - start_time
                 print(
                     f"Iteration {iteration_count}: Queue size = {q.n}, "
@@ -124,7 +128,8 @@ class LimitedSampleTree(Tree):
 
         if iteration_count == max_iter:
             warnings.warn(
-                "Maximum iterations reached. Either increase max_iter or check split and samples.",
+                "Maximum iterations reached. "
+                "Either increase max_iter or check split and samples.",
                 RuntimeWarning,
             )
             # append containers left

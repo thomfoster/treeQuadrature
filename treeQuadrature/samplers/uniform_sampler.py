@@ -10,7 +10,8 @@ class UniformSampler(Sampler):
     """
 
     def rvs(
-        self, n: int, mins: np.ndarray, maxs: np.ndarray, f: callable, **kwargs
+        self, n: int, mins: np.ndarray, maxs: np.ndarray,
+        f: callable, **kwargs
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Argument
@@ -29,7 +30,8 @@ class UniformSampler(Sampler):
             samples from the distribution
         """
         if not isinstance(n, (int, np.integer)):
-            raise TypeError(f"n must be an integer, got {n} of type " f"type(n)")
+            raise TypeError("n must be an integer, "
+                            f"got {n} of type {type(n)}")
 
         mins, maxs, D = Sampler.handle_mins_maxs(mins, maxs)
 

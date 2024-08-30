@@ -34,11 +34,15 @@ def plot_gp(
     elif xs.shape[1] == 2:
         assert (
             len(mins) == 2 and len(maxs) == 2
-        ), "mins and maxs must have two elements for 2-dimensional problems"
-        _plot_GP_2D(gp, xs, ys, mins[0], maxs[0], mins[1], maxs[1], plot_ci)
+        ), (
+            "mins and maxs must have two elements "
+            "for 2-dimensional problems")
+        _plot_GP_2D(gp, xs, ys, mins[0], maxs[0],
+                    mins[1], maxs[1], plot_ci)
     else:
         raise ValueError(
-            "This function only supports 1-dimensional and 2-dimensional problems"
+            "This function only supports 1-dimensional "
+            "and 2-dimensional problems"
         )
 
 
@@ -109,7 +113,8 @@ def _plot_GP_2D(
     plot_ci: Optional[bool] = True,
 ):
     """
-    Plot the Gaussian Process posterior mean and the data points for a 2D problem.
+    Plot the Gaussian Process posterior mean
+    and the data points for a 2D problem.
 
     Parameters
     ----------
@@ -118,13 +123,18 @@ def _plot_GP_2D(
     xs, ys : numpy.ndarray
         The data points.
     x_min, x_max : float
-        The lower and upper bounds for the first axis (x-axis) for plotting.
+        The lower and upper bounds for the
+        first axis (x-axis) for plotting.
     y_min, y_max : float
-        The lower and upper bounds for the second axis (y-axis) for plotting.
+        The lower and upper bounds for the
+        second axis (y-axis) for plotting.
     plot_ci : bool, optional
-        If True, the confidence interval will be plotted. Default is True.
+        If True, the confidence interval will be plotted. \n
+          Default is True.
     """
-    assert xs.shape[1] == 2, "This function only supports 2-dimensional problems"
+    assert xs.shape[1] == 2, (
+        "This function only supports 2-dimensional problems"
+    )
 
     # Create a grid over the input space
     x1_plot = np.linspace(x_min, x_max, 100)

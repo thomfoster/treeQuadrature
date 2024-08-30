@@ -5,7 +5,8 @@ from typing import Tuple, Callable
 
 
 class StratifiedSampler(Sampler):
-    def __init__(self, strata_per_dim: int = 4, sampling_method: str = "midpoint"):
+    def __init__(self, strata_per_dim: int = 4,
+                 sampling_method: str = "midpoint"):
         """
         Initialize the StratifiedSampler with user-defined parameters.
 
@@ -15,7 +16,8 @@ class StratifiedSampler(Sampler):
             The number of strata (subdivisions) per dimension.
             Default is 4.
         sampling_method : str, optional
-            The method to use for sampling within each stratum. Options include:
+            The method to use for sampling within each stratum. \n
+            Options include:
             - 'midpoint': Sample at the midpoint of each stratum.
             - 'random': Sample randomly within each stratum.
         """
@@ -58,7 +60,8 @@ class StratifiedSampler(Sampler):
 
         stratified_samples = []
         for low, high in zip(mins, maxs):
-            stratified_intervals = np.linspace(low, high, self.strata_per_dim + 1)
+            stratified_intervals = np.linspace(
+                low, high, self.strata_per_dim + 1)
             if self.sampling_method == "midpoint":
                 stratum_samples = (
                     stratified_intervals[:-1] + stratified_intervals[1:]
@@ -70,13 +73,17 @@ class StratifiedSampler(Sampler):
                 )
             else:
                 raise ValueError(
-                    "Unsupported sampling method. Use 'midpoint' or 'random'."
+                    "Unsupported sampling method. "
+                    "Use 'midpoint' or 'random'."
                 )
             stratified_samples.append(stratum_samples)
 
         meshgrid = np.meshgrid(*stratified_samples)
-        grid_points = np.vstack([mg.flatten() for mg in meshgrid]).T
-        selected_indices = np.random.choice(grid_points.shape[0], n, replace=True)
+        grid_points = np.vstack(
+            [mg.flatten() for mg in meshgrid]
+        ).T
+        selected_indices = np.random.choice(
+            grid_points.shape[0], n, replace=True)
 
         xs = grid_points[selected_indices]
 

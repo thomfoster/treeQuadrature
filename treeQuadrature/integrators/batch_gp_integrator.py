@@ -82,7 +82,8 @@ class BatchGpIntegrator(TreeIntegrator):
         length_scaling_exponent : float, optional
             Exponent to scale grid size with average side length.
         """
-        super().__init__(base_N=base_N, tree=tree, integral=integral, sampler=sampler)
+        super().__init__(base_N=base_N, tree=tree,
+                         integral=integral, sampler=sampler)
         self.base_grid_scale = base_grid_scale
         self.dimension_scaling_exponent = dimension_scaling_exponent
         self.length_scaling_exponent = length_scaling_exponent
@@ -106,18 +107,22 @@ class BatchGpIntegrator(TreeIntegrator):
         problem : Problem
             The problem to be integrated.
         return_N : bool, optional
-            Whether to return the number of samples in each leaf container. \n
+            Whether to return the number of
+            samples in each leaf container. \n
             Defaults to False.
         return_containers : bool, optional
-            Whether to return the leaf containers. Defaults to False.
+            Whether to return the leaf containers. \n
+            Defaults to False.
         return_std : bool, optional
-            Whether to return the standard deviation of the predictions. \n
+            Whether to return the standard deviation
+            of the predictions. \n
               Defaults to False.
         verbose : bool, optional
             Whether to print verbose output. \n
             Defaults to False.
         *args, **kwargs
-            Additional arguments to be passed to the build_tree method.
+            Additional arguments to be passed to
+            the build_tree method.
 
         Returns
         -------
@@ -140,25 +145,30 @@ class BatchGpIntegrator(TreeIntegrator):
         self._validate_inputs(problem)
 
         X, y = self._draw_initial_samples(problem, verbose)
-        root = self._construct_root_container(X, y, problem, verbose)
+        root = self._construct_root_container(
+            X, y, problem, verbose)
 
         grid_size = self._construct_grid_size(problem, verbose)
 
         leaf_containers = self._build_tree_and_fit_gp(
-            root, problem, grid_size, verbose, return_std, *args, **kwargs
+            root, problem, grid_size, verbose,
+            return_std, *args, **kwargs
         )
 
         return self._collect_results(
-            leaf_containers, return_N, return_containers, return_std
+            leaf_containers, return_N,
+            return_containers, return_std
         )
 
     def _validate_inputs(self, problem: Problem):
         if not isinstance(problem, Problem):
             raise ValueError(
-                "The input problem must be an instance of the Problem class."
+                "The input problem must be an "
+                "instance of the Problem class."
             )
 
-    def _construct_grid_size(self, problem: Problem, verbose: bool) -> float:
+    def _construct_grid_size(self, problem: Problem,
+                             verbose: bool) -> float:
         avg_side_length = np.mean(problem.highs - problem.lows)
         grid_size = (
             self.base_grid_scale
@@ -168,7 +178,8 @@ class BatchGpIntegrator(TreeIntegrator):
 
         if verbose:
             print(
-                f"adaptive grid size: {grid_size}, average side length: {avg_side_length}"
+                f"adaptive grid size: {grid_size}, "
+                f"average side length: {avg_side_length}"
             )
 
         return grid_size
@@ -183,12 +194,16 @@ class BatchGpIntegrator(TreeIntegrator):
         *args,
         **kwargs,
     ) -> List[Container]:
-        leaf_containers = self._construct_tree(root, problem, verbose, *args, **kwargs)
+        leaf_containers = self._construct_tree(root,
+                                               problem,
+                                               verbose,
+                                               *args, **kwargs)
 
         if verbose:
             print("fitting GP to containers and passing hyper-parameters")
         self.integral._initialize_gp()
-        self.fit_gps(leaf_containers, problem.integrand, verbose, return_std, grid_size)
+        self.fit_gps(leaf_containers, problem.integrand,
+                     verbose, return_std, grid_size)
 
         return leaf_containers
 
@@ -214,7 +229,8 @@ class BatchGpIntegrator(TreeIntegrator):
             return_values["contributions"] = contributions
         if return_std:
             return_values["stds"] = [
-                self.integral_results[container]["std"] for container in leaf_containers
+                self.integral_results[container]["std"]
+                for container in leaf_containers
             ]
 
         return return_values
@@ -262,12 +278,17 @@ class BatchGpIntegrator(TreeIntegrator):
             for future in futures:
                 future.result()
 
-    def _build_batches(self, containers: List[Container], grid_size: float) -> dict:
+    def _build_batches(self, containers: List[Container],
+                       grid_size: float) -> dict:
         return build_grid(containers, grid_size)
 
-    def _distribute_samples(self, batches: List[List[Container]]) -> Tuple[int, int]:
+    def _distribute_samples(
+            self,
+            batches: List[List[Container]]
+    ) -> Tuple[int, int]:
         if self.max_n_samples is not None:
-            used_samples = sum(sum(cont.N for cont in batch) for batch in batches)
+            used_samples = sum(sum(cont.N for cont in batch)
+                               for batch in batches)
             remaining_samples = max(0, self.max_n_samples - used_samples)
             samples_per_batch = remaining_samples // len(batches)
             extra_samples = remaining_samples % len(batches)
@@ -312,7 +333,8 @@ class BatchGpIntegrator(TreeIntegrator):
                 f" and {len(batch)} containers"
             )
 
-        self._integrate_batch(iGP, kernel, batch, integrand, grid_size, return_std)
+        self._integrate_batch(iGP, kernel, batch,
+                              integrand, grid_size, return_std)
 
     def _integrate_batch(
         self,

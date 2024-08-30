@@ -10,7 +10,7 @@ from ..example_problems import Problem
 from ..container import Container
 
 
-def individual_container_integral(
+def integral_wrapper(
     integral: ContainerIntegral,
     cont: Container,
     integrand: callable,
@@ -42,9 +42,13 @@ def individual_container_integral(
 
     # check types
     if "integral" not in integral_results:
-        raise KeyError("results of containerIntegral does not have key 'integral'")
+        raise KeyError(
+            "results of containerIntegral does not have key 'integral'"
+        )
     elif return_std and "std" not in integral_results:
-        raise KeyError("results of containerIntegral does not have key 'std'")
+        raise KeyError(
+            "results of containerIntegral does not have key 'std'"
+        )
 
     return integral_results, cont
 
@@ -83,10 +87,12 @@ class DistributedTreeIntegrator(TreeIntegrator):
         max_n_samples : int
             Total number of evaluations available.
         min_container_samples, max_container_samples: int, optional
-            The minimum and maximum number of samples to allocate to each container. \n
+            The minimum and maximum number of samples to
+            allocate to each container. \n
             Default: 2 and 200
         scaling_factor : float, optional
-            A scaling factor to control the aggressiveness of sample distribution. \n
+            A scaling factor to control the aggressiveness
+            of sample distribution. \n
             Default: 1e-6
         parallel : bool, optional
             whether to use parallel computing for container integration
@@ -141,10 +147,12 @@ class DistributedTreeIntegrator(TreeIntegrator):
                 "with standard deviation" if compute_std else "",
             )
             print(
-                f"largest container distribution: {max(samples_distribution.values())}"
+                "largest container distribution: "
+                f"{max(samples_distribution.values())}"
             )
             print(
-                f"smallest container distribution: {min(samples_distribution.values())}"
+                "smallest container distribution: "
+                f"{min(samples_distribution.values())}"
             )
 
         # for retracking containers
@@ -155,7 +163,7 @@ class DistributedTreeIntegrator(TreeIntegrator):
             with ProcessPoolExecutor() as executor:
                 futures = {
                     executor.submit(
-                        individual_container_integral,
+                        integral_wrapper,
                         self.integral,
                         cont,
                         problem.integrand,
@@ -171,7 +179,7 @@ class DistributedTreeIntegrator(TreeIntegrator):
                     modified_containers.append(modified_cont)
         else:
             for cont in containers:
-                integral_results, modified_cont = individual_container_integral(
+                integral_results, modified_cont = integral_wrapper(
                     self.integral,
                     cont,
                     problem.integrand,

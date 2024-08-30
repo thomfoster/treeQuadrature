@@ -31,7 +31,8 @@ class Container:
         y is numpy.ndarray of shape (N, 1)
     """
 
-    def __init__(self, X: np.ndarray, y: np.ndarray, mins=None, maxs=None):
+    def __init__(self, X: np.ndarray, y: np.ndarray,
+                 mins=None, maxs=None):
         """
         Parameters
         ----------
@@ -39,7 +40,8 @@ class Container:
             each row is a sample
         y : numpy.ndarray of shape (N, 1) or (N,)
             the function value at each sample
-        mins, maxs : int or float or list or numpy.ndarray of shape (D,), optional
+        mins, maxs : int or float or list or numpy.ndarray of
+        shape (D,), optional
             the low and high boundaries of the hyper-rectangle
             could be +- np.inf
         """
@@ -63,12 +65,16 @@ class Container:
 
         self.volume = np.prod(self.maxs - self.mins)
         self.is_finite = not np.isinf(self.volume)
-        self.midpoint = (self.mins + self.maxs) / 2 if self.is_finite else np.nan
+        if self.is_finite:
+            self.midpoint = (self.mins + self.maxs) / 2
+        else:
+            self.midpoint = np.nan
 
         X_filtered, y_filtered = self.filter_points(X, y)
         self.add(X_filtered, y_filtered)
 
-    def _handle_min_max_bounds(self, bounds, default_value) -> np.ndarray:
+    def _handle_min_max_bounds(self, bounds,
+                               default_value) -> np.ndarray:
         """Handle different types of min/max bounds."""
         if isinstance(bounds, (int, float)):
             return np.array([bounds] * self.D)
@@ -144,7 +150,8 @@ class Container:
 
         """
 
-        in_bounds = np.all((X >= self.mins) & (X <= self.maxs), axis=1)
+        in_bounds = np.all((X >= self.mins) &
+                           (X <= self.maxs), axis=1)
         if not np.all(in_bounds):
             inside = False
             if warning:
@@ -158,7 +165,8 @@ class Container:
         if return_bool:
             return inside
         else:
-            return X[in_bounds] if y is None else X[in_bounds], y[in_bounds]
+            return X[in_bounds] if (
+                y is None) else X[in_bounds], y[in_bounds]
 
     def add(self, new_X: np.ndarray, new_y: np.ndarray):
         """
@@ -208,23 +216,30 @@ class Container:
 
         for d in range(self.D):
             if np.isinf(self.mins[d]) and np.isinf(self.maxs[d]):
-                # Both bounds are infinite: sample from a standard normal distribution
+                # Both bounds are infinite:
+                # sample from a standard normal distribution
                 rs[:, d] = np.random.normal(size=n)
             elif np.isinf(self.mins[d]):
-                # Lower bound is infinite: sample from a exponential distribution
-                rs[:, d] = self.maxs[d] - np.random.exponential(scale=1.0, size=n)
+                # Lower bound is infinite:
+                # sample from a exponential distribution
+                rs[:, d] = self.maxs[d] - \
+                    np.random.exponential(scale=1.0, size=n)
             elif np.isinf(self.maxs[d]):
-                # Upper bound is infinite: sample from a exponential distribution
-                rs[:, d] = self.mins[d] + np.random.exponential(scale=1.0, size=n)
+                # Upper bound is infinite:
+                # sample from a exponential distribution
+                rs[:, d] = self.mins[d] + \
+                    np.random.exponential(scale=1.0, size=n)
             else:
-                # Both bounds are finite: sample uniformly between the bounds
+                # Both bounds are finite:
+                # sample uniformly between the bounds
                 rs[:, d] = np.random.uniform(
                     low=self.mins[d], high=self.maxs[d], size=n
                 )
 
         return rs
 
-    def split(self, split_dimension: int, split_value: float) -> List["Container"]:
+    def split(self, split_dimension: int,
+              split_value: float) -> List["Container"]:
         """
         Divide perpendicular to an axis
 

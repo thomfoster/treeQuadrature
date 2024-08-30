@@ -35,7 +35,8 @@ class MedianIntegral(ContainerIntegral):
                 + "samples.",
                 RuntimeWarning,
             )
-            return {"integral": 0.0, "std": 0.0} if return_std else {"integral": 0.0}
+            return {"integral": 0.0, "std": 0.0} if (
+                return_std) else {"integral": 0.0}
 
         fs = np.array([f(x) for x in container.X])
         median = np.median(fs)

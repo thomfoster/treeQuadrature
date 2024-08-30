@@ -61,7 +61,8 @@ class ReservoirQueue:
         else:
             ps = self.get_probabilities(self.weights)
 
-            choice_of_index = np.random.choice(list(range(len(self.items))), p=ps)
+            choice_of_index = np.random.choice(
+                list(range(len(self.items))), p=ps)
             choice = self.items.pop(choice_of_index)
             self.weights.pop(choice_of_index)
             self.n -= 1

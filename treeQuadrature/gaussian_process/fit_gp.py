@@ -72,7 +72,8 @@ class GPFit(ABC):
         ---------
         gp_params : dict
             A dictionary of parameters required to create the kernel.
-            This may include parameters like ``length``, ``range``, ``degree``,
+            This may include parameters like
+            ``length``, ``range``, ``degree``,
             ``coef0``, etc., depending on the kernel type.
 
         Returns
@@ -82,27 +83,38 @@ class GPFit(ABC):
 
         Notes for Subclass Implementers:
         --------------------------------
-        - When implementing this method in a subclass, you can use the ``KernelFactory``
+        - When implementing this method in a subclass,
+        you can use the ``KernelFactory``
         to register and create kernels dynamically.
 
         Example of Using KernelFactory:
         -------------------------------
         1. **Register a Kernel**:
-            To register a kernel (e.g., RBF kernel) with the ``KernelFactory``,
+            To register a kernel (e.g., RBF kernel)
+            with the ``KernelFactory``,
             you can do this in the ``__init__`` method of your subclass::
 
-                KernelFactory.register_kernel('RBF', lambda length=10.0, range_=1e3: RBF(
-                    length_scale=length, length_scale_bounds=(length * (1 / range_), length * range_)))
+                KernelFactory.register_kernel('RBF',
+                    lambda length=10.0, range_=1e3: RBF(
+                        length_scale=length,
+                        length_scale_bounds=(
+                            length * (1 / range_), length * range_))
+                    )
 
         2. **Create a Kernel**:
-            To create an instance of a registered kernel, use the ``create_kernel`` method::
+            To create an instance of a registered kernel,
+            use the ``create_kernel`` method::
 
                 def create_kernel(self, gp_params: Dict[str, Any]) -> Any:
-                    kernel_type = gp_params.get('kernel_type', 'RBF')  # Default to RBF
-                    return KernelFactory.create_kernel(kernel_type, **gp_params)
+                    kernel_type = gp_params.get(
+                        'kernel_type', 'RBF')  # Default to RBF
+                    return KernelFactory.create_kernel(
+                        kernel_type, **gp_params)
 
-        This structure allows users to easily extend the GP model with new kernels
-        by registering them with the ``KernelFactory`` and ensuring that they can be
+        This structure allows users to easily
+        extend the GP model with new kernels
+        by registering them with the ``KernelFactory``
+        and ensuring that they can be
         instantiated based on runtime parameters.
         """
         pass
@@ -119,7 +131,8 @@ class GPFit(ABC):
     @abstractmethod
     def y_train_(self) -> ArrayLike:
         """
-        Returns the training labels (outputs) used to fit the model
+        Returns the training labels (outputs)
+        used to fit the model
         """
         pass
 
@@ -149,9 +162,12 @@ class KernelFactory:
         """
         Register a new kernel class with the factory.
 
-        Parameters:
-        - name: str : The name of the kernel to register.
-        - kernel_class: Callable : A callable that returns an instance of the kernel.
+        Parameters
+        ----------
+        name : str
+            The name of the kernel to register.
+        kernel_class : Callable
+            A callable that returns an instance of the kernel.
         """
         cls._registry[name] = kernel_class
 
@@ -160,12 +176,16 @@ class KernelFactory:
         """
         Create an instance of a registered kernel.
 
-        Parameters:
-        - name: str : The name of the kernel to create.
-        - kwargs: dict : Arguments required by the kernel's constructor.
+        Parameters
+        ----------
+        name : str
+            The name of the kernel to create.
+        kwargs : dict
+            Arguments required by the kernel's constructor.
 
-        Returns:
-        - An instance of the kernel.
+        Returns
+        -------
+        An instance of the kernel.
         """
         if name not in cls._registry:
             raise ValueError(f"Kernel type '{name}' is not registered.")
@@ -254,7 +274,9 @@ class SklearnGPFit(GPFit):
 
         KernelFactory.register_kernel(
             "Polynomial",
-            lambda degree=2, coef0=1: Polynomial(degree=degree, coef0=coef0),
+            lambda degree=2,
+            coef0=1: Polynomial(
+                degree=degree, coef0=coef0),
         )
 
     def fit(self, xs, ys, kernel: Kernel) -> GaussianProcessRegressor:
@@ -293,7 +315,8 @@ class SklearnGPFit(GPFit):
     def predict(self, xs, return_std: bool = False):
         if self.gp is None:
             raise RuntimeError(
-                "The Gaussian Process model is not trained. Please call 'fit_gp' before 'predict'."
+                "The Gaussian Process model is not trained. "
+                "Please call 'fit_gp' before 'predict'."
             )
         else:
             if self.ignore_warning:
@@ -310,7 +333,8 @@ class SklearnGPFit(GPFit):
     def X_train_(self) -> ArrayLike:
         if self.gp is None:
             raise RuntimeError(
-                "The Gaussian Process model is not trained. Please call 'fit_gp' before 'predict'."
+                "The Gaussian Process model is not trained. "
+                "Please call 'fit_gp' before 'predict'."
             )
         else:
             return self.gp.X_train_
@@ -319,7 +343,8 @@ class SklearnGPFit(GPFit):
     def y_train_(self) -> ArrayLike:
         if self.gp is None:
             raise RuntimeError(
-                "The Gaussian Process model is not trained. Please call 'fit_gp' before 'predict'."
+                "The Gaussian Process model is not trained. "
+                "Please call 'fit_gp' before 'predict'."
             )
         else:
             return self.gp.y_train_
@@ -328,7 +353,8 @@ class SklearnGPFit(GPFit):
     def hyper_params(self) -> dict:
         if self.gp is None:
             raise RuntimeError(
-                "The Gaussian Process model is not trained. Please call 'fit_gp' before 'predict'."
+                "The Gaussian Process model is not trained. "
+                "Please call 'fit_gp' before 'predict'."
             )
         else:
             return self.gp.kernel_.get_params()
@@ -337,7 +363,8 @@ class SklearnGPFit(GPFit):
     def alpha_(self) -> ArrayLike:
         if self.gp is None:
             raise RuntimeError(
-                "The Gaussian Process model is not trained. Please call 'fit_gp' before 'predict'."
+                "The Gaussian Process model is not trained. "
+                "Please call 'fit_gp' before 'predict'."
             )
         else:
             return self.gp.alpha_
@@ -346,7 +373,8 @@ class SklearnGPFit(GPFit):
     def kernel_(self) -> Kernel:
         if self.gp is None:
             raise RuntimeError(
-                "The Gaussian Process model is not trained. Please call 'fit_gp' before 'predict'."
+                "The Gaussian Process model is not trained. "
+                "Please call 'fit_gp' before 'predict'."
             )
         else:
             return self.gp.kernel_
@@ -356,13 +384,18 @@ class SklearnGPFit(GPFit):
         kernel_type = gp_params.get("kernel_type", "RBF")
 
         # Extract parameters relevant to the kernel type
-        kernel_params = {k: v for k, v in gp_params.items() if k != "kernel_type"}
+        kernel_params = {
+            k: v for k, v in gp_params.items()
+            if k != "kernel_type"
+        }
 
         # Create the kernel using the KernelFactory
-        return KernelFactory.create_kernel(kernel_type, **kernel_params)
+        return KernelFactory.create_kernel(
+            kernel_type, **kernel_params)
 
 
-def gp_kfoldCV(xs, ys, kernel, gp: GPFit, n_splits: int = 5, scoring: Callable = r2):
+def gp_kfoldCV(xs, ys, kernel, gp: GPFit,
+               n_splits: int = 5, scoring: Callable = r2):
     """
     Perform k-fold Cross-Validation (CV) to evaluate the
     performance of a Gaussian Process model.
@@ -380,13 +413,16 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit, n_splits: int = 5, scoring: Callable =
     n_splits : int, optional (default=5)
         Number of folds for cross-validation.
     scoring : Callable, optional (default=predictive_ll)
-        A scoring function to evaluate the predictions. It must accept three
-        arguments: the true values, the predicted values and predicted variance
+        A scoring function to evaluate the predictions. \n
+        It must accept three
+        arguments: the true values,
+        the predicted values and predicted variance
 
     Returns
     -------
     performance : float
-        Performance measure using k-fold CV based on the provided scoring function.
+        Performance measure using k-fold CV based
+        on the provided scoring function.
     """
 
     assert len(xs) == len(ys), (
@@ -413,13 +449,16 @@ def gp_kfoldCV(xs, ys, kernel, gp: GPFit, n_splits: int = 5, scoring: Callable =
     return np.mean(scores)
 
 
-def is_poor_fit(performance: float, threshold: float, threshold_direction: str) -> bool:
+def is_poor_fit(performance: float, threshold: float,
+                threshold_direction: str) -> bool:
     if threshold_direction == "up":
         return performance <= threshold
     elif threshold_direction == "down":
         return performance >= threshold
     else:
-        raise ValueError("threshold_direction should be one of 'up' and 'down'")
+        raise ValueError(
+            "threshold_direction should be one of 'up' and 'down'"
+        )
 
 
 class IterativeGPFitting:
@@ -476,7 +515,9 @@ class IterativeGPFitting:
 
         self.performance_threshold = performance_threshold
         if threshold_direction not in ["up", "down"]:
-            raise ValueError("thershold_direction should be one of 'up' and 'down'")
+            raise ValueError(
+                "thershold_direction should be one of 'up' and 'down'"
+            )
         self.threshold_direction = threshold_direction
         if gp is None:
             gp = SklearnGPFit()
@@ -519,9 +560,14 @@ class IterativeGPFitting:
         Return
         ------
         dict
-            - performance (float) the performance of the best GP model under KFold CV
-            - y_mean (float) mean of the final training samples
-            - new_samples (list) if add_samples is False, a list of the new samples drawn
+            - performance (float) :
+                the performance of the best GP model
+                under KFold CV
+            - y_mean (float) :
+                mean of the final training samples
+            - new_samples (list) :
+                if add_samples is False,
+                a list of the new samples drawn
         """
         iteration = 0
         all_xs, all_ys = None, None
@@ -530,12 +576,16 @@ class IterativeGPFitting:
         while iteration <= self.max_redraw:
             # Draw samples
             if initial_samples and iteration == 0:
-                if isinstance(initial_samples, tuple) and len(initial_samples) == 2:
+                if isinstance(initial_samples, tuple) and (
+                    len(initial_samples) == 2
+                ):
                     xs = initial_samples[0]
                     ys = initial_samples[1]
                     samples = [(xs, ys, container)]
                 else:
-                    raise ValueError("initial_samples should be a tuple of length 2")
+                    raise ValueError(
+                        "initial_samples should be a tuple of length 2"
+                    )
             else:
                 if isinstance(container, list):
                     samples = self.draw_samples_from_containers(
@@ -568,10 +618,14 @@ class IterativeGPFitting:
             # fit GP
             if self.n_splits == 0:  # no cross validation
                 self.gp.fit(all_xs, residuals, kernel)
-                warnings.filterwarnings("ignore", category=UserWarning)
-                ys_pred, sigma = self.gp.predict(all_xs, return_std=True)
-                warnings.filterwarnings("default", category=UserWarning)
-                performance = self.scoring(residuals, ys_pred, sigma)
+                warnings.filterwarnings(
+                    "ignore", category=UserWarning)
+                ys_pred, sigma = self.gp.predict(
+                    all_xs, return_std=True)
+                warnings.filterwarnings(
+                    "default", category=UserWarning)
+                performance = self.scoring(
+                    residuals, ys_pred, sigma)
             elif self.n_splits > 0:
                 performance = gp_kfoldCV(
                     xs=all_xs,
@@ -594,7 +648,9 @@ class IterativeGPFitting:
                     new_ys.append(ys)
 
             if not is_poor_fit(
-                performance, self.performance_threshold, self.threshold_direction
+                performance,
+                self.performance_threshold,
+                self.threshold_direction
             ):
                 break
 
@@ -610,7 +666,9 @@ class IterativeGPFitting:
             if new_xs and new_ys:
                 result["new_samples"] = (np.vstack(new_xs), np.vstack(new_ys))
             else:
-                D = container.D if isinstance(container, Container) else container[0].D
+                D = container.D if (
+                    isinstance(container, Container)
+                    ) else container[0].D
                 result["new_samples"] = (np.empty((0, D)), np.empty((0, 1)))
 
         return result

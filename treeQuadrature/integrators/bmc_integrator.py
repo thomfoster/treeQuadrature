@@ -3,7 +3,11 @@ from ..example_problems import Problem
 from .base_class import Integrator
 from ..samplers import Sampler, UniformSampler
 from ..container import Container
-from ..gaussian_process import kernel_integration, IterativeGPFitting, SklearnGPFit
+from ..gaussian_process import (
+    kernel_integration,
+    IterativeGPFitting,
+    SklearnGPFit
+)
 
 from sklearn.gaussian_process.kernels import RBF, Kernel
 
@@ -60,7 +64,8 @@ class BayesMcIntegrator(Integrator):
         self.range = range
 
     def __call__(
-        self, problem: Problem, return_N: bool = False, return_std: bool = False
+        self, problem: Problem, return_N: bool = False,
+        return_std: bool = False
     ) -> ResultDict:
         # create a container with samples
         if hasattr(problem, "rvs"):
@@ -74,7 +79,9 @@ class BayesMcIntegrator(Integrator):
         cont = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
         gp_fitter = SklearnGPFit(
-            n_tuning=self.n_tuning, max_iter=self.max_iter, factr=self.factr
+            n_tuning=self.n_tuning,
+            max_iter=self.max_iter,
+            factr=self.factr
         )
         # draw all samples at once, so threshold does not matter
         iGp = IterativeGPFitting(
@@ -86,7 +93,9 @@ class BayesMcIntegrator(Integrator):
             threshold_direction="up",
             fit_residuals=False,
         )
-        gp_results = iGp.fit(problem.integrand, cont, self.kernel, add_samples=False)
+        gp_results = iGp.fit(problem.integrand,
+                             cont, self.kernel,
+                             add_samples=False)
 
         integral_result = kernel_integration(iGp, cont, gp_results, return_std)
 

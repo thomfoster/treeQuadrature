@@ -7,3 +7,14 @@ from .gp_integral import (
     PolyIntegral,
     IterativeRbfIntegral,
 )
+
+__all__ = [
+    "ContainerIntegral",
+    "MidpointIntegral",
+    "MedianIntegral",
+    "RandomIntegral",
+    "KernelIntegral",
+    "AdaptiveRbfIntegral",
+    "PolyIntegral",
+    "IterativeRbfIntegral",
+]

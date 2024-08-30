@@ -29,24 +29,28 @@ class KernelIntegral(ContainerIntegral):
     Attributes
     ----------
     length : int or float
-        the initial value of the length scale of RBF kernel
+        the initial value of the
+        length scale of RBF kernel. \n
         default 1.0
     range : int or float
         GPRegressor will search hyper-parameter
-        among (length * 1/range, length * range)
+        among (length * 1/range, length * range). \n
         Default 1e3
     thershold : float
         minimum score that must be achieved by
         Gaussian Process.
     n_samples : int
-        number of samples to be drawn in each round of IterativeGPFitting
+        number of samples to be drawn in
+        each round of IterativeGPFitting
     n_splits : int
         number of K-fold cross-validation splits
         if n_splits = 0, K-Fold CV will not be performed.
     threshold_direction : str
-        one of 'up' and 'down'.
-        if 'up', accept the model if score >= performance_threshold;
-        if 'down', accept the model if score >= performance_threshold
+        one of 'up' and 'down'. \n
+        if 'up', accept the model
+        when score >= performance_threshold; \n
+        if 'down', accept the model
+        when score >= performance_threshold
     max_redraw : int
         maximum number of times to increase the
         number of samples in GP fitting.
@@ -119,7 +123,8 @@ class KernelIntegral(ContainerIntegral):
         if self.gp is None:
             self.gp = self.GPFit(**self.gp_params)
             if self.kernel is None:
-                self.kernel = self.gp.create_kernel(self.gp_params)
+                self.kernel = self.gp.create_kernel(
+                    self.gp_params)
 
     def __str__(self):
         return "KernelIntegral"
@@ -128,20 +133,27 @@ class KernelIntegral(ContainerIntegral):
     def _validate_options(options):
         n_samples = options["n_samples"]
         if not isinstance(n_samples, int):
-            raise TypeError(f"n_samples must be an int, got {n_samples}")
+            raise TypeError(
+                "n_samples must be an int, "
+                f"got {n_samples}")
         max_redraw = options["max_redraw"]
         if not isinstance(max_redraw, int):
-            raise TypeError(f"max_redraw must be an int, got {max_redraw}")
+            raise TypeError(
+                "max_redraw must be an int, "
+                f"got {max_redraw}")
         threshold = options["threshold"]
         if not isinstance(threshold, (int, float)):
-            raise TypeError(f"threshold must be an integer or float, got {threshold}")
+            raise TypeError(
+                "threshold must be an integer or float, "
+                f"got {threshold}")
         if not isinstance(options["check_GP"], bool):
             raise TypeError("check_GP must be a bool")
         if not isinstance(options["fit_residuals"], bool):
             raise TypeError("fit_residuals must be a bool")
 
     def containerIntegral(
-        self, container: Container, f: Callable, return_std: bool = False, **kwargs: Any
+        self, container: Container, f: Callable,
+        return_std: bool = False, **kwargs: Any
     ):
         """
         Gaussian Process is fitted iteratively
@@ -161,10 +173,14 @@ class KernelIntegral(ContainerIntegral):
         Return
         ------
         dict
-            - integral (float) the integral estimate
-            - std (float) standard deviation of integral, if return_std = True
-            - hyper_params (dict) hyper-parameters of the fitted kernel
-            - performance (float) GP goodness of fit score
+            - integral (float) :
+                the integral estimate
+            - std (float) :
+                standard deviation of integral, if return_std = True
+            - hyper_params (dict) :
+                hyper-parameters of the fitted kernel
+            - performance (float) :
+                GP goodness of fit score
         """
         self._initialize_gp()
 
@@ -174,7 +190,6 @@ class KernelIntegral(ContainerIntegral):
                 "please increase 'n_samples'"
             )
 
-        ### reset options
         options = self.options.copy()
         options.update(kwargs)
 
@@ -203,7 +218,9 @@ class KernelIntegral(ContainerIntegral):
         )
         gp_results = iGP.fit(f, container, self.kernel)
 
-        ### GP diagnosis
+        # ============
+        # GP diagnosis
+        # ============
         if self.check_GP:
             gp_diagnosis(iGP, container)
 
@@ -319,7 +336,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         bounds = (lower_bound, upper_bound)
 
         self.kernel = self.gp.create_kernel(
-            {"kernel_type": "RBF", "length": initial_length, "bounds": bounds}
+            {"kernel_type": "RBF", "length":
+             initial_length, "bounds": bounds}
         )
 
     def containerIntegral(
@@ -341,10 +359,14 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         Return
         ------
         dict
-            - integral (float) value of the integral of f on the container
-            - std (float) standard deviation of integral, if .return_std = True
-            - hyper_params (dict) hyper-parameters of the fitted kernel
-            - performance (float) GP goodness of fit score
+            - integral (float) :
+                value of the integral of f on the container
+            - std (float) :
+                standard deviation of integral, if .return_std = True
+            - hyper_params (dict) :
+                hyper-parameters of the fitted kernel
+            - performance (float) :
+                GP goodness of fit score
         """
         if self.n_samples < 2:
             raise RuntimeError(
@@ -353,7 +375,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
             )
 
         # generate samples
-        xs, ys = self.sampler.rvs(self.n_samples, container.mins, container.maxs, f)
+        xs, ys = self.sampler.rvs(
+            self.n_samples, container.mins, container.maxs, f)
 
         # check samples are correct
         if xs.shape[0] != ys.shape[0]:
@@ -394,12 +417,18 @@ class AdaptiveRbfIntegral(ContainerIntegral):
                 ),
                 add_samples=False,
             )
-            container.add(gp_results["new_samples"][0], gp_results["new_samples"][1])
+            container.add(
+                gp_results["new_samples"][0],
+                gp_results["new_samples"][1])
         else:
             container.add(xs, ys)
-            gp_results = iGP.fit(f, container, self.kernel, initial_samples=(xs, ys))
+            gp_results = iGP.fit(
+                f, container, self.kernel,
+                initial_samples=(xs, ys))
 
-        ### GP diagnosis
+        # ============
+        # GP diagnosis
+        # ============
         if self.check_GP:
             gp_diagnosis(iGP, container, plot=True)
 
@@ -477,7 +506,8 @@ class PolyIntegral(ContainerIntegral):
         if coeffs:
             self.coeffs = coeffs
         else:
-            self.coeffs = np.logspace(-2, 1, 5)  # default coeffs between 0.01 and 10
+            # default coeffs between 0.01 and 10
+            self.coeffs = np.logspace(-2, 1, 5)
         self.sampler = sampler
         self.gp = None
 
@@ -505,10 +535,14 @@ class PolyIntegral(ContainerIntegral):
         Return
         ------
         dict
-            - integral (float) value of the integral of f on the container.
-            - std (float) standard deviation of integral, if return_std = True.
-            - hyper_params (dict) hyper-parameters of the fitted kernel.
-            - performance (float) GP goodness of fit score.
+            - integral (float) :
+                value of the integral of f on the container.
+            - std (float) :
+                standard deviation of integral, if return_std = True.
+            - hyper_params (dict) :
+                hyper-parameters of the fitted kernel.
+            - performance (float) :
+                GP goodness of fit score.
         """
         self._initialize_gp()
 
@@ -518,12 +552,14 @@ class PolyIntegral(ContainerIntegral):
                 "please increase 'n_samples'"
             )
 
-        xs, ys = self.sampler.rvs(self.n_samples, container.mins, container.maxs, f)
+        xs, ys = self.sampler.rvs(self.n_samples,
+                                  container.mins, container.maxs, f)
 
         # check samples are correct
         if xs.shape[0] != ys.shape[0]:
             raise ValueError(
-                "the shape of xs and ys generated by sampler does not match"
+                "the shape of xs and ys generated "
+                "by sampler does not match"
             )
         if xs.shape[0] != self.n_samples:
             raise RuntimeError(
@@ -532,9 +568,11 @@ class PolyIntegral(ContainerIntegral):
                 f"while expecting {self.n_samples}"
             )
 
-        # Define a function to optimize the hyper-parameters (degree and coefficient)
+        # Define a function to optimize the
+        # hyper-parameters (degree and coefficient)
         def optimize_kernel_hyperparams(d, c):
-            # Here, we return a "negative" score because we will minimize this function
+            # Here, we return a "negative" score
+            # because we will minimize this function
             kernel = Polynomial(degree=d, coef0=c)
             iGP = IterativeGPFitting(
                 n_samples=self.n_samples,
@@ -544,7 +582,8 @@ class PolyIntegral(ContainerIntegral):
                 gp=self.gp,
                 fit_residuals=self.fit_residuals,
             )
-            gp_results = iGP.fit(f, container, kernel, initial_samples=(xs, ys))
+            gp_results = iGP.fit(f, container,
+                                 kernel, initial_samples=(xs, ys))
             return -gp_results["performance"]
 
         # Perform grid search over the hyper-parameters
@@ -570,7 +609,8 @@ class PolyIntegral(ContainerIntegral):
         )
 
         container.add(xs, ys)
-        gp_results = iGP.fit(f, container, self.kernel, initial_samples=(xs, ys))
+        gp_results = iGP.fit(f, container,
+                             self.kernel, initial_samples=(xs, ys))
 
         # Perform kernel integration with polynomial kernel
         ret = kernel_integration(
@@ -621,7 +661,8 @@ class IterativeGpIntegral(ContainerIntegral):
         previous_samples: Tuple[np.ndarray, np.ndarray],
     ):
         """
-        Takes previous samples and draw new samples to perform fitting again.
+        Takes previous samples and draw new
+        samples to perform fitting again.
 
         Arguments
         --------
@@ -637,10 +678,14 @@ class IterativeGpIntegral(ContainerIntegral):
         Return
         ------
         dict
-            - integral (float) value of the integral of f on the container
-            - std (float) standard deviation of integral, if .return_std = True
-            - hyper_params (dict) hyper-parameters of the fitted kernel
-            - performance (float) GP goodness of fit score
+            - integral (float) :
+                value of the integral of f on the container
+            - std (float) :
+                standard deviation of integral, if .return_std = True
+            - hyper_params (dict) :
+                hyper-parameters of the fitted kernel
+            - performance (float) :
+                GP goodness of fit score
         tuple(np.ndarray, np.ndarray)
             samples xs, ys used by this iteration
         """
@@ -786,7 +831,8 @@ class IterativeRbfIntegral(IterativeGpIntegral):
 
         # Fit the GP with all accumulated samples
         gp_results = iGP.fit(
-            f, container, self.kernel, initial_samples=(xs, ys), add_samples=False
+            f, container, self.kernel,
+            initial_samples=(xs, ys), add_samples=False
         )
 
         container.add(new_xs, new_ys)
@@ -800,7 +846,8 @@ class IterativeRbfIntegral(IterativeGpIntegral):
 
         if container.N - begin_n != self.n_samples:
             raise RuntimeError(
-                f"added {container.N - begin_n}, " f"but expecting {self.n_samples}"
+                f"added {container.N - begin_n}, "
+                f"but expecting {self.n_samples}"
             )
 
         return ret, (xs, ys)

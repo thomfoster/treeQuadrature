@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from typing import Tuple
+from typing import Tuple, List
 
 class Sampler(ABC):
     @abstractmethod
@@ -57,3 +57,31 @@ class Sampler(ABC):
                              'got ')
 
         return mins, maxs, mins.shape[0]
+    
+    @staticmethod
+    def subdivide_domain(strata_per_dim: int, mins: np.ndarray, 
+                         maxs: np.ndarray) -> List[Tuple[np.ndarray, np.ndarray]]:
+        """
+        Subdivide the domain into smaller strata. \n
+        For stratified samplers. 
+
+        Parameters
+        ----------
+        strata_per_dim : int
+            Number of strata per dimension.
+        mins : np.ndarray
+            Lower bounds of the domain.
+        maxs : np.ndarray
+            Upper bounds of the domain.
+
+        Returns
+        -------
+        list of tuples
+            Subdivided strata as a list of (low, high) tuples.
+        """
+        strata = []
+        for indices in np.ndindex(*(strata_per_dim,) * len(mins)):
+            sub_low = mins + (maxs - mins) * np.array(indices) / strata_per_dim
+            sub_high = mins + (maxs - mins) * (np.array(indices) + 1) / strata_per_dim
+            strata.append((sub_low, sub_high))
+        return strata

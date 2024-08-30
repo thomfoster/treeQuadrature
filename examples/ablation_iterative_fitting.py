@@ -1,4 +1,4 @@
-from treeQuadrature.integrator import TreeIntegrator
+from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.exampleProblems import ProductPeakProblem, RippleProblem, C0Problem, CornerPeakProblem, OscillatoryProblem
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.containerIntegration import AdaptiveRbfIntegral

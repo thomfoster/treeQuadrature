@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
-from ..example_problems import Problem
 from typing import Any
+
+from ..example_problems import Problem
+from ..utils import ResultDict
+
 
 class Integrator(ABC):
     """
@@ -9,7 +12,7 @@ class Integrator(ABC):
 
     @abstractmethod
     def __call__(self, problem: Problem, return_N: bool, 
-                 **kwargs: Any) -> dict:
+                 **kwargs: Any) -> ResultDict:
         """
         Perform integration on the given problem.
 

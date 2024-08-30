@@ -1,4 +1,3 @@
-from queue import SimpleQueue
 from typing import List, Callable, Optional
 import time, warnings
 

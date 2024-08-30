@@ -1,6 +1,6 @@
 from curses.ascii import SI
 from treeQuadrature.example_problems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem, ExponentialProductProblem, QuadCamel
-from treeQuadrature.integrators import BatchGpIntegrator, DistributedGpTreeIntegrator, SmcIntegrator, DistributedTreeIntegrator, VegasIntegrator
+from treeQuadrature.integrators import BatchGpIntegrator, DistributedGpTreeIntegrator, SmcIntegrator, DistributedTreeIntegrator, VegasIntegrator, vegas_integrator
 from treeQuadrature.container_integrators import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
 from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit
@@ -26,9 +26,10 @@ problem = SimpleGaussian(D=D)
 ### set basic parameters
 n_samples = 20
 max_redraw = 4
-max_n_samples = int(30_000 * (D/2))
+max_n_samples = int(20_000 * (D/2))
 min_container_samples = 32
 random_split_proportion = 0.5
+batch_gp_grid_size = 0.03
 
 N = int(12_000 * (D/3))
 P = 50
@@ -131,11 +132,12 @@ integ_rbf_initial.name = 'TQ with RBF, keeping initial samples'
 integ_rbf_non_adaptive = TreeIntegrator(N, tree=simple_tree, integral=rbfIntegral_mean, sampler=mcmcSampler)
 integ_rbf_non_adaptive.name = 'TQ with non-adaptive RBF'
 
-integ_batch = BatchGpIntegrator(N, P, split, rbfIntegral_non_iter, 
-                               sampler = lhsSampler, max_n_samples=max_n_samples)
+integ_batch = BatchGpIntegrator(N, rbfIntegral_non_iter, tree=simple_tree,
+                               sampler = mcmcSampler, max_n_samples=max_n_samples, 
+                               base_grid_scale=batch_gp_grid_size)
 integ_batch.name = 'Batch GP'
 
-integ_smc = SmcIntegrator(N=max_n_samples, sampler=UniformSampler())
+integ_smc = SmcIntegrator(N=max_n_samples)
 integ_smc.name = 'SMC'
 
 n_iter = 10
@@ -151,7 +153,7 @@ integ_vegas_adaptive.name = 'Adaptive Vegas'
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_activeTQ], plot=True, verbose=1,
+    compare_integrators([integ_smc], plot=True, verbose=2,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]], 
                         problem=problem, dimensions=[0, 1], integrator_specific_kwargs=

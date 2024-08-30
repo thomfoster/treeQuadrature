@@ -4,6 +4,8 @@ from typing import Optional
 from .integrator import Integrator
 from ..example_problems import Problem, BayesProblem
 from ..samplers import Sampler
+from ..utils import ResultDict
+
 
 class SmcIntegrator(Integrator):
     """
@@ -22,7 +24,7 @@ class SmcIntegrator(Integrator):
         self.sampler = sampler
 
     def __call__(self, problem: Problem, return_N: bool=False, 
-                 return_std: bool=False):
+                 return_std: bool=False) -> ResultDict:
         """
         Perform the integration process.
 
@@ -47,9 +49,6 @@ class SmcIntegrator(Integrator):
         if isinstance(problem, BayesProblem):
             xs = problem.p.rvs(self.N)
             ys = problem.integrand(xs)
-        elif self.sampler is not None:
-            xs, ys = self.sampler.rvs(self.N, problem.lows, problem.highs, 
-                                      problem.integrand)
         else:
             raise ValueError('problem is not BayesProblem, and '
                              'integrator does not have sampler')
@@ -57,7 +56,7 @@ class SmcIntegrator(Integrator):
         G = np.mean(ys)
         std_G = np.std(ys) / np.sqrt(self.N)  # Standard deviation of the mean
 
-        ret = {'estimate': G}
+        ret = ResultDict(estimate=G)
         if return_N:
             ret['n_evals'] = self.N
         if return_std:

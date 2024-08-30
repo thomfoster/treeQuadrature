@@ -2,6 +2,7 @@ import vegas
 
 from .integrator import Integrator
 from ..example_problems import Problem
+from ..utils import ResultDict
 
 class ShapeAdapter:
     def __init__(self, f):
@@ -28,7 +29,7 @@ class VegasIntegrator(Integrator):
         self.n_iter = n_iter
         self.n_adaptive = n_adaptive
 
-    def __call__(self, problem: Problem, return_N: bool=False):
+    def __call__(self, problem: Problem, return_N: bool=False) -> ResultDict:
         """
         Perform the integration process using the VEGAS algorithm.
 
@@ -60,7 +61,7 @@ class VegasIntegrator(Integrator):
         result_vegas = integ(f, nitn=self.n_iter, neval=self.N)
         estimate = result_vegas.mean
 
-        ret = {'estimate': estimate}
+        ret = ResultDict(estimate)
         if return_N:
             ret['n_evals'] = self.N * (self.n_iter + self.n_adaptive)
         return ret

@@ -7,7 +7,6 @@ from typing import Callable, Optional, Tuple
 
 from .fit_gp import GPFit, IterativeGPFitting
 from ..container import Container
-from .kernels import Polynomial
 
 
 # Add any future RBF kernel classes to this tuple

@@ -133,6 +133,11 @@ class Container:
         # if mins (maxs) are None, create unbounded container
         self.mins = self._handle_min_max_bounds(mins, -np.inf) 
         self.maxs = self._handle_min_max_bounds(maxs, np.inf)
+        # dimensionality checks
+        if self.mins.shape[0] != self.D:
+            raise ValueError('mins should have length D')
+        if self.maxs.shape[0] != self.D:
+            raise ValueError('maxs should have length D')
 
         self.volume = np.prod(self.maxs - self.mins)
         self.is_finite = not np.isinf(self.volume)
@@ -153,9 +158,6 @@ class Container:
         if isinstance(bounds, (int, float)):
             return np.array([bounds] * self.D)
         elif isinstance(bounds, (list, np.ndarray)):
-            # dimensionality checks
-            if bounds.shape[0] != self.D:
-                raise ValueError('bound should have length D')
             return np.array(bounds)
         else:
             return np.array([default_value] * self.D)
@@ -224,10 +226,12 @@ class Container:
             return X[in_bounds] if y is None else X[in_bounds], y[in_bounds]
 
     def add(self, new_X, new_y):
-        # rearrange the shapes
         new_X, new_y = self._handle_X_y(new_X, new_y)
-        # filter out points outside the container
-        new_X, new_y = self.filter_points(new_X, new_y)
+        
+        if not np.all(new_X >= self.mins):
+            raise ValueError(f"Some values in new_X are below the minimum bounds: {new_X[new_X < self.mins]}")
+        if not np.all(new_X <= self.maxs):
+            raise ValueError(f"Some values in new_X are above the maximum bounds: {new_X[new_X > self.maxs]}")
 
         self._X.add(new_X)
         self._y.add(new_y)

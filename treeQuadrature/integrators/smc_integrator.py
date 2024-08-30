@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Optional
 
-from .integrator import Integrator
+from .base_class import Integrator
 from ..example_problems import Problem, BayesProblem
 from ..samplers import Sampler
 from ..utils import ResultDict

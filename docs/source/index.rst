@@ -11,6 +11,9 @@ Welcome to treeQuadrature's documentation!
    :caption: Contents:
 
    treeQuadrature
+   modules
+   tests
+   setup
 
 
 

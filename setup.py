@@ -1,6 +1,10 @@
 from setuptools import setup, find_packages
+import os
 
-with open('requirements.txt') as f:
+base_dir = os.path.dirname(__file__)  # Directory of the script
+requirements_path = os.path.join(base_dir, 'requirements.txt')
+
+with open(requirements_path) as f:
     required = f.read().splitlines()
       
 setup(name='treeQuadrature',

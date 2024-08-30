@@ -7,40 +7,29 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   treeQuadrature.container_integrators
+   treeQuadrature.example_problems
+   treeQuadrature.gaussian_process
    treeQuadrature.integrators
+   treeQuadrature.samplers
    treeQuadrature.splits
+   treeQuadrature.trees
 
 Submodules
 ----------
+
+treeQuadrature.compare\_integrators module
+------------------------------------------
+
+.. automodule:: treeQuadrature.compare_integrators
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 treeQuadrature.container module
 -------------------------------
 
 .. automodule:: treeQuadrature.container
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-treeQuadrature.containerIntegration module
-------------------------------------------
-
-.. automodule:: treeQuadrature.containerIntegration
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-treeQuadrature.exampleDistributions module
-------------------------------------------
-
-.. automodule:: treeQuadrature.exampleDistributions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-treeQuadrature.exampleProblems module
--------------------------------------
-
-.. automodule:: treeQuadrature.exampleProblems
    :members:
    :undoc-members:
    :show-inheritance:

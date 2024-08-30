@@ -5,7 +5,7 @@ from .base_class import Problem
 from ..utils import handle_bound
 
 
-class ProductPeakProblem(Problem):
+class ProductPeak(Problem):
     def __init__(self, D: int, u: Optional[np.ndarray]=None, 
                  a: Optional[np.ndarray]=None):
         """
@@ -24,7 +24,7 @@ class ProductPeakProblem(Problem):
 
         Notes
         -----
-        The `ProductPeakProblem` is a multidimensional integration problem where the 
+        `ProductPeak` is a multidimensional integration problem where the 
         integrand has peaks at specific locations in each dimension, controlled by 
         the vector `u`. The sharpness of these peaks is determined by the vector `a`, 
         where larger values of `a` result in sharper peaks, meaning the function values 
@@ -79,7 +79,7 @@ class ProductPeakProblem(Problem):
         return f'ProductPeak(D={self.D})'
 
 
-class CornerPeakProblem(Problem):
+class CornerPeak(Problem):
     def __init__(self, D: int, a: Optional[np.ndarray]=None):
         """
         Initialize a corner peak problem with the given parameters.
@@ -95,7 +95,7 @@ class CornerPeakProblem(Problem):
 
         Notes
         -----
-        The `CornerPeakProblem` is a multidimensional integration problem where the 
+        `CornerPeak` is a multidimensional integration problem where the 
         integrand has a peak located near the corner of the domain [0, 1]^D. 
         The steepness of the peak is controlled by the vector `a`. 
         Larger values of `a` result in a steeper 
@@ -152,7 +152,7 @@ class CornerPeakProblem(Problem):
         return f'CornerPeak(D={self.D})'
 
 
-class C0Problem(Problem):
+class C0(Problem):
     def __init__(self, D: int, u: Optional[np.ndarray]=None, 
                  a: Optional[np.ndarray]=None):
         """
@@ -171,7 +171,7 @@ class C0Problem(Problem):
 
         Notes
         -----
-        The `C0Problem` is a multidimensional integration problem where the 
+        `C0` is a multidimensional integration problem where the 
         integrand is a smooth, exponentially decaying function. The function
         is centered around the vector `u`, and its rate of decay is controlled
         by the vector `a`. 
@@ -225,7 +225,7 @@ class C0Problem(Problem):
         return f'C0function(D={self.D})'
 
 
-class DiscontinuousProblem(Problem):
+class Discontinuous(Problem):
     """
     A problem with a discontinuous integrand function.
 
@@ -332,7 +332,7 @@ class DiscontinuousProblem(Problem):
                              'or one dimensional array of shape (D,)')
 
 
-class PyramidProblem(Problem):
+class Pyramid(Problem):
     def __init__(self, D):
         super().__init__(D, lows=-1.0, highs=1.0)
         self.answer = (2 ** self.D) / (self.D + 1)
@@ -359,7 +359,7 @@ class PyramidProblem(Problem):
         return f'Pyramid(D={self.D})'
 
 
-class QuadraticProblem(Problem):
+class Quadratic(Problem):
     def __init__(self, D):
         """
         Quadratic function sum x_i^2 
@@ -419,10 +419,10 @@ class QuadraticProblem(Problem):
         return integral_sum
 
     def __str__(self) -> str:
-        return f'QuadraticProblem(D={self.D})'
+        return f'Quadratic(D={self.D})'
 
 
-class ExponentialProductProblem(Problem):
+class ExponentialProduct(Problem):
     def __init__(self, D):
         """
         Exponential product 
@@ -474,4 +474,4 @@ class ExponentialProductProblem(Problem):
         return np.prod([np.exp(maxs[i]) - np.exp(mins[i]) for i in range(len(mins))])
 
     def __str__(self) -> str:
-        return f'ExponentialProductProblem(D={self.D})'
+        return f'ExponentialProduct(D={self.D})'

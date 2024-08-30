@@ -5,7 +5,7 @@ from .base_class import Problem
 from ..utils import handle_bound
 
 
-class RippleProblem(Problem):
+class Ripple(Problem):
     """
     A problem class representing a ripple-like integrand function
     for numerical integration or other mathematical evaluations.
@@ -24,13 +24,6 @@ class RippleProblem(Problem):
     answer : float
         The analytic solution to the integral of the function over the
         entire domain.
-
-    Methods
-    -------
-    integrand(X)
-        Evaluates the ripple function at the given input points X.
-    __str__()
-        Returns a string representation of the problem.
     """
     def __init__(self, D, a=3):
         super().__init__(D, lows=-10., highs=10.)
@@ -80,7 +73,7 @@ class RippleProblem(Problem):
         return f'Ripple(D={self.D})'
 
 
-class OscillatoryProblem(Problem):
+class Oscillatory(Problem):
     """
     A problem class representing an oscillatory integrand function
     for numerical integration or other mathematical evaluations.
@@ -99,15 +92,6 @@ class OscillatoryProblem(Problem):
     answer : float
         The analytic solution to the integral of the function over the
         entire domain.
-
-    Methods
-    -------
-    compute_answer(a, u)
-        Recursively computes the analytic solution to the integral.
-    integrand(X)
-        Evaluates the oscillatory function at the given input points X.
-    __str__()
-        Returns a string representation of the problem.
     """
     def __init__(self, D: int, u: int=0, a: Optional[np.ndarray]=None):
         """

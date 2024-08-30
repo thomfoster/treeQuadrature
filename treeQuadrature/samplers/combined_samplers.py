@@ -1,4 +1,4 @@
-from .sampler import Sampler
+from .base_class import Sampler
 
 from typing import Tuple, Callable
 import numpy as np

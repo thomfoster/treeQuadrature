@@ -55,8 +55,9 @@ def plot_containers(containers: List[Container], contributions: List[float],
         labels for colour bar in 
         2D plot. 
         Default : 'Contributions'
-    kwargs : Any, optional
+    **kwargs : Any, optional
         additional arguments for _plot_containers_1D and _plot_containers_2D
+
     """
 
     assert len(containers) == len(contributions), (

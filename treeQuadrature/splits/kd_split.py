@@ -1,7 +1,7 @@
 import numpy as np
 import warnings
 
-from .split import Split
+from .base_class import Split
 
 
 class KdSplit(Split):

@@ -2,19 +2,20 @@ import numpy as np
 import warnings
 from typing import Optional
 
-from .split import Split
+from .base_class import Split
 from ..container import Container
 
 class MinSseSplit(Split):
     '''
     Partition into two sub-containers
-      that minimises variance of f over each set.
+    that minimises variance of f over each set.
 
     Attributes
     ----------
     min_samples_leaf : int, optional (default=1)
         The minimum number of samples required to be in each resulting leaf.
         This prevents creating very small partitions that might not generalize well.
+    
     dimension_weights : callable, optional (default=None)
         A function that computes weights for selecting dimensions during splitting.
 
@@ -47,7 +48,7 @@ class MinSseSplit(Split):
         
         - **Returns:**
             - **score (float):** A numerical value representing the split quality, where a lower 
-            score indicates a better split.
+              score indicates a better split.
 
         If None, the default sum of squared errors (SSE) is used.
 

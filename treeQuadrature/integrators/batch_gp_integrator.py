@@ -74,12 +74,6 @@ class BatchGpIntegrator(TreeIntegrator):
             Exponent to scale grid size with dimension.
         length_scaling_exponent : float, optional
             Exponent to scale grid size with average side length.
-
-        
-        Methods
-        -------
-        __call__(problem, return_N, return_all)
-            solves the problem given and returns the estimate
         '''
         super().__init__(base_N=base_N, tree=tree, integral=integral, sampler=sampler)
         self.base_grid_scale = base_grid_scale

@@ -4,42 +4,66 @@ treeQuadrature.integrators package
 Submodules
 ----------
 
-treeQuadrature.integrators.limitedSampleIntegrator module
----------------------------------------------------------
+treeQuadrature.integrators.base\_class module
+---------------------------------------------
 
-.. automodule:: treeQuadrature.integrators.limitedSampleIntegrator
+.. automodule:: treeQuadrature.integrators.base_class
    :members:
    :undoc-members:
    :show-inheritance:
 
-treeQuadrature.integrators.queueIntegrator module
+treeQuadrature.integrators.batch\_gp\_integrator module
+-------------------------------------------------------
+
+.. automodule:: treeQuadrature.integrators.batch_gp_integrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+treeQuadrature.integrators.bmc\_integrator module
 -------------------------------------------------
 
-.. automodule:: treeQuadrature.integrators.queueIntegrator
+.. automodule:: treeQuadrature.integrators.bmc_integrator
    :members:
    :undoc-members:
    :show-inheritance:
 
-treeQuadrature.integrators.simpleIntegrator module
+treeQuadrature.integrators.distributed\_gp\_integrator module
+-------------------------------------------------------------
+
+.. automodule:: treeQuadrature.integrators.distributed_gp_integrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+treeQuadrature.integrators.distributed\_tree\_integrator module
+---------------------------------------------------------------
+
+.. automodule:: treeQuadrature.integrators.distributed_tree_integrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+treeQuadrature.integrators.smc\_integrator module
+-------------------------------------------------
+
+.. automodule:: treeQuadrature.integrators.smc_integrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+treeQuadrature.integrators.tree\_integrator module
 --------------------------------------------------
 
-.. automodule:: treeQuadrature.integrators.simpleIntegrator
+.. automodule:: treeQuadrature.integrators.tree_integrator
    :members:
    :undoc-members:
    :show-inheritance:
 
-treeQuadrature.integrators.smcIntegrator module
------------------------------------------------
+treeQuadrature.integrators.vegas\_integrator module
+---------------------------------------------------
 
-.. automodule:: treeQuadrature.integrators.smcIntegrator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-treeQuadrature.integrators.vegasIntegrator module
--------------------------------------------------
-
-.. automodule:: treeQuadrature.integrators.vegasIntegrator
+.. automodule:: treeQuadrature.integrators.vegas_integrator
    :members:
    :undoc-members:
    :show-inheritance:

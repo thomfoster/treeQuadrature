@@ -27,17 +27,8 @@ class Container:
         number of samples (also number of evaluations)
     X, y : numpy.ndarray
         samples and evaluations 
-
-    Methods 
-    -------
-    add(new_x, new_y)
-        add new sample points
-    rvs(n)
-        uniformly randomly draw n samples in this container
-        Return : numpy.ndarray of shape (n, D)
-    split(split_dimension, split_value)
-        split the container into two along split_dimension at split_value
-        Return : list of two sub-containers
+        X is numpy.ndarray of shape (N, D)
+        y is numpy.ndarray of shape (N, 1)
     '''
 
     def __init__(self, X: np.ndarray, y: np.ndarray, mins=None, maxs=None):
@@ -180,29 +171,14 @@ class Container:
 
     @property
     def N(self) -> int:
-        """Number of samples"""
         return sum(x.shape[0] for x in self._X)
 
     @property
     def X(self) -> np.ndarray:
-        """
-        Samples
-
-        Return
-        ------
-        numpy.ndarray of shape (N, D)
-        """
         return np.vstack(self._X)
 
     @property
     def y(self) -> np.ndarray:
-        """
-        Evaluations
-
-        Return
-        ------
-        numpy.ndarray of shape (N, 1)
-        """
         return np.vstack(self._y)
 
     def rvs(self, n: int) -> np.ndarray:

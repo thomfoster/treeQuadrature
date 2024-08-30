@@ -1,7 +1,7 @@
 from typing import List, Callable, Optional
 import time, warnings
 
-from .tree import Tree
+from .base_class import Tree
 from ..container import Container
 from ..splits import Split, MinSseSplit
 from ..queues import ReservoirQueue

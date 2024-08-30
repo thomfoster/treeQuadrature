@@ -1,4 +1,4 @@
-from .sampler import Sampler
+from .base_class import Sampler
 
 from scipy.stats.qmc import Sobol
 import numpy as np

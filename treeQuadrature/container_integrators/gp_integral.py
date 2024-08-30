@@ -7,7 +7,7 @@ from abc import abstractmethod
 
 from ..gaussian_process import IterativeGPFitting, gp_diagnosis, kernel_integration, GPFit, SklearnGPFit
 from ..gaussian_process.kernel_integration import poly_post
-from .container_integral import ContainerIntegral
+from .base_class import ContainerIntegral
 from ..container import Container
 from ..gaussian_process.kernels import Polynomial
 from ..gaussian_process.scorings import r2

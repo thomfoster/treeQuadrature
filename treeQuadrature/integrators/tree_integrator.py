@@ -7,7 +7,7 @@ import numpy as np
 # parallel computing
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-from .integrator import Integrator
+from .base_class import Integrator
 from ..container import Container
 from ..trees import Tree, SimpleTree
 from ..container_integrators import ContainerIntegral, RandomIntegral
@@ -68,6 +68,49 @@ class TreeIntegrator(Integrator):
                  sampler: Optional[Sampler] = None, 
                  parallel: bool = True, 
                  *args, **kwargs):
+        """
+        Initialise the TreeIntegrator.
+
+        Parameters
+        ----------
+        base_N : int
+            The number of initial samples to draw.
+        tree : Tree, Optional
+            The tree to be used for the integration process.
+            Defaults to SimpleTree.
+        integral : ContainerIntegral, Optional
+            The integral method to be used on each container.
+            Defaults to RandomIntegral.
+        sampler : Sampler, Optional
+            The sampler to be used to draw initial samples.
+            If None, problem.rvs will be used.
+        parallel : bool, Optional
+            Whether to use parallel computing.
+            Defaults to True.
+        *args, **kwargs : Any
+            Additional arguments to be passed to the tree construction method.
+        
+        Example
+        -------
+        >>> from treeQuadrature.integrators import TreeIntegrator
+        >>> from treeQuadrature.splits import MinSseSplit
+        >>> from treeQuadrature.containerIntegration import RandomIntegral
+        >>> from treeQuadrature.example_problems import SimpleGaussian
+        >>> from treeQuadrature.trees import WeightedTree
+        >>> # Define the problem
+        >>> problem = SimpleGaussian(D=2)
+        >>> volume_weighting = lambda container: container.volume
+        >>> stopping_small_containers = lambda container: container.N < 2
+        >>> tree = WeightedTree(split=MinSseSplit(), max_splits=200,
+        >>>     weighting_function=volume_weighting,
+        >>>     stopping_condition=stopping_small_containers)
+        >>> # Combine all compartments into a TreeIntegrator
+        >>> integ_weighted = TreeIntegrator(base_N=1000, tree=tree, 
+        >>>                                 integral=RandomIntegral())
+        >>> estimate = integ_weighted(problem)
+        >>> print("error of random integral =",
+        >>>       str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
+        """
         super().__init__(*args, **kwargs)
         self.tree = tree if tree is not None else SimpleTree()
         self.integral = integral if integral is not None else RandomIntegral()

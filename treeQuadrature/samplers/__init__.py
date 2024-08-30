@@ -1,4 +1,4 @@
-from .sampler import Sampler
+from .base_class import Sampler
 from .uniform_sampler import UniformSampler
 from .importance_sampler import ImportanceSampler
 from .mcmc_sampler import McmcSampler

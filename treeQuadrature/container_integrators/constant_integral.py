@@ -1,7 +1,7 @@
 import warnings
 import numpy as np
 
-from .container_integral import ContainerIntegral
+from .base_class import ContainerIntegral
 from ..container import Container
 
 

@@ -34,16 +34,19 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
     """
     Compare different integrators on a given problem.
     Give integrators attribute `name` 
-    for clear outputs. 
+    for clear outputs.
 
-    It will print for each integrator: 
+    It will print for each integrator:
+    
     - Estimated integral value
     - The signed relative error  (estimate - answer) / answer
         (unless problem.answer is 0, 
         in which case signed absolute error will be used)
     - Number of integrand evaluations
     - Time taken in seconds
-    if integrator uses containers, 
+
+    If integrator uses containers:
+    
     - number of containers used
     - average number of samples per container
     - min number of samples per container
@@ -59,29 +62,29 @@ def compare_integrators(integrators: List[Integrator], problem: Problem,
         Whether to plot the contributions of the integrators.
         Default is False.
     plot_samples : bool, optional
-        Whether to plot samples on the figure produced
+        Whether to plot samples on the figure produced.
         Default is True.
-        Will be ignored if plot = False
+        Will be ignored if plot=False.
     verbose : int, optional
         If 0, print no message;
-        if 1, print the test runrs;
-        if 2, print the messages within integrators
+        if 1, print the test runs;
+        if 2, print the messages within integrators.
         Default is 1.
     xlim, ylim : List[float], optional
         The limits for the plot containers.
         Will not be used when plot=False.
-    dimensions : List[Float], optional
+    dimensions : List[float], optional
         Which dimensions to plot for higher dimensional problems.
     n_repeat : int, optional
         Number of times to repeat the integration and average the results.
         Default is 1.
     integrator_specific_kwargs : dict, optional
-        A dictionary where the keys are names of integrator and the values are
+        A dictionary where the keys are names of integrators and the values are
         dictionaries of specific arguments to be passed to those integrators.
         Default is None.
     **kwargs : Any
         kwargs that should be used by integrator.__call__ method 
-        or the plot_containers method
+        or the plot_containers method.
     """
     if integrator_specific_kwargs is None:
         integrator_specific_kwargs = {}

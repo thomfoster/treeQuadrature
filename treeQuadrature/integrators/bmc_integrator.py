@@ -1,6 +1,6 @@
 from ..utils import ResultDict
 from ..example_problems import Problem
-from .integrator import Integrator
+from .base_class import Integrator
 from ..samplers import Sampler, UniformSampler
 from ..container import Container
 from ..gaussian_process import kernel_integration, IterativeGPFitting, SklearnGPFit

@@ -195,30 +195,29 @@ def kernel_integration(igp: IterativeGPFitting, container: Container,
     container : Container
         The container object that holds the boundaries.
     gp_results : dict
-        results from gp.fit() necessary for performing the 
-        kernel integral
+        Results from gp.fit() necessary for performing the 
+        kernel integral.
     return_std : bool
-        When True, return the standard deviation of GP estimation
-    kernel_mean_post, kernel_var_post : functions, optional
-        must be provided if not using RBF kernel
-        kernel_mean_post : takes a GPFit, Container, 
-          and dictionary (gp fitting results)
-          and returns a float (integral estimate)
-        kernel_var_post : takes a GPFit, Container, 
-          and returns a float (posterior variance)
+        When True, return the standard deviation of GP estimation.
+    kernel_mean_post : function, optional
+        Must be provided if not using RBF kernel. \n
+        Takes a GPFit, Container, and dictionary (gp fitting results), 
+        and returns a float (integral estimate).
+    kernel_var_post : function, optional
+        Must be provided if not using RBF kernel. \n
+        Takes a GPFit, Container, and returns a float (posterior variance).
     kernel_post : function, optional
-        alternative to kernel_mean_post, kernel_var_post
-        must take GPFit, Container, dict (gp fitting results) 
-          and return_std : bool
-          and return estiamte and var_post simulaneously 
-    kernel_params : dict
+        Alternative to kernel_mean_post, kernel_var_post. \n
+        Must take GPFit, Container, dict (gp fitting results), 
+        and return_std : bool, and return estimate and var_post simultaneously.
+    kernel_params : dict, optional
         Additional parameters specific to the kernel functions.
 
     Returns
     -------
     dict
-        - integral (float) the integral estimate
-        - std (float) standard deviation of integral
+        - integral (float): The integral estimate.
+        - std (float): The standard deviation of the integral (if return_std is True).
     """
     gp = igp.gp
 

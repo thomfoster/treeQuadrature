@@ -1,6 +1,6 @@
 from typing import Tuple, List, Optional
 import numpy as np
-from .sampler import Sampler
+from .base_class import Sampler
 
 class MixedSampler(Sampler):
     """

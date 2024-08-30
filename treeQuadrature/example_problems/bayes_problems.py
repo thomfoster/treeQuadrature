@@ -26,14 +26,6 @@ class BayesProblem(Problem):
     answer : float
             the True solution to int p.pdf(x) * d.pdf(x) dx
             integrated over [lows, highs]
-
-    Methods
-    -------
-    pdf(X)
-        input : numpy.ndarray of shape (N, D)
-            each row is a sample
-        return : numpy.ndarray of shape (N, 1)
-            the value of p.pdf(x) * d.pdf(x) at samples in X
     '''
     def __init__(self, D: int,
                  d: dists.Distribution, 

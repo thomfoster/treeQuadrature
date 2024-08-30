@@ -1,7 +1,7 @@
 from typing import Tuple
 import numpy as np
 from emcee import EnsembleSampler
-from .sampler import Sampler
+from .base_class import Sampler
 
 class McmcSampler(Sampler):
     """

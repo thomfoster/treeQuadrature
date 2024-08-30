@@ -72,40 +72,37 @@ class GPFit(ABC):
         ---------
         gp_params : dict
             A dictionary of parameters required to create the kernel.
-            This may include parameters like `length`, `range`, `degree`,
-            `coef0`, etc., depending on the kernel type.
+            This may include parameters like ``length``, ``range``, ``degree``,
+            ``coef0``, etc., depending on the kernel type.
 
         Returns
         -------
-        The kernel instance to be used in the GP model.
+        Any
+            The kernel instance to be used in the GP model.
 
         Notes for Subclass Implementers:
         --------------------------------
-        - When implementing this method in a subclass, you can use the `KernelFactory`
+        - When implementing this method in a subclass, you can use the ``KernelFactory``
         to register and create kernels dynamically.
 
         Example of Using KernelFactory:
         -------------------------------
         1. **Register a Kernel**:
-            To register a kernel (e.g., RBF kernel) with the `KernelFactory`, 
-            you can do this in the `__init__` method of your subclass:
+            To register a kernel (e.g., RBF kernel) with the ``KernelFactory``, 
+            you can do this in the ``__init__`` method of your subclass::
 
-            ```python
-            KernelFactory.register_kernel('RBF', lambda length=10.0, range_=1e3: RBF(
-                length_scale=length, length_scale_bounds=(length * (1 / range_), length * range_)))
-            ```
+                KernelFactory.register_kernel('RBF', lambda length=10.0, range_=1e3: RBF(
+                    length_scale=length, length_scale_bounds=(length * (1 / range_), length * range_)))
 
         2. **Create a Kernel**:
-            To create an instance of a registered kernel, use the `create_kernel` method:
+            To create an instance of a registered kernel, use the ``create_kernel`` method::
 
-            ```python
-            def create_kernel(self, gp_params: Dict[str, Any]) -> Any:
-                kernel_type = gp_params.get('kernel_type', 'RBF')  # Default to RBF
-                return KernelFactory.create_kernel(kernel_type, **gp_params)
-            ```
+                def create_kernel(self, gp_params: Dict[str, Any]) -> Any:
+                    kernel_type = gp_params.get('kernel_type', 'RBF')  # Default to RBF
+                    return KernelFactory.create_kernel(kernel_type, **gp_params)
 
         This structure allows users to easily extend the GP model with new kernels 
-        by registering them with the `KernelFactory` and ensuring that they can be 
+        by registering them with the ``KernelFactory`` and ensuring that they can be 
         instantiated based on runtime parameters.
         """
         pass
@@ -194,12 +191,6 @@ class SklearnGPFit(GPFit):
     optimizer : function
         the optimizer used to tune hyper-parameters of gp
         Default is fmin_l_bfgs_b
-
-    Method
-    -------
-    fit_gp(xs, ys, kernel)
-        fit gp and return the model. gp will also be stored in attribute
-    predict(xs)
 
     Example
     -------

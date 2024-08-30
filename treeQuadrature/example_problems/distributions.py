@@ -134,13 +134,6 @@ class MixtureDistribution:
         component distributions
     weights : list 
         weights of each component distribution
-    
-    Methods
-    -------
-    rvs(n_samples)
-        return n_samples random samples drawn from the mixture
-    pdf(x)
-        the probability density function of the mixture
     """
 
     def __init__(self, D, weights):

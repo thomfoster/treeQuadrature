@@ -33,23 +33,6 @@ class Problem(ABC):
         assumed to be the same for each dimension
     answer : float
         the True solution to int integrand(x) dx
-
-    Methods
-    -------
-    integrand(X) 
-        the function being integrated
-        MUST be implemented by subclasses
-        input : numpy.ndarray of shape (N, D)
-            each row is a sample
-        return : numpy.ndarray of shape (N, 1)
-            the value of p.pdf(x) * d.pdf(x) at samples in X
-    
-    rvs(n)
-        generate random samples in the integraiton domain 
-        input : numpy.ndarray of shape (N, D)
-            each row is a sample
-        return : numpy.ndarray of shape (N, n)
-            the value of p.pdf(x) * d.pdf(x) at samples in X
     '''
     def __init__(self, D, lows, highs):
         """

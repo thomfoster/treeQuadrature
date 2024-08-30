@@ -1,7 +1,7 @@
 import numpy as np
 
 from ..container import Container
-from .split import Split
+from .base_class import Split
 
 class UniformSplit(Split):
     """

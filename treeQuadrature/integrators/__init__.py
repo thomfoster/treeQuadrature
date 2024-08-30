@@ -1,6 +1,6 @@
 from .smc_integrator import SmcIntegrator # noqa
 from .vegas_integrator import VegasIntegrator # noqa
-from .integrator import Integrator
+from .base_class import Integrator
 from .tree_integrator import TreeIntegrator
 from .bmc_integrator import BayesMcIntegrator
 from .batch_gp_integrator import BatchGpIntegrator

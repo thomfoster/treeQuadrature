@@ -90,7 +90,7 @@ class PriorityQueue:
         return self.q.get().item
 
     @property
-    def n(self):
+    def n(self) -> int:
         return self.q.qsize()
 
     def empty(self):

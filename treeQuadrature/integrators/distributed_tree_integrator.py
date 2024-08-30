@@ -80,13 +80,6 @@ class DistributedTreeIntegrator(TreeIntegrator):
             Default: 1e-6
         parallel : bool, optional
             whether to use parallel computing for container integration
-
-        Methods
-        -------
-        __call__(self, problem: Problem, return_N: bool=False, return_containers: bool=False, return_std: bool=False, **kwargs)
-            Perform the integration on the given problem.
-        integrate_containers(self, containers, problem, return_std, **kwargs)
-            Integrate the given containers using the specified integral method.
         """
         super().__init__(base_N, tree, integral, sampler, parallel)
         self.max_n_samples = max_n_samples

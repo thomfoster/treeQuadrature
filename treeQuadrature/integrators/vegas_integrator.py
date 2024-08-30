@@ -1,6 +1,6 @@
 import vegas
 
-from .integrator import Integrator
+from .base_class import Integrator
 from ..example_problems import Problem
 from ..utils import ResultDict
 

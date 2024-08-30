@@ -2,7 +2,7 @@ from typing import Callable, Optional, List
 import numpy as np
 import time
 
-from .tree import Tree
+from .base_class import Tree
 from ..splits import Split, MinSseSplit
 from ..queues import ReservoirQueue
 from ..container import Container

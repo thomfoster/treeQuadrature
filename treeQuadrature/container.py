@@ -64,9 +64,6 @@ class Container:
         self._X = []
         self._y = []
 
-        X_filtered, y_filtered = self.filter_points(X, y)
-        self.add(X_filtered, y_filtered)
-
         self.D = X.shape[1]
 
         # if mins (maxs) are None, create unbounded container
@@ -77,6 +74,9 @@ class Container:
         self.is_finite = not np.isinf(self.volume)
         self.midpoint = (
             self.mins + self.maxs) / 2 if self.is_finite else np.nan
+        
+        X_filtered, y_filtered = self.filter_points(X, y)
+        self.add(X_filtered, y_filtered)
 
     def _handle_min_max_bounds(self, bounds, default_value) -> np.ndarray:
         """Handle different types of min/max bounds."""
@@ -172,7 +172,7 @@ class Container:
         """
         # rearrange the shapes
         new_X, new_y = self._handle_X_y(new_X, new_y)
-        
+
         new_X, new_y = self.filter_points(new_X, new_y)
 
         self._X.append(new_X)

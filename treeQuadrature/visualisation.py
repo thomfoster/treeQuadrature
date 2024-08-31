@@ -290,7 +290,7 @@ def plot_integrand(
     title: Optional[str] = "Integrand Plot",
     font_size: int = 12,
     tick_size: int = 10,
-    title_font_size: int = 14, 
+    title_font_size: int = 14,
     **kwargs
 ):
     """
@@ -309,7 +309,7 @@ def plot_integrand(
         The range of y-axis. \n
         Ignored by 1D problems.
     n_points : int, optional
-        Number of points in each dimension 
+        Number of points in each dimension
         for plotting. \n
         Defaults to 500.
     file_path : str, optional
@@ -364,7 +364,7 @@ def _plot_integrand_1D(f, xlim, n_points, file_path,
     plt.ylabel("Value", fontsize=font_size)
     plt.xticks(fontsize=tick_size)
     plt.yticks(fontsize=tick_size)
-    
+
     if title:
         plt.title(title, fontsize=title_font_size)
 
@@ -410,7 +410,7 @@ def _plot_integrand_2D_contour(f, xlim, ylim, n_points, file_path,
     contour = plt.contour(X_trimmed, Y_trimmed, Z_trimmed,
                           cmap=cmap,
                           **applicable_kwargs)
-    rotation=kwargs.get("rotation", 0)
+    rotation = kwargs.get("rotation", 0)
     plt.xticks(fontsize=tick_size, rotation=rotation)
     plt.yticks(fontsize=tick_size)
     cbar = plt.colorbar(contour)
@@ -439,7 +439,7 @@ def _plot_integrand_2D_heat(f, xlim, ylim, n_points,
     # Generate grid points
     x = np.linspace(xlim[0], xlim[1], n_points)
     y = np.linspace(ylim[0], ylim[1], n_points)
-    
+
     # Compute function values
     Z = np.array([[f([xs, ys])[0, 0] for xs in x] for ys in y])
 
@@ -449,18 +449,18 @@ def _plot_integrand_2D_heat(f, xlim, ylim, n_points,
     plt.imshow(Z, extent=[xlim[0], xlim[1], ylim[0], ylim[1]],
                origin='lower', cmap='viridis', aspect='auto',
                **applicable_kwargs)
-    
+
     # Add colorbar
     cbar = plt.colorbar()
     cbar.set_label('Function Value', fontsize=font_size)
     cbar.ax.tick_params(labelsize=tick_size)
 
     # Add labels
-    rotation=kwargs.get("rotation", 0)
+    rotation = kwargs.get("rotation", 0)
     plt.xticks(fontsize=tick_size, rotation=rotation)
     plt.yticks(fontsize=tick_size)
     plt.tight_layout()
-    
+
     if title:
         plt.title(title, fontsize=title_font_size)
 

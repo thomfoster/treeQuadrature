@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>treeQuadrature package &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="treeQuadrature.container_integrators package" href="treeQuadrature.container_integrators.html" />
+    <link rel="prev" title="Welcome to treeQuadrature’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="treequadrature-package">
+<h1>treeQuadrature package<a class="headerlink" href="#treequadrature-package" title="Link to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="treeQuadrature.container_integrators.html">treeQuadrature.container_integrators package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.container_integrators.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.container_integrators.html#module-treeQuadrature.container_integrators.base_class">treeQuadrature.container_integrators.base_class module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral"><code class="docutils literal notranslate"><span class="pre">ContainerIntegral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral.containerIntegral"><code class="docutils literal notranslate"><span class="pre">ContainerIntegral.containerIntegral()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.container_integrators.html#module-treeQuadrature.container_integrators.constant_integral">treeQuadrature.container_integrators.constant_integral module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.constant_integral.MedianIntegral"><code class="docutils literal notranslate"><span class="pre">MedianIntegral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.constant_integral.MedianIntegral.containerIntegral"><code class="docutils literal notranslate"><span class="pre">MedianIntegral.containerIntegral()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.constant_integral.MidpointIntegral"><code class="docutils literal notranslate"><span class="pre">MidpointIntegral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.constant_integral.MidpointIntegral.containerIntegral"><code class="docutils literal notranslate"><span class="pre">MidpointIntegral.containerIntegral()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.container_integrators.html#module-treeQuadrature.container_integrators.gp_integral">treeQuadrature.container_integrators.gp_integral module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.n_samples"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.n_samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.n_splits"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.n_splits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.max_redraw"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.max_redraw</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.scoring"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.scoring</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.thershold"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.thershold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.threshold_direction"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.threshold_direction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.GPFit"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.GPFit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.gp_params"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.gp_params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.fit_residuals"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.fit_residuals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.sampler"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.sampler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.keep_samples"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.keep_samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.check_GP"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.check_GP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.containerIntegral"><code class="docutils literal notranslate"><span class="pre">AdaptiveRbfIntegral.containerIntegral()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral"><code class="docutils literal notranslate"><span class="pre">IterativeGpIntegral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral.containerIntegral"><code class="docutils literal notranslate"><span class="pre">IterativeGpIntegral.containerIntegral()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.n_samples"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral.n_samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.n_splits"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral.n_splits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.scoring"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral.scoring</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.score_direction"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral.score_direction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.GPFit"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral.GPFit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.gp_params"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral.gp_params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.fit_residuals"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral.fit_residuals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.sampler"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral.sampler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.containerIntegral"><code class="docutils literal notranslate"><span class="pre">IterativeRbfIntegral.containerIntegral()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral"><code class="docutils literal notranslate"><span class="pre">KernelIntegral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.length"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.length</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.range"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.thershold"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.thershold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.n_samples"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.n_samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.n_splits"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.n_splits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.threshold_direction"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.threshold_direction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.max_redraw"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.max_redraw</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.check_GP"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.check_GP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.fit_residuals"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.fit_residuals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.gp"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.gp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.iGP"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.iGP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.KernelIntegral.containerIntegral"><code class="docutils literal notranslate"><span class="pre">KernelIntegral.containerIntegral()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral"><code class="docutils literal notranslate"><span class="pre">PolyIntegral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.degrees"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.degrees</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.coeffs"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.coeffs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.n_samples"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.n_samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.n_splits"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.n_splits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.max_redraw"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.max_redraw</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.threshold"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.threshold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.GPFit"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.GPFit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.gp_params"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.gp_params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.iGP"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.iGP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.fit_residuals"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.fit_residuals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.return_std"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.return_std</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.gp_integral.PolyIntegral.containerIntegral"><code class="docutils literal notranslate"><span class="pre">PolyIntegral.containerIntegral()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.container_integrators.html#module-treeQuadrature.container_integrators.monte_carlo_integral">treeQuadrature.container_integrators.monte_carlo_integral module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.monte_carlo_integral.RandomIntegral"><code class="docutils literal notranslate"><span class="pre">RandomIntegral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.monte_carlo_integral.RandomIntegral.containerIntegral"><code class="docutils literal notranslate"><span class="pre">RandomIntegral.containerIntegral()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.monte_carlo_integral.RandomIntegral.estimate_error"><code class="docutils literal notranslate"><span class="pre">RandomIntegral.estimate_error()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.container_integrators.html#module-treeQuadrature.container_integrators">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="treeQuadrature.example_problems.html">treeQuadrature.example_problems package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.example_problems.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.example_problems.html#module-treeQuadrature.example_problems.base_class">treeQuadrature.example_problems.base_class module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem"><code class="docutils literal notranslate"><span class="pre">Problem</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem.D"><code class="docutils literal notranslate"><span class="pre">Problem.D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem.answer"><code class="docutils literal notranslate"><span class="pre">Problem.answer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem.handle_input"><code class="docutils literal notranslate"><span class="pre">Problem.handle_input()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem.integrand"><code class="docutils literal notranslate"><span class="pre">Problem.integrand()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.ensure_2d_output"><code class="docutils literal notranslate"><span class="pre">ensure_2d_output()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.example_problems.html#module-treeQuadrature.example_problems.bayes_problems">treeQuadrature.example_problems.bayes_problems module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.BayesProblem"><code class="docutils literal notranslate"><span class="pre">BayesProblem</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.BayesProblem.D"><code class="docutils literal notranslate"><span class="pre">BayesProblem.D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.BayesProblem.d"><code class="docutils literal notranslate"><span class="pre">BayesProblem.d</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.BayesProblem.p"><code class="docutils literal notranslate"><span class="pre">BayesProblem.p</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.BayesProblem.answer"><code class="docutils literal notranslate"><span class="pre">BayesProblem.answer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.BayesProblem.integrand"><code class="docutils literal notranslate"><span class="pre">BayesProblem.integrand()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.BayesProblem.rvs"><code class="docutils literal notranslate"><span class="pre">BayesProblem.rvs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.Camel"><code class="docutils literal notranslate"><span class="pre">Camel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.Camel.d"><code class="docutils literal notranslate"><span class="pre">Camel.d</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.Camel.p"><code class="docutils literal notranslate"><span class="pre">Camel.p</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.Camel.D"><code class="docutils literal notranslate"><span class="pre">Camel.D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.Camel.answer"><code class="docutils literal notranslate"><span class="pre">Camel.answer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.Gaussian"><code class="docutils literal notranslate"><span class="pre">Gaussian</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.QuadCamel"><code class="docutils literal notranslate"><span class="pre">QuadCamel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.QuadCamel.d"><code class="docutils literal notranslate"><span class="pre">QuadCamel.d</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.QuadCamel.p"><code class="docutils literal notranslate"><span class="pre">QuadCamel.p</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.QuadCamel.D"><code class="docutils literal notranslate"><span class="pre">QuadCamel.D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.QuadCamel.answer"><code class="docutils literal notranslate"><span class="pre">QuadCamel.answer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.SimpleGaussian"><code class="docutils literal notranslate"><span class="pre">SimpleGaussian</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.SimpleGaussian.d"><code class="docutils literal notranslate"><span class="pre">SimpleGaussian.d</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.SimpleGaussian.p"><code class="docutils literal notranslate"><span class="pre">SimpleGaussian.p</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.SimpleGaussian.D"><code class="docutils literal notranslate"><span class="pre">SimpleGaussian.D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.bayes_problems.SimpleGaussian.answer"><code class="docutils literal notranslate"><span class="pre">SimpleGaussian.answer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.example_problems.html#module-treeQuadrature.example_problems.complex_problems">treeQuadrature.example_problems.complex_problems module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory"><code class="docutils literal notranslate"><span class="pre">Oscillatory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory.D"><code class="docutils literal notranslate"><span class="pre">Oscillatory.D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory.a"><code class="docutils literal notranslate"><span class="pre">Oscillatory.a</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory.u"><code class="docutils literal notranslate"><span class="pre">Oscillatory.u</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory.answer"><code class="docutils literal notranslate"><span class="pre">Oscillatory.answer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory.compute_answer"><code class="docutils literal notranslate"><span class="pre">Oscillatory.compute_answer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Oscillatory.integrand"><code class="docutils literal notranslate"><span class="pre">Oscillatory.integrand()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Ripple"><code class="docutils literal notranslate"><span class="pre">Ripple</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Ripple.D"><code class="docutils literal notranslate"><span class="pre">Ripple.D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Ripple.a"><code class="docutils literal notranslate"><span class="pre">Ripple.a</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Ripple.answer"><code class="docutils literal notranslate"><span class="pre">Ripple.answer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.complex_problems.Ripple.integrand"><code class="docutils literal notranslate"><span class="pre">Ripple.integrand()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.example_problems.html#module-treeQuadrature.example_problems.distributions">treeQuadrature.example_problems.distributions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.Camel"><code class="docutils literal notranslate"><span class="pre">Camel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.Distribution"><code class="docutils literal notranslate"><span class="pre">Distribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.Distribution.pdf"><code class="docutils literal notranslate"><span class="pre">Distribution.pdf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.Distribution.rvs"><code class="docutils literal notranslate"><span class="pre">Distribution.rvs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.MixtureDistribution"><code class="docutils literal notranslate"><span class="pre">MixtureDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.MixtureDistribution.pdf"><code class="docutils literal notranslate"><span class="pre">MixtureDistribution.pdf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.MixtureDistribution.rvs"><code class="docutils literal notranslate"><span class="pre">MixtureDistribution.rvs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.MultivariateNormal"><code class="docutils literal notranslate"><span class="pre">MultivariateNormal</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.MultivariateNormal.mean"><code class="docutils literal notranslate"><span class="pre">MultivariateNormal.mean</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.MultivariateNormal.cov"><code class="docutils literal notranslate"><span class="pre">MultivariateNormal.cov</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.MultivariateNormal.pdf"><code class="docutils literal notranslate"><span class="pre">MultivariateNormal.pdf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.MultivariateNormal.rvs"><code class="docutils literal notranslate"><span class="pre">MultivariateNormal.rvs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.QuadCamel"><code class="docutils literal notranslate"><span class="pre">QuadCamel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.Uniform"><code class="docutils literal notranslate"><span class="pre">Uniform</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.Uniform.pdf"><code class="docutils literal notranslate"><span class="pre">Uniform.pdf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.distributions.Uniform.rvs"><code class="docutils literal notranslate"><span class="pre">Uniform.rvs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.example_problems.html#module-treeQuadrature.example_problems.simple_problems">treeQuadrature.example_problems.simple_problems module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.C0"><code class="docutils literal notranslate"><span class="pre">C0</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.C0.integrand"><code class="docutils literal notranslate"><span class="pre">C0.integrand()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.CornerPeak"><code class="docutils literal notranslate"><span class="pre">CornerPeak</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.CornerPeak.compute_answer"><code class="docutils literal notranslate"><span class="pre">CornerPeak.compute_answer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.CornerPeak.integrand"><code class="docutils literal notranslate"><span class="pre">CornerPeak.integrand()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous"><code class="docutils literal notranslate"><span class="pre">Discontinuous</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous.D"><code class="docutils literal notranslate"><span class="pre">Discontinuous.D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous.a"><code class="docutils literal notranslate"><span class="pre">Discontinuous.a</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous.u1"><code class="docutils literal notranslate"><span class="pre">Discontinuous.u1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous.u2"><code class="docutils literal notranslate"><span class="pre">Discontinuous.u2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous.answer"><code class="docutils literal notranslate"><span class="pre">Discontinuous.answer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous.handle_input"><code class="docutils literal notranslate"><span class="pre">Discontinuous.handle_input()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous.integrand"><code class="docutils literal notranslate"><span class="pre">Discontinuous.integrand()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ExponentialProduct"><code class="docutils literal notranslate"><span class="pre">ExponentialProduct</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ExponentialProduct.exact_integral"><code class="docutils literal notranslate"><span class="pre">ExponentialProduct.exact_integral()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ExponentialProduct.integrand"><code class="docutils literal notranslate"><span class="pre">ExponentialProduct.integrand()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ProductPeak"><code class="docutils literal notranslate"><span class="pre">ProductPeak</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ProductPeak.integrand"><code class="docutils literal notranslate"><span class="pre">ProductPeak.integrand()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Pyramid"><code class="docutils literal notranslate"><span class="pre">Pyramid</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Pyramid.integrand"><code class="docutils literal notranslate"><span class="pre">Pyramid.integrand()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Quadratic"><code class="docutils literal notranslate"><span class="pre">Quadratic</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Quadratic.exact_integral"><code class="docutils literal notranslate"><span class="pre">Quadratic.exact_integral()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Quadratic.integrand"><code class="docutils literal notranslate"><span class="pre">Quadratic.integrand()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.example_problems.html#module-treeQuadrature.example_problems">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="treeQuadrature.gaussian_process.html">treeQuadrature.gaussian_process package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.gaussian_process.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.gaussian_process.html#module-treeQuadrature.gaussian_process.diagnosis">treeQuadrature.gaussian_process.diagnosis module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.diagnosis.default_criterion"><code class="docutils literal notranslate"><span class="pre">default_criterion()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.diagnosis.gp_diagnosis"><code class="docutils literal notranslate"><span class="pre">gp_diagnosis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.gaussian_process.html#module-treeQuadrature.gaussian_process.fit_gp">treeQuadrature.gaussian_process.fit_gp module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit"><code class="docutils literal notranslate"><span class="pre">GPFit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.X_train_"><code class="docutils literal notranslate"><span class="pre">GPFit.X_train_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.create_kernel"><code class="docutils literal notranslate"><span class="pre">GPFit.create_kernel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.fit"><code class="docutils literal notranslate"><span class="pre">GPFit.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.hyper_params"><code class="docutils literal notranslate"><span class="pre">GPFit.hyper_params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.kernel_"><code class="docutils literal notranslate"><span class="pre">GPFit.kernel_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.predict"><code class="docutils literal notranslate"><span class="pre">GPFit.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit.y_train_"><code class="docutils literal notranslate"><span class="pre">GPFit.y_train_</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting"><code class="docutils literal notranslate"><span class="pre">IterativeGPFitting</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting.draw_samples_from_containers"><code class="docutils literal notranslate"><span class="pre">IterativeGPFitting.draw_samples_from_containers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting.fit"><code class="docutils literal notranslate"><span class="pre">IterativeGPFitting.fit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.KernelFactory"><code class="docutils literal notranslate"><span class="pre">KernelFactory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.KernelFactory.create_kernel"><code class="docutils literal notranslate"><span class="pre">KernelFactory.create_kernel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.KernelFactory.register_kernel"><code class="docutils literal notranslate"><span class="pre">KernelFactory.register_kernel()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.gp"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.gp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.n_tuning"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.n_tuning</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.ignore_warning"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.ignore_warning</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.optimizer"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.optimizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.X_train_"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.X_train_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.alpha_"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.alpha_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.create_kernel"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.create_kernel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.fit"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.hyper_params"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.hyper_params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.kernel_"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.kernel_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.predict"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.y_train_"><code class="docutils literal notranslate"><span class="pre">SklearnGPFit.y_train_</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.gp_kfoldCV"><code class="docutils literal notranslate"><span class="pre">gp_kfoldCV()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.is_poor_fit"><code class="docutils literal notranslate"><span class="pre">is_poor_fit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.gaussian_process.html#module-treeQuadrature.gaussian_process.kernel_integration">treeQuadrature.gaussian_process.kernel_integration module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.kernel_integration.get_length_scale"><code class="docutils literal notranslate"><span class="pre">get_length_scale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.kernel_integration.kernel_integration"><code class="docutils literal notranslate"><span class="pre">kernel_integration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.kernel_integration.poly_post"><code class="docutils literal notranslate"><span class="pre">poly_post()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.kernel_integration.rbf_mean_post"><code class="docutils literal notranslate"><span class="pre">rbf_mean_post()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.kernel_integration.rbf_var_post"><code class="docutils literal notranslate"><span class="pre">rbf_var_post()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.gaussian_process.html#module-treeQuadrature.gaussian_process.kernels">treeQuadrature.gaussian_process.kernels module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.kernels.Polynomial"><code class="docutils literal notranslate"><span class="pre">Polynomial</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.kernels.Polynomial.clone_with_theta"><code class="docutils literal notranslate"><span class="pre">Polynomial.clone_with_theta()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.kernels.Polynomial.diag"><code class="docutils literal notranslate"><span class="pre">Polynomial.diag()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.kernels.Polynomial.is_stationary"><code class="docutils literal notranslate"><span class="pre">Polynomial.is_stationary()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.gaussian_process.html#module-treeQuadrature.gaussian_process.scorings">treeQuadrature.gaussian_process.scorings module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.scorings.predictive_ll"><code class="docutils literal notranslate"><span class="pre">predictive_ll()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.scorings.r2"><code class="docutils literal notranslate"><span class="pre">r2()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.gaussian_process.html#module-treeQuadrature.gaussian_process.visualisation">treeQuadrature.gaussian_process.visualisation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.visualisation.plot_gp"><code class="docutils literal notranslate"><span class="pre">plot_gp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.gaussian_process.html#module-treeQuadrature.gaussian_process">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="treeQuadrature.integrators.html">treeQuadrature.integrators package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#module-treeQuadrature.integrators.base_class">treeQuadrature.integrators.base_class module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.base_class.Integrator"><code class="docutils literal notranslate"><span class="pre">Integrator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#module-treeQuadrature.integrators.batch_gp_integrator">treeQuadrature.integrators.batch_gp_integrator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.batch_gp_integrator.BatchGpIntegrator"><code class="docutils literal notranslate"><span class="pre">BatchGpIntegrator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.batch_gp_integrator.BatchGpIntegrator.fit_gps"><code class="docutils literal notranslate"><span class="pre">BatchGpIntegrator.fit_gps()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.batch_gp_integrator.build_grid"><code class="docutils literal notranslate"><span class="pre">build_grid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.batch_gp_integrator.find_neighbors_grid"><code class="docutils literal notranslate"><span class="pre">find_neighbors_grid()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#module-treeQuadrature.integrators.bmc_integrator">treeQuadrature.integrators.bmc_integrator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.bmc_integrator.BayesMcIntegrator"><code class="docutils literal notranslate"><span class="pre">BayesMcIntegrator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#module-treeQuadrature.integrators.distributed_gp_integrator">treeQuadrature.integrators.distributed_gp_integrator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.split"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator.split</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.integral"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator.integral</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.base_N"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator.base_N</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.P"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator.P</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.sampler"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator.sampler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.max_container_samples"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator.max_container_samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.min_container_samples"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator.min_container_samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.max_iterations_per_container"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator.max_iterations_per_container</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.DistributedGpTreeIntegrator.integrate_containers"><code class="docutils literal notranslate"><span class="pre">DistributedGpTreeIntegrator.integrate_containers()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_gp_integrator.individual_container_integral"><code class="docutils literal notranslate"><span class="pre">individual_container_integral()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#module-treeQuadrature.integrators.distributed_tree_integrator">treeQuadrature.integrators.distributed_tree_integrator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_tree_integrator.DistributedTreeIntegrator"><code class="docutils literal notranslate"><span class="pre">DistributedTreeIntegrator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_tree_integrator.DistributedTreeIntegrator.integrate_containers"><code class="docutils literal notranslate"><span class="pre">DistributedTreeIntegrator.integrate_containers()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.distributed_tree_integrator.individual_container_integral"><code class="docutils literal notranslate"><span class="pre">individual_container_integral()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#module-treeQuadrature.integrators.smc_integrator">treeQuadrature.integrators.smc_integrator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.smc_integrator.SmcIntegrator"><code class="docutils literal notranslate"><span class="pre">SmcIntegrator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#module-treeQuadrature.integrators.tree_integrator">treeQuadrature.integrators.tree_integrator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.tree_integrator.TreeIntegrator"><code class="docutils literal notranslate"><span class="pre">TreeIntegrator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.tree_integrator.TreeIntegrator.integrate_containers"><code class="docutils literal notranslate"><span class="pre">TreeIntegrator.integrate_containers()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.tree_integrator.individual_container_integral"><code class="docutils literal notranslate"><span class="pre">individual_container_integral()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#module-treeQuadrature.integrators.vegas_integrator">treeQuadrature.integrators.vegas_integrator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.vegas_integrator.ShapeAdapter"><code class="docutils literal notranslate"><span class="pre">ShapeAdapter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.vegas_integrator.VegasIntegrator"><code class="docutils literal notranslate"><span class="pre">VegasIntegrator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.integrators.html#module-treeQuadrature.integrators">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="treeQuadrature.samplers.html">treeQuadrature.samplers package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#module-treeQuadrature.samplers.base_class">treeQuadrature.samplers.base_class module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler"><code class="docutils literal notranslate"><span class="pre">Sampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler.handle_mins_maxs"><code class="docutils literal notranslate"><span class="pre">Sampler.handle_mins_maxs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler.rvs"><code class="docutils literal notranslate"><span class="pre">Sampler.rvs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler.subdivide_domain"><code class="docutils literal notranslate"><span class="pre">Sampler.subdivide_domain()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#module-treeQuadrature.samplers.combined_samplers">treeQuadrature.samplers.combined_samplers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.combined_samplers.AdaptiveImportanceSampler"><code class="docutils literal notranslate"><span class="pre">AdaptiveImportanceSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.combined_samplers.AdaptiveImportanceSampler.rvs"><code class="docutils literal notranslate"><span class="pre">AdaptiveImportanceSampler.rvs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.combined_samplers.LHSImportanceSampler"><code class="docutils literal notranslate"><span class="pre">LHSImportanceSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.combined_samplers.LHSImportanceSampler.rvs"><code class="docutils literal notranslate"><span class="pre">LHSImportanceSampler.rvs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#module-treeQuadrature.samplers.importance_sampler">treeQuadrature.samplers.importance_sampler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.importance_sampler.ImportanceSampler"><code class="docutils literal notranslate"><span class="pre">ImportanceSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.importance_sampler.ImportanceSampler.rvs"><code class="docutils literal notranslate"><span class="pre">ImportanceSampler.rvs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#module-treeQuadrature.samplers.low_discrepancy_samplers">treeQuadrature.samplers.low_discrepancy_samplers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.low_discrepancy_samplers.SobolSampler"><code class="docutils literal notranslate"><span class="pre">SobolSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.low_discrepancy_samplers.SobolSampler.rvs"><code class="docutils literal notranslate"><span class="pre">SobolSampler.rvs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#module-treeQuadrature.samplers.mcmc_sampler">treeQuadrature.samplers.mcmc_sampler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.mcmc_sampler.McmcSampler"><code class="docutils literal notranslate"><span class="pre">McmcSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.mcmc_sampler.McmcSampler.rvs"><code class="docutils literal notranslate"><span class="pre">McmcSampler.rvs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#module-treeQuadrature.samplers.mixed_sampler">treeQuadrature.samplers.mixed_sampler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.mixed_sampler.MixedSampler"><code class="docutils literal notranslate"><span class="pre">MixedSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.mixed_sampler.MixedSampler.rvs"><code class="docutils literal notranslate"><span class="pre">MixedSampler.rvs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#module-treeQuadrature.samplers.stratified_sampler">treeQuadrature.samplers.stratified_sampler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.stratified_sampler.StratifiedSampler"><code class="docutils literal notranslate"><span class="pre">StratifiedSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.stratified_sampler.StratifiedSampler.rvs"><code class="docutils literal notranslate"><span class="pre">StratifiedSampler.rvs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#module-treeQuadrature.samplers.uniform_sampler">treeQuadrature.samplers.uniform_sampler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.uniform_sampler.UniformSampler"><code class="docutils literal notranslate"><span class="pre">UniformSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.uniform_sampler.UniformSampler.rvs"><code class="docutils literal notranslate"><span class="pre">UniformSampler.rvs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.samplers.html#module-treeQuadrature.samplers">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="treeQuadrature.splits.html">treeQuadrature.splits package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.splits.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.splits.html#module-treeQuadrature.splits.base_class">treeQuadrature.splits.base_class module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.base_class.Split"><code class="docutils literal notranslate"><span class="pre">Split</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.base_class.Split.split"><code class="docutils literal notranslate"><span class="pre">Split.split()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.splits.html#module-treeQuadrature.splits.kd_split">treeQuadrature.splits.kd_split module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.kd_split.KdSplit"><code class="docutils literal notranslate"><span class="pre">KdSplit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.kd_split.KdSplit.split"><code class="docutils literal notranslate"><span class="pre">KdSplit.split()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.splits.html#module-treeQuadrature.splits.min_sse_split">treeQuadrature.splits.min_sse_split module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.min_sse_split.MinSseSplit"><code class="docutils literal notranslate"><span class="pre">MinSseSplit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.min_sse_split.MinSseSplit.min_samples_leaf"><code class="docutils literal notranslate"><span class="pre">MinSseSplit.min_samples_leaf</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.min_sse_split.MinSseSplit.dimension_weights"><code class="docutils literal notranslate"><span class="pre">MinSseSplit.dimension_weights</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.min_sse_split.MinSseSplit.scoring_function"><code class="docutils literal notranslate"><span class="pre">MinSseSplit.scoring_function</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.min_sse_split.MinSseSplit.dimension_proportion"><code class="docutils literal notranslate"><span class="pre">MinSseSplit.dimension_proportion</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.min_sse_split.MinSseSplit.default_sse_score"><code class="docutils literal notranslate"><span class="pre">MinSseSplit.default_sse_score()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.min_sse_split.MinSseSplit.evaluate_split"><code class="docutils literal notranslate"><span class="pre">MinSseSplit.evaluate_split()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.min_sse_split.MinSseSplit.findMinSplit"><code class="docutils literal notranslate"><span class="pre">MinSseSplit.findMinSplit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.min_sse_split.MinSseSplit.split"><code class="docutils literal notranslate"><span class="pre">MinSseSplit.split()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.splits.html#module-treeQuadrature.splits.uniform_split">treeQuadrature.splits.uniform_split module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.uniform_split.UniformSplit"><code class="docutils literal notranslate"><span class="pre">UniformSplit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.uniform_split.UniformSplit.n_divisions"><code class="docutils literal notranslate"><span class="pre">UniformSplit.n_divisions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.splits.html#treeQuadrature.splits.uniform_split.UniformSplit.split"><code class="docutils literal notranslate"><span class="pre">UniformSplit.split()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.splits.html#module-treeQuadrature.splits">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="treeQuadrature.trees.html">treeQuadrature.trees package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.trees.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.trees.html#module-treeQuadrature.trees.base_class">treeQuadrature.trees.base_class module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.base_class.Tree"><code class="docutils literal notranslate"><span class="pre">Tree</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.base_class.Tree.construct_tree"><code class="docutils literal notranslate"><span class="pre">Tree.construct_tree()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.trees.html#module-treeQuadrature.trees.limited_sample_tree">treeQuadrature.trees.limited_sample_tree module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.limited_sample_tree.LimitedSampleTree"><code class="docutils literal notranslate"><span class="pre">LimitedSampleTree</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.limited_sample_tree.LimitedSampleTree.construct_tree"><code class="docutils literal notranslate"><span class="pre">LimitedSampleTree.construct_tree()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.trees.html#module-treeQuadrature.trees.simple_tree">treeQuadrature.trees.simple_tree module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.simple_tree.SimpleTree"><code class="docutils literal notranslate"><span class="pre">SimpleTree</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.simple_tree.SimpleTree.construct_tree"><code class="docutils literal notranslate"><span class="pre">SimpleTree.construct_tree()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.trees.html#module-treeQuadrature.trees.weighted_tree">treeQuadrature.trees.weighted_tree module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree"><code class="docutils literal notranslate"><span class="pre">WeightedTree</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree.max_splits"><code class="docutils literal notranslate"><span class="pre">WeightedTree.max_splits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree.split"><code class="docutils literal notranslate"><span class="pre">WeightedTree.split</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree.weighting_function"><code class="docutils literal notranslate"><span class="pre">WeightedTree.weighting_function</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree.active_N"><code class="docutils literal notranslate"><span class="pre">WeightedTree.active_N</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree.n_splits"><code class="docutils literal notranslate"><span class="pre">WeightedTree.n_splits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree.stopping_condition"><code class="docutils literal notranslate"><span class="pre">WeightedTree.stopping_condition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree.queue"><code class="docutils literal notranslate"><span class="pre">WeightedTree.queue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree.construct_tree"><code class="docutils literal notranslate"><span class="pre">WeightedTree.construct_tree()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.default_stopping_condition"><code class="docutils literal notranslate"><span class="pre">default_stopping_condition()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.trees.html#module-treeQuadrature.trees">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-treeQuadrature.compare_integrators">
+<span id="treequadrature-compare-integrators-module"></span><h2>treeQuadrature.compare_integrators module<a class="headerlink" href="#module-treeQuadrature.compare_integrators" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.compare_integrators.compare_integrators">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.compare_integrators.</span></span><span class="sig-name descname"><span class="pre">compare_integrators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrators</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><span class="pre">Integrator</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><span class="pre">Problem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator_specific_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/treeQuadrature/compare_integrators.html#compare_integrators"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.compare_integrators.compare_integrators" title="Link to this definition">¶</a></dt>
+<dd><p>Compare different integrators on a given problem.
+Give integrators attribute <cite>name</cite>
+for clear outputs.</p>
+<p>It will print for each integrator:</p>
+<ul class="simple">
+<li><p>Estimated integral value</p></li>
+<li><dl class="simple">
+<dt>The signed relative error  (estimate - answer) / answer</dt><dd><p>(unless problem.answer is 0,
+in which case signed absolute error will be used)</p>
+</dd>
+</dl>
+</li>
+<li><p>Number of integrand evaluations</p></li>
+<li><p>Time taken in seconds</p></li>
+</ul>
+<p>If integrator uses containers:</p>
+<ul class="simple">
+<li><p>number of containers used</p></li>
+<li><p>average number of samples per container</p></li>
+<li><p>min number of samples per container</p></li>
+<li><p>max number of samples per container</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>integrators</strong> (<em>List</em><em>[</em><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><em>Integrator</em></a><em>]</em>) – A list of integrator instances to be compared.</p></li>
+<li><p><strong>problem</strong> (<a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><em>Problem</em></a>) – The problem instance containing the integrand and true answer.</p></li>
+<li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to plot the contributions of the integrators.
+Default is False.</p></li>
+<li><p><strong>plot_samples</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to plot samples on the figure produced.
+Default is True.
+Will be ignored if plot=False.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – If 0, print no message;
+if 1, print the test runs;
+if 2, print the messages within integrators.
+Default is 1.</p></li>
+<li><p><strong>xlim</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – The limits for the plot containers.
+Will not be used when plot=False.</p></li>
+<li><p><strong>ylim</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – The limits for the plot containers.
+Will not be used when plot=False.</p></li>
+<li><p><strong>dimensions</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – Which dimensions to plot for higher dimensional problems.</p></li>
+<li><p><strong>n_repeat</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of times to repeat the integration and average the results.
+Default is 1.</p></li>
+<li><p><strong>integrator_specific_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary where the keys are names of integrators and the values are
+dictionaries of specific arguments to be passed to those integrators.
+Default is None.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – kwargs that should be used by integrator.__call__ method
+or the plot_containers method.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.compare_integrators.integrator_wrapper">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.compare_integrators.</span></span><span class="sig-name descname"><span class="pre">integrator_wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/compare_integrators.html#integrator_wrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.compare_integrators.integrator_wrapper" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.compare_integrators.load_existing_results">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.compare_integrators.</span></span><span class="sig-name descname"><span class="pre">load_existing_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/treeQuadrature/compare_integrators.html#load_existing_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.compare_integrators.load_existing_results" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.compare_integrators.test_container_integrals">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.compare_integrators.</span></span><span class="sig-name descname"><span class="pre">test_container_integrals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><span class="pre">Problem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><span class="pre">ContainerIntegral</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.tree_integrator.TreeIntegrator" title="treeQuadrature.integrators.tree_integrator.TreeIntegrator"><span class="pre">TreeIntegrator</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/treeQuadrature/compare_integrators.html#test_container_integrals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.compare_integrators.test_container_integrals" title="Link to this definition">¶</a></dt>
+<dd><p>Test different container integrals on a list of problems
+and save the results to a CSV file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problems</strong> (<em>List</em><em>[</em><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><em>Problem</em></a><em>]</em>) – A list of problem instances containing
+the integrand and true answer.</p></li>
+<li><p><strong>integrals</strong> (<a class="reference internal" href="treeQuadrature.container_integrators.html#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><em>ContainerIntegral</em></a>) – A list of container integrals to be tested.</p></li>
+<li><p><strong>integrator</strong> (<a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.tree_integrator.TreeIntegrator" title="treeQuadrature.integrators.tree_integrator.TreeIntegrator"><em>TreeIntegrator</em></a>) – The integrator instance used to perform the integrations.</p></li>
+<li><p><strong>output_file</strong> (<em>str</em>) – The file path to save the results as a CSV.</p></li>
+<li><p><strong>n_repeat</strong> (<em>int</em>) – Number of times to repeat the integration and average the results.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <dl class="simple">
+<dt>Level of verbosity (default is 1):</dt><dd><p>0 - print no messages.
+1 - print basic progress messages.
+2 - print detailed progress messages, including each repetition.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.compare_integrators.test_integrator_performance_with_params">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.compare_integrators.</span></span><span class="sig-name descname"><span class="pre">test_integrator_performance_with_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><span class="pre">Integrator</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><span class="pre">Problem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_grid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'results.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">60.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/treeQuadrature/compare_integrators.html#test_integrator_performance_with_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.compare_integrators.test_integrator_performance_with_params" title="Link to this definition">¶</a></dt>
+<dd><p>Test the performance of a single integrator on a problem
+with varying parameter values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>integrator</strong> (<a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><em>Integrator</em></a>) – The integrator instance to be tested.</p></li>
+<li><p><strong>problem</strong> (<a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><em>Problem</em></a>) – The problem instance containing the integrand and true answer.</p></li>
+<li><p><strong>param_grid</strong> (<em>dict</em>) – Dictionary where keys are parameter names and values are lists of parameter values to test.
+Example: {‘base_N’: [1000, 5000], ‘P’: [40, 60]}</p></li>
+<li><p><strong>output_file</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path to save the results as a CSV. Default is ‘results.csv’.</p></li>
+<li><p><strong>max_time</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum allowed time (in seconds) for each integration. Default is 60.0 seconds.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – if 1, print the problem and integrator being tested;
+if 2, print details of each integrator as well;
+if 0, print nothing. Default is 1.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – specify the randomness seed for reproducibility. Default is 2024.</p></li>
+<li><p><strong>n_repeat</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of times to repeat the integration and average the results. Default is 1.</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – arguments required for integrator.__call__ method</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.compare_integrators.test_integrators">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.compare_integrators.</span></span><span class="sig-name descname"><span class="pre">test_integrators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrators</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><span class="pre">Integrator</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><span class="pre">Problem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'results.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">60.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator_specific_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retest_integrators</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/treeQuadrature/compare_integrators.html#test_integrators"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.compare_integrators.test_integrators" title="Link to this definition">¶</a></dt>
+<dd><p>Test different integrators on a list of problems
+and save the results to a CSV file.
+Give integrators attribute <cite>name</cite>
+for clear outputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>integrators</strong> (<em>List</em><em>[</em><a class="reference internal" href="treeQuadrature.integrators.html#treeQuadrature.integrators.base_class.Integrator" title="treeQuadrature.integrators.base_class.Integrator"><em>Integrator</em></a><em>]</em>) – A list of integrator instances to be tested.</p></li>
+<li><p><strong>problems</strong> (<em>List</em><em>[</em><a class="reference internal" href="treeQuadrature.example_problems.html#treeQuadrature.example_problems.base_class.Problem" title="treeQuadrature.example_problems.base_class.Problem"><em>Problem</em></a><em>]</em>) – A list of problem instances containing
+the integrand and true answer.</p></li>
+<li><p><strong>output_file</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path to save the results as a CSV.
+Default is ‘results.csv’.</p></li>
+<li><p><strong>max_time</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum allowed time (in seconds) for each integration.
+Default is 60.0 seconds.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – if 1, print the problem and integrator being tested;
+if 2, print details of each integrator as well;
+if 0, print nothing.
+Default is 1</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – specify the randomness seed
+for reproducibility</p></li>
+<li><p><strong>n_repeat</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of times to repeat the integration and
+average the results.
+Default is 1</p></li>
+<li><p><strong>retest_integrators</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Names of integrators that needs to be retested.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.compare_integrators.write_results">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.compare_integrators.</span></span><span class="sig-name descname"><span class="pre">write_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fieldnames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'a'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/compare_integrators.html#write_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.compare_integrators.write_results" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-treeQuadrature.container">
+<span id="treequadrature-container-module"></span><h2>treeQuadrature.container module<a class="headerlink" href="#module-treeQuadrature.container" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container.</span></span><span class="sig-name descname"><span class="pre">Container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container.html#Container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container.Container" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a hyper-rectangle in n-dim space
+with finite volume
+and the samples it holds.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">mins,</span> <span class="pre">maxs</span></span></dt>
+<dd><p>the low and high boundaries of the
+hyper-rectangle containers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray of shape (D,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.volume">
+<span class="sig-name descname"><span class="pre">volume</span></span><a class="headerlink" href="#treeQuadrature.container.Container.volume" title="Link to this definition">¶</a></dt>
+<dd><p>volume of the container</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.is_finite">
+<span class="sig-name descname"><span class="pre">is_finite</span></span><a class="headerlink" href="#treeQuadrature.container.Container.is_finite" title="Link to this definition">¶</a></dt>
+<dd><p>indicator of whether the container has finite volume</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.midpoint">
+<span class="sig-name descname"><span class="pre">midpoint</span></span><a class="headerlink" href="#treeQuadrature.container.Container.midpoint" title="Link to this definition">¶</a></dt>
+<dd><p>the midpoint of container</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray of shape (D,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.Properties">
+<span class="sig-name descname"><span class="pre">Properties</span></span><a class="headerlink" href="#treeQuadrature.container.Container.Properties" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">----------</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.N">
+<span class="sig-name descname"><span class="pre">N</span></span><a class="headerlink" href="#treeQuadrature.container.Container.N" title="Link to this definition">¶</a></dt>
+<dd><p>number of samples (also number of evaluations)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">X,</span> <span class="pre">y</span></span></dt>
+<dd><p>samples and evaluations
+X is numpy.ndarray of shape (N, D)
+y is numpy.ndarray of shape (N, 1)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">N</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.X">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">X</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#treeQuadrature.container.Container.X" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container.html#Container.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container.Container.add" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_X</strong> (<em>numpy.ndarray</em><em> of </em><em>shape</em><em> (</em><em>N</em><em>, </em><em>D</em><em>)</em>) – each row is a new sample</p></li>
+<li><p><strong>new_y</strong> (<em>numpy.ndarray</em><em> of </em><em>shape</em><em> (</em><em>N</em><em>, </em><em>1</em><em>) or </em><em>(</em><em>N</em><em>,</em><em>)</em>) – the function value at each sample</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.filter_points">
+<span class="sig-name descname"><span class="pre">filter_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_bool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container.html#Container.filter_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container.Container.filter_points" title="Link to this definition">¶</a></dt>
+<dd><p>Check whether all the points X are in the container
+and return a numpy.ndarray with those in the container.</p>
+<p>Throw a warning if any point is not
+in the container.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em><em> of </em><em>shape</em><em> (</em><em>N</em><em>, </em><em>D</em><em>)</em>) – An array of points to check.</p></li>
+<li><p><strong>y</strong> (<em>np.ndarray</em><em> of </em><em>shape</em><em> (</em><em>N</em><em>, </em><em>)</em><em>, </em><em>optional</em>) – corresponding values</p></li>
+<li><p><strong>return_bool</strong> (<em>bool</em><em>, </em><em>optional</em>) – if true, return a bool inside of filtered samples
+Defaults to False</p></li>
+<li><p><strong>warning</strong> (<em>bool</em><em>, </em><em>optional</em>) – if true, throw a warning if some points are outside
+Defaults to False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Two arrays: one of the points that are within the container,
+and another of the corresponding y values.
+bool: indicates whether all points are inside the container</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, np.ndarray or bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.rvs">
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/treeQuadrature/container.html#Container.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container.Container.rvs" title="Link to this definition">¶</a></dt>
+<dd><p>Draw uniformly random samples from the container</p>
+<section id="attribute">
+<h3>Attribute<a class="headerlink" href="#attribute" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>n<span class="classifier">int</span></dt><dd><p>number of samples</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rs</strong> – each row is a sample</p>
+</dd>
+<dt class="field-even">rtype<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray of shape (n, D)</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.split">
+<span class="sig-name descname"><span class="pre">split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split_dimension</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/container.html#Container.split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container.Container.split" title="Link to this definition">¶</a></dt>
+<dd><p>Divide perpendicular to an axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>split_dimension</strong> (<em>int</em>) – the axis to split along</p></li>
+<li><p><strong>split_value</strong> (<em>float</em>) – the value to split at</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of two sub-containers</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.container.Container.y">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">y</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#treeQuadrature.container.Container.y" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.queues">
+<span id="treequadrature-queues-module"></span><h2>treeQuadrature.queues module<a class="headerlink" href="#module-treeQuadrature.queues" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.queues.PrioritizedItem">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.queues.</span></span><span class="sig-name descname"><span class="pre">PrioritizedItem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">priority</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/queues.html#PrioritizedItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.PrioritizedItem" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.queues.PrioritizedItem.item">
+<span class="sig-name descname"><span class="pre">item</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><a class="headerlink" href="#treeQuadrature.queues.PrioritizedItem.item" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.queues.PrioritizedItem.priority">
+<span class="sig-name descname"><span class="pre">priority</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#treeQuadrature.queues.PrioritizedItem.priority" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.queues.PriorityQueue">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.queues.</span></span><span class="sig-name descname"><span class="pre">PriorityQueue</span></span><a class="reference internal" href="_modules/treeQuadrature/queues.html#PriorityQueue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.PriorityQueue" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.queues.PriorityQueue.empty">
+<span class="sig-name descname"><span class="pre">empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/queues.html#PriorityQueue.empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.PriorityQueue.empty" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.queues.PriorityQueue.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/queues.html#PriorityQueue.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.PriorityQueue.get" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.queues.PriorityQueue.n">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n</span></span><a class="headerlink" href="#treeQuadrature.queues.PriorityQueue.n" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.queues.PriorityQueue.put">
+<span class="sig-name descname"><span class="pre">put</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/queues.html#PriorityQueue.put"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.PriorityQueue.put" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.queues.ReservoirQueue">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.queues.</span></span><span class="sig-name descname"><span class="pre">ReservoirQueue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">accentuation_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/queues.html#ReservoirQueue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.ReservoirQueue" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.queues.ReservoirQueue.empty">
+<span class="sig-name descname"><span class="pre">empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/queues.html#ReservoirQueue.empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.ReservoirQueue.empty" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.queues.ReservoirQueue.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/queues.html#ReservoirQueue.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.ReservoirQueue.get" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.queues.ReservoirQueue.get_probabilities">
+<span class="sig-name descname"><span class="pre">get_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/queues.html#ReservoirQueue.get_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.ReservoirQueue.get_probabilities" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.queues.ReservoirQueue.put">
+<span class="sig-name descname"><span class="pre">put</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/queues.html#ReservoirQueue.put"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.queues.ReservoirQueue.put" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.utils">
+<span id="treequadrature-utils-module"></span><h2>treeQuadrature.utils module<a class="headerlink" href="#module-treeQuadrature.utils" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.utils.ResultDict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.utils.</span></span><span class="sig-name descname"><span class="pre">ResultDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/utils.html#ResultDict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.utils.ResultDict" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></p>
+<p>A dictionary-like object designed for integrators</p>
+<p>Only accepts float values for the ‘estimate’ key.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.utils.ResultDict.setdefault">
+<span class="sig-name descname"><span class="pre">setdefault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="optional">]</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">D.get(k,d),</span> <span class="pre">also</span> <span class="pre">set</span> <span class="pre">D[k]=d</span> <span class="pre">if</span> <span class="pre">k</span> <span class="pre">not</span> <span class="pre">in</span> <span class="pre">D</span></span></span><a class="reference internal" href="_modules/treeQuadrature/utils.html#ResultDict.setdefault"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.utils.ResultDict.setdefault" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.utils.ResultDict.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">**F</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None.</span>&#160; <span class="pre">Update</span> <span class="pre">D</span> <span class="pre">from</span> <span class="pre">mapping/iterable</span> <span class="pre">E</span> <span class="pre">and</span> <span class="pre">F.</span></span></span><a class="reference internal" href="_modules/treeQuadrature/utils.html#ResultDict.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.utils.ResultDict.update" title="Link to this definition">¶</a></dt>
+<dd><p>If E present and has a .keys() method, does:     for k in E: D[k] = E[k]
+If E present and lacks .keys() method, does:     for (k, v) in E: D[k] = v
+In either case, this is followed by: for k, v in F.items(): D[k] = v</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.utils.handle_bound">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.utils.</span></span><span class="sig-name descname"><span class="pre">handle_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_value</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/treeQuadrature/utils.html#handle_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.utils.handle_bound" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.utils.scale">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.utils.</span></span><span class="sig-name descname"><span class="pre">scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/utils.html#scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.utils.scale" title="Link to this definition">¶</a></dt>
+<dd><p>Scale a numpy array so that all values are between 0 and 1</p>
+<section id="parameter">
+<h3>Parameter<a class="headerlink" href="#parameter" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>ys<span class="classifier">1-d array</span></dt><dd><p>the array to be scaled</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">rtype<span class="colon">:</span></dt>
+<dd class="field-odd"><p>scaled array of the same shape as ys</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.visualisation">
+<span id="treequadrature-visualisation-module"></span><h2>treeQuadrature.visualisation module<a class="headerlink" href="#module-treeQuadrature.visualisation" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.visualisation.plot_container">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.visualisation.</span></span><span class="sig-name descname"><span class="pre">plot_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Axes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/visualisation.html#plot_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.visualisation.plot_container" title="Link to this definition">¶</a></dt>
+<dd><p>Plot a container on the provided axes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>Axes</em>) – the canvas</p></li>
+<li><p><strong>container</strong> (<a class="reference internal" href="#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>)</p></li>
+<li><p><strong>dim1</strong> (<em>int</em>) – the first dimension to plot</p></li>
+<li><p><strong>dim2</strong> (<em>int</em>) – the second dimension to plot</p></li>
+<li><p><strong>**kwargs</strong> – <dl class="simple">
+<dt>plot_samples<span class="classifier">bool</span></dt><dd><p>if true, produce scatter plot of samples
+Defaulst to True</p>
+</dd>
+<dt>s<span class="classifier">float</span></dt><dd><p>marker size of scatter plot.
+Only valid when plot_samples = True
+Defaults to 5.0</p>
+</dd>
+<dt>fill<span class="classifier">bool</span></dt><dd><p>if true, fill the containers with colours
+Defaults to True</p>
+</dd>
+<dt>ec<span class="classifier">color</span></dt><dd><p>edge colour
+Defaults to black</p>
+</dd>
+</dl>
+<p>and any other kwargs for matplotlib.patches.Rectangle</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.visualisation.plot_containers">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.visualisation.</span></span><span class="sig-name descname"><span class="pre">plot_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contributions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrand</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'YlOrRd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_bar_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Contributions'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/treeQuadrature/visualisation.html#plot_containers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.visualisation.plot_containers" title="Link to this definition">¶</a></dt>
+<dd><p>Plot containers and their contributions
+for 1D problems, the integrand can be plotted</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>containers</strong> (<em>list</em>) – list of Container objects</p></li>
+<li><p><strong>contributions</strong> (<em>list</em>) – numerical values of contributions of each container</p></li>
+<li><p><strong>xlim</strong> (<em>list</em><em> of </em><em>2 floats</em>) – the range of x-axis</p></li>
+<li><p><strong>ylim</strong> (<em>list</em><em> of </em><em>2 floats</em><em>, </em><em>optional</em>) – the range of y-axis
+ignored by 1D problems</p></li>
+<li><p><strong>integrand</strong> (<em>function</em><em>, </em><em>optional</em>) – ignored by 2D problems</p></li>
+<li><p><strong>title</strong> (<em>String</em><em>, </em><em>optional</em>) – title of the plot</p></li>
+<li><p><strong>plot_samples</strong> (<em>bool</em><em>, </em><em>optional</em>) – if True, samples will be placed on the plot as well.
+Defaults to False</p></li>
+<li><p><strong>dimensions</strong> (<em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – The two dimensions to plot.
+If None, plot all dimensions.</p></li>
+<li><p><strong>colors</strong> (<em>str</em><em>, </em><em>Optional</em>) – the colour map used to plot 2D
+container contributions.
+Default : ‘YlOrRd’</p></li>
+<li><p><strong>c_bar_labels</strong> (<em>str</em><em>, </em><em>Optional</em>) – labels for colour bar in
+2D plot.
+Default : ‘Contributions’</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em><em>, </em><em>optional</em>) – additional arguments for _plot_containers_1D and _plot_containers_2D</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.visualisation.plot_errors">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.visualisation.</span></span><span class="sig-name descname"><span class="pre">plot_errors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genres</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_bar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_all_errors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_lim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrators</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/treeQuadrature/visualisation.html#plot_errors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.visualisation.plot_errors" title="Link to this definition">¶</a></dt>
+<dd><p>Plot errors and error_std for each genre and integrator
+and save it to a file figures/filename_prefix_genre_error_plot.csv.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pd.DataFrame</em>) – The data containing the results of the integrators.</p></li>
+<li><p><strong>genres</strong> (<em>list</em><em> of </em><em>str</em>) – List of genres to include in the plots.</p></li>
+<li><p><strong>error_bar</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot error bars; otherwise plot without error bars.
+Default is False</p></li>
+<li><p><strong>fill</strong> (<em>bool</em><em>, </em><em>optional</em>) – If true, fill between the error bars,
+will be ignored if error_bar = False.
+Default is False</p></li>
+<li><p><strong>plot_all_errors</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot all individual errors from ‘errors’ column.
+Default is False</p></li>
+<li><p><strong>plot_absolute</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True and error_type is ‘Signed Relative error’,
+plot the signed absolute errors.
+Default is False</p></li>
+<li><p><strong>y_lim</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – the upper and lower limit for plotting error.
+If not given, adaptive limits applied.</p></li>
+<li><p><strong>font_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Font size for all text elements in the plot (default is 10).</p></li>
+<li><p><strong>offset</strong> (<em>float</em><em>, </em><em>optional</em>) – offset of points to avoid visual clutter.
+Default is 0.1.
+Set to 0 for no offset</p></li>
+<li><p><strong>plot_title</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether add title or not (default is True).</p></li>
+<li><p><strong>grid</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to plot the grid or not.
+Default is True.</p></li>
+<li><p><strong>filename_prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – The prefix for the filenames where plots will be saved.
+If not given, no prefix,</p></li>
+<li><p><strong>integrators</strong> (<em>List</em><em>[</em><em>str</em><em>, </em><em>optional</em>) – List of integrators to include in the plots.
+If not specified, all integrators will be plotted</p></li>
+<li><p><strong>display_names</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – an option to change the names of integrators
+displayed on the plots</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The data should contain columns ‘problem’, ‘integrator’, ‘error’,
+‘error_std’, and ‘errors’. The ‘error’ and ‘error_std’
+columns are expected to have percentage values.</p>
+<section id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">all_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;your_data.csv&#39;</span><span class="p">)</span>  <span class="c1"># Load your data into a DataFrame</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genres</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;SimpleGaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Camel&quot;</span><span class="p">,</span> <span class="s2">&quot;QuadCamel&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_errors</span><span class="p">(</span><span class="n">all_data</span><span class="p">,</span> <span class="n">genres</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.visualisation.plot_integrand">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.visualisation.</span></span><span class="sig-name descname"><span class="pre">plot_integrand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/visualisation.html#plot_integrand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.visualisation.plot_integrand" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the integrand
+2D problems: Contour lines used</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>integrand</strong> (<em>function</em>) – the function to be plotted</p></li>
+<li><p><strong>D</strong> (<em>int</em>) – dimension of the input space</p></li>
+<li><p><strong>xlim</strong> (<em>list</em><em> of </em><em>2 floats</em>) – the range of x-axis</p></li>
+<li><p><strong>ylim</strong> (<em>list</em><em> of </em><em>2 floats</em><em>, </em><em>optional</em>) – the range of y-axis
+ignored by 1D problems</p></li>
+<li><p><strong>n_points</strong> (<em>int</em><em>, </em><em>optioanl</em>) – number of points in each dimension for
+plotting the Contours
+Defaults to 500</p></li>
+<li><p><strong>levels</strong> (<em>int</em><em>, </em><em>optional</em>) – levels of the Contour plot
+ignored when D = 1
+Defaults to 10</p></li>
+<li><p><strong>file_path</strong> (<em>str</em><em>, </em><em>optional</em>) – If given, the figure will be saved to
+the specified path.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.visualisation.plot_times">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.visualisation.</span></span><span class="sig-name descname"><span class="pre">plot_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genres</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrators</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same_figure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/treeQuadrature/visualisation.html#plot_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.visualisation.plot_times" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the time taken for each genre and integrator,
+and save it to a file
+figures/filename_prefix_genre_time_plot_integrator.csv.
+Used for csv files produced by test_integrators</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pd.DataFrame</em>) – The data containing the results of the integrators.</p></li>
+<li><p><strong>genres</strong> (<em>list</em><em> of </em><em>str</em>) – List of problem genres to include in the plots.</p></li>
+<li><p><strong>font_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Font size for all text elements in the plot (default is 10).</p></li>
+<li><p><strong>filename_prefix</strong> (<em>str</em><em>, </em><em>Optional</em>) – The prefix for the filenames where plots will be saved.
+If not given, no prefix</p></li>
+<li><p><strong>integrators</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of integrators to include in the plots.
+If not specified, all integrators will be plotted</p></li>
+<li><p><strong>title</strong> (<em>bool</em><em>, </em><em>optional</em>) – If true, plot the title</p></li>
+<li><p><strong>display_names</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – an option to change the names of integrators
+displayed on the plots</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The data should contain columns ‘problem’, ‘integrator’, and ‘time_taken’</p>
+<section id="id1">
+<h3>Usage<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">all_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;your_data.csv&#39;</span><span class="p">)</span>  <span class="c1"># Load your data into a DataFrame</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genres</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;SimpleGaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Camel&quot;</span><span class="p">,</span> <span class="s2">&quot;QuadCamel&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_times</span><span class="p">(</span><span class="n">all_data</span><span class="p">,</span> <span class="s1">&#39;figures/time&#39;</span><span class="p">,</span> <span class="n">genres</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-treeQuadrature" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">treeQuadrature package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-treeQuadrature.compare_integrators">treeQuadrature.compare_integrators module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-treeQuadrature.container">treeQuadrature.container module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-treeQuadrature.queues">treeQuadrature.queues module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-treeQuadrature.utils">treeQuadrature.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-treeQuadrature.visualisation">treeQuadrature.visualisation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-treeQuadrature">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">treeQuadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">tests package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to treeQuadrature’s documentation!</a></li>
+      <li>Next: <a href="treeQuadrature.container_integrators.html" title="next chapter">treeQuadrature.container_integrators package</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/treeQuadrature.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

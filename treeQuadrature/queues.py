@@ -27,10 +27,10 @@ class ReservoirQueue:
         self.accentuation_factor = accentuation_factor
 
     def put(self, item, weight):
-        if not np.isscalar(weight): 
-            raise TypeError('weights must be scalar')
+        if not np.isscalar(weight):
+            raise TypeError("weights must be scalar")
         if weight <= 0:
-            raise ValueError(f'weights must be positive, got {weight}')
+            raise ValueError(f"weights must be positive, got {weight}")
         self.items.append(item)
         self.weights.append(weight)
         self.n += 1
@@ -38,18 +38,18 @@ class ReservoirQueue:
     def get_probabilities(self, weights):
         weights = np.array(self.weights)
         if np.any(np.isnan(weights)):
-            raise ValueError(f'Weights contain NaN values: {weights}')
+            raise ValueError(f"Weights contain NaN values: {weights}")
 
         s = sum(weights)
         if s == 0:
-            raise ValueError('Sum of weights is zero, cannot normalize.')
-        
+            raise ValueError("Sum of weights is zero, cannot normalize.")
+
         ps = weights / s
         # range is now [1,2], which prevents large accentuation factors driving
         # us into 0 everywhere
         ps = ps + 1
         ps = np.power(ps, self.accentuation_factor)
-        
+
         s = sum(ps)
 
         ps = ps / s
@@ -90,7 +90,7 @@ class PriorityQueue:
         return self.q.get().item
 
     @property
-    def n(self):
+    def n(self) -> int:
         return self.q.qsize()
 
     def empty(self):

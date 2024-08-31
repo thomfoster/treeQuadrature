@@ -1,44 +1,51 @@
 from typing import Tuple
 import numpy as np
 from emcee import EnsembleSampler
-from .sampler import Sampler
+from .base_class import Sampler
+
 
 class McmcSampler(Sampler):
     """
-    MCMC sampler that generates samples from 
+    MCMC sampler that generates samples from
     the modulus of f using the `emcee` package.
     Allows sampling from a heated version of |f|.
     """
 
-    def __init__(self, n_walkers: int = 10, burning: int = 0, temperature: float = 1.0):
+    def __init__(self, n_walkers: int = 10,
+                 burning: int = 0,
+                 temperature: float = 1.0):
         """
         Arguments
         ---------
         n_walkers : int, Optional
-            Minimum number of walkers in the MCMC sampling.
+            Minimum number of walkers in the MCMC sampling. \n
             Default is 10.
         burning : int, Optional
-            Number of initial samples to discard.
+            Number of initial samples to discard. \n
             Defaults to 0.
         temperature : float, Optional
-            Temperature parameter to control the "heating" of the function |f|.
-            A temperature of 1.0 means no heating (sampling directly from |f|).
-            Higher temperatures (>1) will flatten the distribution, 
-            while lower temperatures (<1) will concentrate samples more around peaks.
+            Temperature parameter to control the
+            "heating" of the function |f|. \n
+            A temperature of 1.0 means no heating
+            (sampling directly from |f|). \n
+            Higher temperatures (>1) will flatten the distribution,
+            while lower temperatures (<1) will concentrate
+            samples more around peaks. \n
             Default is 1.0.
         """
         self.n_walkers = n_walkers
         self.burning = burning
         self.temperature = temperature
 
-    def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray,
-            f: callable, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
+    def rvs(
+        self, n: int, mins: np.ndarray, maxs: np.ndarray, f: callable, **kwargs
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Generate exactly n MCMC samples using the EnsembleSampler.
 
         Parameters
         ----------
-        n : int 
+        n : int
             Number of samples to generate.
         mins, maxs : np.ndarray
             1-dimensional arrays of the lower and upper bounds.
@@ -61,11 +68,11 @@ class McmcSampler(Sampler):
                 return -np.inf  # log(0) = -inf
 
             f_val = np.abs(f(x.reshape(1, -1)))
-            
+
             # Avoid log of zero or negative values
             if f_val[0] <= 0:
                 return -np.inf
-            
+
             # Apply heating to the log probability
             return np.log(f_val[0]) / self.temperature
 

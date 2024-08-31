@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>treeQuadrature.samplers package &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="treeQuadrature.splits package" href="treeQuadrature.splits.html" />
+    <link rel="prev" title="treeQuadrature.integrators package" href="treeQuadrature.integrators.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="treequadrature-samplers-package">
+<h1>treeQuadrature.samplers package<a class="headerlink" href="#treequadrature-samplers-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-treeQuadrature.samplers.base_class">
+<span id="treequadrature-samplers-base-class-module"></span><h2>treeQuadrature.samplers.base_class module<a class="headerlink" href="#module-treeQuadrature.samplers.base_class" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.base_class.Sampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.samplers.base_class.</span></span><span class="sig-name descname"><span class="pre">Sampler</span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/base_class.html#Sampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.base_class.Sampler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.base_class.Sampler.handle_mins_maxs">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">handle_mins_maxs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/samplers/base_class.html#Sampler.handle_mins_maxs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.base_class.Sampler.handle_mins_maxs" title="Link to this definition">¶</a></dt>
+<dd><p>Check the shapes of mins, maxs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><em>tuple</em></p></li>
+<li><p><strong>mins, maxs</strong> (<em>np.ndarray</em>) – reshaped to (D,) when necessary</p></li>
+<li><p><strong>D</strong> (<em>int</em>) – the dimension of the sampler</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.base_class.Sampler.rvs">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/base_class.html#Sampler.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.base_class.Sampler.rvs" title="Link to this definition">¶</a></dt>
+<dd><p>A method to generate random samples</p>
+<section id="argument">
+<h3>Argument<a class="headerlink" href="#argument" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>n<span class="classifier">int</span></dt><dd><p>number of samples</p>
+</dd>
+<dt>mins, maxs<span class="classifier">np.ndarray</span></dt><dd><p>1 dimensional arrays of the lower bounds
+and upper bounds</p>
+</dd>
+<dt>f<span class="classifier">function</span></dt><dd><p>the integrand</p>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">*</span></a>args, <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs</dt><dd><p>other necessary arguments and keyward arguments</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(xs, ys)
+xs is np.ndarray of shape (n, D)
+ys is np.ndarray of shape (n, )
+samples from the distribution</p>
+</dd>
+<dt class="field-even">rtype<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.base_class.Sampler.subdivide_domain">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">subdivide_domain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strata_per_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/base_class.html#Sampler.subdivide_domain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.base_class.Sampler.subdivide_domain" title="Link to this definition">¶</a></dt>
+<dd><p>Subdivide the domain into smaller strata.</p>
+<p>For stratified samplers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strata_per_dim</strong> (<em>int</em>) – Number of strata per dimension.</p></li>
+<li><p><strong>mins</strong> (<em>np.ndarray</em>) – Lower bounds of the domain.</p></li>
+<li><p><strong>maxs</strong> (<em>np.ndarray</em>) – Upper bounds of the domain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Subdivided strata as a list of (low, high) tuples.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of tuples</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.samplers.combined_samplers">
+<span id="treequadrature-samplers-combined-samplers-module"></span><h2>treeQuadrature.samplers.combined_samplers module<a class="headerlink" href="#module-treeQuadrature.samplers.combined_samplers" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.combined_samplers.AdaptiveImportanceSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.samplers.combined_samplers.</span></span><span class="sig-name descname"><span class="pre">AdaptiveImportanceSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strata_per_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oversample_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/samplers/combined_samplers.html#AdaptiveImportanceSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.combined_samplers.AdaptiveImportanceSampler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.combined_samplers.AdaptiveImportanceSampler.rvs">
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_samples_per_region</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/combined_samplers.html#AdaptiveImportanceSampler.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.combined_samplers.AdaptiveImportanceSampler.rvs" title="Link to this definition">¶</a></dt>
+<dd><p>Two-stage sampling that first adapts to the integrand’s values
+and then applies importance sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>mins</strong> (<em>np.ndarray</em>) – 1-dimensional arrays of the lower bounds and upper bounds.</p></li>
+<li><p><strong>maxs</strong> (<em>np.ndarray</em>) – 1-dimensional arrays of the lower bounds and upper bounds.</p></li>
+<li><p><strong>f</strong> (<em>callable</em>) – The integrand function to be sampled.</p></li>
+<li><p><strong>max_samples_per_region</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of samples allowed in any given region to prevent over-sampling.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>xs<span class="classifier">np.ndarray of shape (n, D)</span></dt><dd><p>The sampled points.</p>
+</dd>
+<dt>ys<span class="classifier">np.ndarray of shape (n, )</span></dt><dd><p>The integrand values at the sampled points.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[np.ndarray, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.combined_samplers.LHSImportanceSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.samplers.combined_samplers.</span></span><span class="sig-name descname"><span class="pre">LHSImportanceSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oversample_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/samplers/combined_samplers.html#LHSImportanceSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.combined_samplers.LHSImportanceSampler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.combined_samplers.LHSImportanceSampler.rvs">
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_samples_per_region</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/combined_samplers.html#LHSImportanceSampler.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.combined_samplers.LHSImportanceSampler.rvs" title="Link to this definition">¶</a></dt>
+<dd><p>Latin Hypercube Sampling (LHS) combined with importance sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>mins</strong> (<em>np.ndarray</em>) – 1-dimensional arrays of the lower bounds and upper bounds.</p></li>
+<li><p><strong>maxs</strong> (<em>np.ndarray</em>) – 1-dimensional arrays of the lower bounds and upper bounds.</p></li>
+<li><p><strong>f</strong> (<em>callable</em>) – The integrand function to be sampled.</p></li>
+<li><p><strong>max_samples_per_region</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of samples allowed in any given region
+to prevent over-sampling.
+Default is 50.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>xs<span class="classifier">np.ndarray of shape (n, D)</span></dt><dd><p>The sampled points.</p>
+</dd>
+<dt>ys<span class="classifier">np.ndarray of shape (n, )</span></dt><dd><p>The integrand values at the sampled points.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[np.ndarray, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.samplers.importance_sampler">
+<span id="treequadrature-samplers-importance-sampler-module"></span><h2>treeQuadrature.samplers.importance_sampler module<a class="headerlink" href="#module-treeQuadrature.samplers.importance_sampler" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.importance_sampler.ImportanceSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.samplers.importance_sampler.</span></span><span class="sig-name descname"><span class="pre">ImportanceSampler</span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/importance_sampler.html#ImportanceSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.importance_sampler.ImportanceSampler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.importance_sampler.ImportanceSampler.rvs">
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/importance_sampler.html#ImportanceSampler.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.importance_sampler.ImportanceSampler.rvs" title="Link to this definition">¶</a></dt>
+<dd><p>Importance sampling with a bias towards edges and corners.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>mins</strong> (<em>np.ndarray</em>) – 1 dimensional arrays of the lower bounds
+and upper bounds</p></li>
+<li><p><strong>maxs</strong> (<em>np.ndarray</em>) – 1 dimensional arrays of the lower bounds
+and upper bounds</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – the integrand</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Samples from the distribution.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.samplers.low_discrepancy_samplers">
+<span id="treequadrature-samplers-low-discrepancy-samplers-module"></span><h2>treeQuadrature.samplers.low_discrepancy_samplers module<a class="headerlink" href="#module-treeQuadrature.samplers.low_discrepancy_samplers" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.low_discrepancy_samplers.SobolSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.samplers.low_discrepancy_samplers.</span></span><span class="sig-name descname"><span class="pre">SobolSampler</span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/low_discrepancy_samplers.html#SobolSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.low_discrepancy_samplers.SobolSampler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.low_discrepancy_samplers.SobolSampler.rvs">
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/low_discrepancy_samplers.html#SobolSampler.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.low_discrepancy_samplers.SobolSampler.rvs" title="Link to this definition">¶</a></dt>
+<dd><p>Low-discrepancy sampling using Sobol sequences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>mins</strong> (<em>np.ndarray</em>) – 1 dimensional arrays of the lower bounds
+and upper bounds</p></li>
+<li><p><strong>maxs</strong> (<em>np.ndarray</em>) – 1 dimensional arrays of the lower bounds
+and upper bounds</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – the integrand</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Samples from the distribution.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.samplers.mcmc_sampler">
+<span id="treequadrature-samplers-mcmc-sampler-module"></span><h2>treeQuadrature.samplers.mcmc_sampler module<a class="headerlink" href="#module-treeQuadrature.samplers.mcmc_sampler" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.mcmc_sampler.McmcSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.samplers.mcmc_sampler.</span></span><span class="sig-name descname"><span class="pre">McmcSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_walkers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/samplers/mcmc_sampler.html#McmcSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.mcmc_sampler.McmcSampler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a></p>
+<p>MCMC sampler that generates samples from
+the modulus of f using the <cite>emcee</cite> package.
+Allows sampling from a heated version of <a href="#id6"><span class="problematic" id="id7">|f|</span></a>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.mcmc_sampler.McmcSampler.rvs">
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/mcmc_sampler.html#McmcSampler.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.mcmc_sampler.McmcSampler.rvs" title="Link to this definition">¶</a></dt>
+<dd><p>Generate exactly n MCMC samples using the EnsembleSampler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of samples to generate.</p></li>
+<li><p><strong>mins</strong> (<em>np.ndarray</em>) – 1-dimensional arrays of the lower and upper bounds.</p></li>
+<li><p><strong>maxs</strong> (<em>np.ndarray</em>) – 1-dimensional arrays of the lower and upper bounds.</p></li>
+<li><p><strong>f</strong> (<em>callable</em>) – The integrand function from which to sample.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The generated samples and their corresponding function values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[np.ndarray, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.samplers.mixed_sampler">
+<span id="treequadrature-samplers-mixed-sampler-module"></span><h2>treeQuadrature.samplers.mixed_sampler module<a class="headerlink" href="#module-treeQuadrature.samplers.mixed_sampler" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.mixed_sampler.MixedSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.samplers.mixed_sampler.</span></span><span class="sig-name descname"><span class="pre">MixedSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samplers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><span class="pre">Sampler</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proportions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/samplers/mixed_sampler.html#MixedSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.mixed_sampler.MixedSampler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a></p>
+<p>A sampler that combines multiple samplers, drawing samples
+from each according to specified proportions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.mixed_sampler.MixedSampler.rvs">
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/mixed_sampler.html#MixedSampler.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.mixed_sampler.MixedSampler.rvs" title="Link to this definition">¶</a></dt>
+<dd><p>Generate samples by combining samples from multiple samplers
+according to the specified proportions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Total number of samples to generate.</p></li>
+<li><p><strong>mins</strong> (<em>np.ndarray</em>) – 1-dimensional arrays of the lower and upper bounds.</p></li>
+<li><p><strong>maxs</strong> (<em>np.ndarray</em>) – 1-dimensional arrays of the lower and upper bounds.</p></li>
+<li><p><strong>f</strong> (<em>callable</em>) – The integrand function from which to sample.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The generated samples and their corresponding function values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[np.ndarray, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.samplers.stratified_sampler">
+<span id="treequadrature-samplers-stratified-sampler-module"></span><h2>treeQuadrature.samplers.stratified_sampler module<a class="headerlink" href="#module-treeQuadrature.samplers.stratified_sampler" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.stratified_sampler.StratifiedSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.samplers.stratified_sampler.</span></span><span class="sig-name descname"><span class="pre">StratifiedSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strata_per_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'midpoint'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/samplers/stratified_sampler.html#StratifiedSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.stratified_sampler.StratifiedSampler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.stratified_sampler.StratifiedSampler.rvs">
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/stratified_sampler.html#StratifiedSampler.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.stratified_sampler.StratifiedSampler.rvs" title="Link to this definition">¶</a></dt>
+<dd><p>Stratified sampling to ensure coverage of the entire domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>mins</strong> (<em>np.ndarray</em>) – 1 dimensional arrays of the lower bounds
+and upper bounds</p></li>
+<li><p><strong>maxs</strong> (<em>np.ndarray</em>) – 1 dimensional arrays of the lower bounds
+and upper bounds</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – the integrand</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Samples from the distribution.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.samplers.uniform_sampler">
+<span id="treequadrature-samplers-uniform-sampler-module"></span><h2>treeQuadrature.samplers.uniform_sampler module<a class="headerlink" href="#module-treeQuadrature.samplers.uniform_sampler" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.uniform_sampler.UniformSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.samplers.uniform_sampler.</span></span><span class="sig-name descname"><span class="pre">UniformSampler</span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/uniform_sampler.html#UniformSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.uniform_sampler.UniformSampler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a></p>
+<p>Uniform sampler in a hyper-rectangle</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.samplers.uniform_sampler.UniformSampler.rvs">
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/samplers/uniform_sampler.html#UniformSampler.rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.samplers.uniform_sampler.UniformSampler.rvs" title="Link to this definition">¶</a></dt>
+<dd><section id="id5">
+<h3>Argument<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>n<span class="classifier">int</span></dt><dd><p>number of samples</p>
+</dd>
+<dt>mins, maxs<span class="classifier">np.ndarray</span></dt><dd><p>1 dimensional arrays of the lower bounds
+and upper bounds</p>
+</dd>
+<dt>f<span class="classifier">function</span></dt><dd><p>the integrand</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>samples from the distribution</p>
+</dd>
+<dt class="field-even">rtype<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray of shape (n, self.D)</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.samplers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-treeQuadrature.samplers" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="treeQuadrature.html">treeQuadrature package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="treeQuadrature.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.compare_integrators">treeQuadrature.compare_integrators module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.container">treeQuadrature.container module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.queues">treeQuadrature.queues module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.utils">treeQuadrature.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.visualisation">treeQuadrature.visualisation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">treeQuadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">tests package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="treeQuadrature.html">treeQuadrature package</a><ul>
+      <li>Previous: <a href="treeQuadrature.integrators.html" title="previous chapter">treeQuadrature.integrators package</a></li>
+      <li>Next: <a href="treeQuadrature.splits.html" title="next chapter">treeQuadrature.splits package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/treeQuadrature.samplers.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,14 +1,18 @@
 from typing import Tuple, List, Optional
 import numpy as np
-from .sampler import Sampler
+from .base_class import Sampler
+
 
 class MixedSampler(Sampler):
     """
-    A sampler that combines multiple samplers, drawing samples 
+    A sampler that combines multiple samplers, drawing samples
     from each according to specified proportions.
     """
 
-    def __init__(self, samplers: List[Sampler], proportions: Optional[List[float]] = None):
+    def __init__(
+        self, samplers: List[Sampler],
+        proportions: Optional[List[float]] = None
+    ):
         """
         Arguments
         ---------
@@ -19,26 +23,31 @@ class MixedSampler(Sampler):
             If None, samples will be drawn equally from each sampler.
         """
         self.samplers = samplers
-        
+
         if proportions is None:
             self.proportions = [1.0 / len(samplers)] * len(samplers)
         else:
             if len(proportions) != len(samplers):
-                raise ValueError("Length of proportions must match the number of samplers.")
+                raise ValueError(
+                    "Length of proportions must "
+                    "match the number of samplers."
+                )
             self.proportions = proportions
 
         # Normalize proportions to sum to 1
-        self.proportions = np.array(self.proportions) / np.sum(self.proportions)
+        self.proportions = np.array(
+            self.proportions) / np.sum(self.proportions)
 
-    def rvs(self, n: int, mins: np.ndarray, maxs: np.ndarray, 
-            f: callable, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
+    def rvs(
+        self, n: int, mins: np.ndarray, maxs: np.ndarray, f: callable, **kwargs
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Generate samples by combining samples from multiple samplers 
+        Generate samples by combining samples from multiple samplers
         according to the specified proportions.
 
         Parameters
         ----------
-        n : int 
+        n : int
             Total number of samples to generate.
         mins, maxs : np.ndarray
             1-dimensional arrays of the lower and upper bounds.
@@ -64,9 +73,12 @@ class MixedSampler(Sampler):
         all_values = []
 
         # Draw samples from each sampler
-        for sampler, num_samples in zip(self.samplers, samples_distribution):
+        for sampler, num_samples in zip(
+            self.samplers, samples_distribution
+        ):
             if num_samples > 0:
-                samples, values = sampler.rvs(num_samples, mins, maxs, f, **kwargs)
+                samples, values = sampler.rvs(
+                    num_samples, mins, maxs, f, **kwargs)
                 all_samples.append(samples)
                 all_values.append(values)
 

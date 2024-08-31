@@ -6,10 +6,9 @@ from . import distributions as dists
 from ..utils import handle_bound
 
 
-
 class BayesProblem(Problem):
-    '''
-    base class for integration problems, 
+    """
+    base class for integration problems,
     with a prior density p and a likelihood d
 
     Attributes
@@ -26,18 +25,9 @@ class BayesProblem(Problem):
     answer : float
             the True solution to int p.pdf(x) * d.pdf(x) dx
             integrated over [lows, highs]
+    """
 
-    Methods
-    -------
-    pdf(X)
-        input : numpy.ndarray of shape (N, D)
-            each row is a sample
-        return : numpy.ndarray of shape (N, 1)
-            the value of p.pdf(x) * d.pdf(x) at samples in X
-    '''
-    def __init__(self, D: int,
-                 d: dists.Distribution, 
-                 lows, highs):
+    def __init__(self, D: int, d: dists.Distribution, lows, highs):
         """
         Parameters
         ----------
@@ -57,9 +47,9 @@ class BayesProblem(Problem):
         # check dimensions of X
         xs = self.handle_input(X)
 
-        if self.p: # Combined pdf ie d(x) * p(x)
+        if self.p:  # Combined pdf ie d(x) * p(x)
             return self.d.pdf(xs) * self.p.pdf(xs)
-        else: # when p is not defined, simply use d
+        else:  # when p is not defined, simply use d
             return self.d.pdf(xs)
 
     def rvs(self, n):
@@ -68,7 +58,7 @@ class BayesProblem(Problem):
 
         Argument
         --------
-        n : int 
+        n : int
             number of samples
 
         Return
@@ -77,9 +67,6 @@ class BayesProblem(Problem):
             samples from the distribution
         """
         return self.d.rvs(n)
-
-
-
 
 
 class SimpleGaussian(BayesProblem):
@@ -106,17 +93,20 @@ class SimpleGaussian(BayesProblem):
         D : int
             dimension of the problem
         """
-        super().__init__(D, d=dists.MultivariateNormal(
-            D=D, mean=[0.0] * D, cov=1 / 200), 
-            lows = -1.0, highs= 1.0)
-        
-        self.p = dists.Uniform(
-            D=D, low=self.lows, high=self.highs)
+        super().__init__(
+            D,
+            d=dists.MultivariateNormal(D=D, mean=[0.0] * D, cov=1 / 200),
+            lows=-1.0,
+            highs=1.0,
+        )
+
+        self.p = dists.Uniform(D=D, low=self.lows, high=self.highs)
         # Truth
         self.answer = 1 / (2.0**D)
 
     def __str__(self) -> str:
-        return f'SimpleGaussian(D={self.D})'
+        return f"SimpleGaussian(D={self.D})"
+
 
 class Gaussian(BayesProblem):
     """
@@ -127,7 +117,7 @@ class Gaussian(BayesProblem):
     D : int
         Dimension of the problem
     d : Distribution
-        Multivariate Gaussian with 
+        Multivariate Gaussian with
           mean mu and covariance Sigma
     mu : numpy.ndarray
         Mean vector
@@ -149,7 +139,7 @@ class Gaussian(BayesProblem):
             if a number given, used for each dimension
             if list or array given, must have length D
             mu defaults to 0
-            lows and highs defaults to +- np.inf 
+            lows and highs defaults to +- np.inf
         Sigma : number of numpy.ndarray
             if a number given, covariance set to Sigma * I
             if array given, must have shape (D, D)
@@ -159,12 +149,15 @@ class Gaussian(BayesProblem):
         self.mu = handle_bound(mu, D, 0)
         self.Sigma = Gaussian._handle_Sigma(Sigma, D)
 
-        super().__init__(D, d = dists.MultivariateNormal(
-            D=D, mean=self.mu, cov=self.Sigma), 
-            lows=lows, highs=highs)
+        super().__init__(
+            D,
+            d=dists.MultivariateNormal(D=D, mean=self.mu, cov=self.Sigma),
+            lows=lows,
+            highs=highs,
+        )
 
         self.answer = self._integrate(self.lows, self.highs)
-        
+
     @staticmethod
     def _handle_Sigma(value, D):
         if value is None:
@@ -181,9 +174,9 @@ class Gaussian(BayesProblem):
 
     def _integrate(self, lows, highs, num_samples=8192):
         """
-        Calculate the integral of the Gaussian pdf over the 
+        Calculate the integral of the Gaussian pdf over the
         hyper-rectangular bounds defined by lows and highs.
-        
+
         Returns
         -------
         float
@@ -191,30 +184,31 @@ class Gaussian(BayesProblem):
         """
         # fetch to multivariate Gaussian object
         rv = self.d.d
-        
+
         dim = len(lows)
-        
+
         # Generate QMC samples within the unit hypercube
         sampler = qmc.Sobol(d=dim, scramble=True)
         unit_samples = sampler.random(num_samples)
-        
+
         samples = qmc.scale(unit_samples, lows, highs)
-        
+
         pdf_values = rv.pdf(samples)
         volume = np.prod(highs - lows)
         integral_value = np.mean(pdf_values) * volume
-        
+
         return integral_value
-    
+
     def __str__(self) -> str:
-        return f'Gaussian(D={self.D}, mean={self.mu}, cov={self.Sigma})'
+        return f"Gaussian(D={self.D}, mean={self.mu}, cov={self.Sigma})"
+
 
 class Camel(BayesProblem):
     """
     Attributes
     ----------
     d : Distribution
-        Likelihood: mixture of Two Gaussians 
+        Likelihood: mixture of Two Gaussians
           centred at 1/3 and 2/3 along unit diagonal. cov = 1/200.
     p : Distribution
         Prior: U([-0.5, 1.5]^D)
@@ -234,15 +228,13 @@ class Camel(BayesProblem):
         D : int
             dimension of the problem
         """
-        super().__init__(D, dists.Camel(D), 
-                         lows=-0.5, highs=1.5)
-        
-        self.p = dists.Uniform(
-            D=D, low=self.lows, high=self.highs)
+        super().__init__(D, dists.Camel(D), lows=-0.5, highs=1.5)
+
+        self.p = dists.Uniform(D=D, low=self.lows, high=self.highs)
         self.answer = 1 / (2.0**D)
 
     def __str__(self) -> str:
-        return f'Camel(D={self.D})'
+        return f"Camel(D={self.D})"
 
 
 class QuadCamel(BayesProblem):
@@ -253,7 +245,7 @@ class QuadCamel(BayesProblem):
     Attributes
     ----------
     d : Distribution
-        Likelihood: mixture of 4 Gaussians 
+        Likelihood: mixture of 4 Gaussians
           2,4,6,8 units along diagonal. cov = 1/200.
     p : Distribution
         Prior: U([0, 10]^D)
@@ -267,12 +259,10 @@ class QuadCamel(BayesProblem):
     """
 
     def __init__(self, D):
-        super().__init__(D, d = dists.QuadCamel(D),
-                         lows = 0.0, highs=10.0)
-        
-        self.p = dists.Uniform(
-            D=D, low=self.lows, high=self.highs)
+        super().__init__(D, d=dists.QuadCamel(D), lows=0.0, highs=10.0)
+
+        self.p = dists.Uniform(D=D, low=self.lows, high=self.highs)
         self.answer = 1 / (10.0**D)
 
     def __str__(self) -> str:
-        return f'QuadCamel(D={self.D})'
+        return f"QuadCamel(D={self.D})"

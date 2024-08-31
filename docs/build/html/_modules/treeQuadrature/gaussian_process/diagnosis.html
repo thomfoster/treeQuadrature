@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>treeQuadrature.gaussian_process.diagnosis &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for treeQuadrature.gaussian_process.diagnosis</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">..container</span> <span class="kn">import</span> <span class="n">Container</span>
+<span class="kn">from</span> <span class="nn">.fit_gp</span> <span class="kn">import</span> <span class="n">IterativeGPFitting</span><span class="p">,</span> <span class="n">is_poor_fit</span>
+<span class="kn">from</span> <span class="nn">.visualisation</span> <span class="kn">import</span> <span class="n">plot_gp</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mean_squared_error</span>
+
+<div class="viewcode-block" id="default_criterion">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.diagnosis.default_criterion">[docs]</a>
+<span class="k">def</span> <span class="nf">default_criterion</span><span class="p">(</span><span class="n">container</span><span class="p">:</span> <span class="n">Container</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="gp_diagnosis">
+<a class="viewcode-back" href="../../../treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.diagnosis.gp_diagnosis">[docs]</a>
+<span class="k">def</span> <span class="nf">gp_diagnosis</span><span class="p">(</span><span class="n">igp</span><span class="p">:</span> <span class="n">IterativeGPFitting</span><span class="p">,</span> <span class="n">container</span><span class="p">:</span> <span class="n">Container</span><span class="p">,</span> 
+                 <span class="n">criterion</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Container</span><span class="p">],</span> 
+                                     <span class="nb">bool</span><span class="p">]</span><span class="o">=</span><span class="n">default_criterion</span><span class="p">,</span> 
+                                     <span class="n">plot</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the performance of a Gaussian Process (GP) model.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    igp : IterativeGPFitting</span>
+<span class="sd">        The fitted Gaussian Process model.</span>
+<span class="sd">    container : Container</span>
+<span class="sd">        Container object that holds the samples and boundaries.</span>
+<span class="sd">    criterion : function, Optional</span>
+<span class="sd">        A function that takes a container and returns a boolean indicating </span>
+<span class="sd">        whether to plot the posterior mean.</span>
+<span class="sd">        Default criterion: always True</span>
+<span class="sd">    plot : bool, optional</span>
+<span class="sd">        if true, 1D problems will be plotted</span>
+<span class="sd">        Default: False</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="n">igp</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">X_train_</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="n">igp</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">y_train_</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Make predictions</span>
+    <span class="n">y_pred</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">igp</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Check R-squared and MSE</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">igp</span><span class="o">.</span><span class="n">scoring</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+    <span class="n">mse</span> <span class="o">=</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">is_poor_fit</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">igp</span><span class="o">.</span><span class="n">performance_threshold</span><span class="p">,</span> 
+                   <span class="n">igp</span><span class="o">.</span><span class="n">threshold_direction</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;number of training samples : </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;volume of container : </span><span class="si">{</span><span class="n">container</span><span class="o">.</span><span class="n">volume</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GP Score: </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean Squared Error: </span><span class="si">{</span><span class="n">mse</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> 
+
+    <span class="c1"># posterior mean plot</span>
+    <span class="k">if</span> <span class="n">xs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">criterion</span><span class="p">(</span><span class="n">container</span><span class="p">)</span> <span class="ow">and</span> <span class="n">plot</span><span class="p">:</span>
+        <span class="n">plot_gp</span><span class="p">(</span><span class="n">igp</span><span class="o">.</span><span class="n">gp</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> 
+               <span class="n">mins</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">maxs</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../treeQuadrature.html">treeQuadrature package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

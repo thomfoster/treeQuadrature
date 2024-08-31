@@ -46,6 +46,9 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+# Mock the 'setup' module to avoid import issues
+autodoc_mock_imports = ['setup']
+
 
 # -- Options for HTML output -------------------------------------------------
 

@@ -6,15 +6,16 @@ from ..container import Container
 
 class Tree(ABC):
     @abstractmethod
-    def construct_tree(self, root: Container, *args, **kwargs) -> List[Container]:
+    def construct_tree(self, root: Container,
+                       *args, **kwargs) -> List[Container]:
         """
         Construct a tree from the given data.
-        
+
         Parameters
         ----------
         root : Container
-            The root container with all initial samples. 
-        
+            The root container with all initial samples.
+
         Returns
         -------
         List[Container]
@@ -26,7 +27,7 @@ class Tree(ABC):
         """
         Check if the root is a container
         and has samples
-        
+
         Parameters
         ----------
         root : Container
@@ -34,6 +35,6 @@ class Tree(ABC):
         """
         if not isinstance(root, Container):
             raise Exception("Root must be a container")
-        
+
         if root.N == 0:
             raise Exception("Root container has no samples")

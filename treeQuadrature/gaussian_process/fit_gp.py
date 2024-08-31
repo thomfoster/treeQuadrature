@@ -27,6 +27,11 @@ class GPFit(ABC):
 
     def __init__(self):
         self.gp = None
+        self.performance = None
+        # record the original mean
+        # of the training data
+        # in case of fitting residuals
+        self.y_mean = None
 
     @abstractmethod
     def fit(self, xs, ys, kernel):

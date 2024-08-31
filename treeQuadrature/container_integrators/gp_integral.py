@@ -4,6 +4,7 @@ from sklearn.metrics import pairwise_distances
 import numpy as np
 import warnings
 from abc import abstractmethod
+import copy
 
 from ..gaussian_process import (
     IterativeGPFitting,
@@ -153,7 +154,9 @@ class KernelIntegral(ContainerIntegral):
 
     def containerIntegral(
         self, container: Container, f: Callable,
-        return_std: bool = False, **kwargs: Any
+        return_std: bool = False,
+        return_model: bool = False,
+        **kwargs: Any
     ):
         """
         Gaussian Process is fitted iteratively
@@ -176,11 +179,14 @@ class KernelIntegral(ContainerIntegral):
             - integral (float) :
                 the integral estimate
             - std (float) :
-                standard deviation of integral, if return_std = True
+                standard deviation of integral,
+                if return_std = True
             - hyper_params (dict) :
                 hyper-parameters of the fitted kernel
             - performance (float) :
                 GP goodness of fit score
+            - model : GPFit
+                the fitted GP model, if return_model = True
         """
         self._initialize_gp()
 
@@ -227,8 +233,9 @@ class KernelIntegral(ContainerIntegral):
         ret = kernel_integration(iGP, container, gp_results, return_std)
 
         ret["hyper_params"] = iGP.gp.hyper_params
-
         ret["performance"] = gp_results["performance"]
+        if return_model:
+            ret["model"] = copy.deepcopy(iGP.gp)
 
         return ret
 
@@ -345,6 +352,7 @@ class AdaptiveRbfIntegral(ContainerIntegral):
         container: Container,
         f: Callable[..., np.ndarray],
         return_std: bool = False,
+        return_model: bool = False,
     ) -> Dict:
         """
         Arguments
@@ -353,8 +361,10 @@ class AdaptiveRbfIntegral(ContainerIntegral):
             the container on which the integral of f should be evaluated
         f : function
             takes X : np.ndarray and return np.ndarray
-        return_std : bool
+        return_std : bool, optional
             if True, returns the posterior std of integral estimate
+        return_model : bool, optional
+            if True, returns the fitted GP model
 
         Return
         ------
@@ -362,11 +372,17 @@ class AdaptiveRbfIntegral(ContainerIntegral):
             - integral (float) :
                 value of the integral of f on the container
             - std (float) :
-                standard deviation of integral, if .return_std = True
+                standard deviation of integral, if return_std = True
             - hyper_params (dict) :
                 hyper-parameters of the fitted kernel
             - performance (float) :
                 GP goodness of fit score
+            - model : GPFit
+                the fitted GP model, if return_model = True
+            - gp_results : dict
+                the results of the GP fitting,
+                (e.g. performance, y_mean)
+                if return_model = True
         """
         if self.n_samples < 2:
             raise RuntimeError(
@@ -436,6 +452,11 @@ class AdaptiveRbfIntegral(ContainerIntegral):
 
         ret["hyper_params"] = {"length": iGP.gp.hyper_params["length_scale"]}
         ret["performance"] = gp_results["performance"]
+        if return_model:
+            iGP.gp.y_mean = gp_results["y_mean"]
+            iGP.gp.performance = gp_results["performance"]
+            ret["model"] = copy.deepcopy(iGP.gp)
+            ret["gp_results"] = gp_results
 
         return ret
 

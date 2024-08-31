@@ -70,25 +70,24 @@ class Container:
         else:
             self.midpoint = np.nan
 
-        X_filtered, y_filtered = self.filter_points(X, y)
-        self.add(X_filtered, y_filtered)
+        self.add(X, y)
 
     def _handle_min_max_bounds(self, bounds,
                                default_value) -> np.ndarray:
         """Handle different types of min/max bounds."""
         if isinstance(bounds, (int, float)):
-            return np.array([bounds] * self.D)
+            return np.array([bounds] * self.D, dtype=float)
         elif isinstance(bounds, list):
             # dimensionality checks
             if len(bounds) != self.D:
                 raise ValueError("bound should have length D")
-            return np.array(bounds)
+            return np.array(bounds, dtype=float)
         elif isinstance(bounds, np.ndarray):
             if bounds.shape[0] != self.D:
                 raise ValueError("bound should have length D")
-            return bounds
+            return bounds.astype(float)
         else:
-            return np.array([default_value] * self.D)
+            return np.array([default_value] * self.D, dtype=float)
 
     def _handle_X_y(self, X: np.ndarray, y: np.ndarray):
         """Handle the input X and y arrays"""
@@ -119,8 +118,7 @@ class Container:
         self,
         X: np.ndarray,
         y: Optional[np.ndarray] = None,
-        return_bool: bool = False,
-        warning: bool = False,
+        warning: bool = True
     ):
         """
         Check whether all the points X are in the container
@@ -134,12 +132,9 @@ class Container:
             An array of points to check.
         y : np.ndarray of shape (N, ), optional
             corresponding values
-        return_bool : bool, optional
-            if true, return a bool inside of filtered samples
-            Defaults to False
         warning : bool, optional
             if true, throw a warning if some points are outside
-            Defaults to False
+            Defaults to True
 
         Returns
         -------
@@ -152,21 +147,25 @@ class Container:
 
         in_bounds = np.all((X >= self.mins) &
                            (X <= self.maxs), axis=1)
+        above_bound = np.where(X > self.maxs)
+        below_bound = np.where(X < self.mins)
         if not np.all(in_bounds):
-            inside = False
             if warning:
-                warnings.warn(
-                    "Some points are out of the container bounds: "
-                    f"indices {np.where(~in_bounds)[0]}"
-                )
-        else:
-            inside = True
+                deviation_above = X[above_bound] - self.maxs[above_bound[1]]
+                deviation_below = self.mins[below_bound[1]] - X[below_bound]
 
-        if return_bool:
-            return inside
-        else:
-            return X[in_bounds] if (
-                y is None) else X[in_bounds], y[in_bounds]
+                if above_bound[0].size > 0 and below_bound[0].size > 0:
+                    warnings.warn(
+                        "Some points are outside the container. \n "
+                        f"Deviation above bounds: {deviation_above}"
+                        f"Deviation below bounds: {deviation_below}")
+                elif below_bound[0].size > 0:
+                    warnings.warn(f"Deviation below bounds: {deviation_below}")
+                elif above_bound[0].size > 0:
+                    warnings.warn(f"Deviation above bounds: {deviation_above}")
+
+        return X[in_bounds] if (
+            y is None) else X[in_bounds], y[in_bounds]
 
     def add(self, new_X: np.ndarray, new_y: np.ndarray):
         """
@@ -261,8 +260,8 @@ class Container:
         lX = self.X[idxs]
         ly = self.y[idxs]
 
-        rX = self.X[np.logical_not(idxs)]
-        ry = self.y[np.logical_not(idxs)]
+        rX = self.X[~idxs]
+        ry = self.y[~idxs]
 
         # Calculate the new space partitions
         left_mins = np.array(self.mins, copy=True)
@@ -274,7 +273,9 @@ class Container:
         right_mins[split_dimension] = split_value
 
         # Create new Container instances
-        left_container = Container(lX, ly, mins=left_mins, maxs=left_maxs)
-        right_container = Container(rX, ry, mins=right_mins, maxs=right_maxs)
+        left_container = Container(
+            lX, ly, mins=left_mins, maxs=left_maxs)
+        right_container = Container(
+            rX, ry, mins=right_mins, maxs=right_maxs)
 
         return [left_container, right_container]

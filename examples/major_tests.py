@@ -25,7 +25,8 @@ import numpy as np
 D = 2
 
 ### Set problem
-problem = Camel(D=D)
+# problem = Camel(D=D)
+problem = QuadCamel(D=D)
 # problem = SimpleGaussian(D=D)
 # problem = Ripple(D=D)
 # problem = Quadratic(D=D)
@@ -211,12 +212,13 @@ integ_vegas_adaptive.name = 'Adaptive Vegas'
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_mean_random_split, integ_mean_minsse], plot=True, verbose=1,
-                        xlim=[problem.lows[0], problem.highs[0]], 
-                        ylim=[problem.lows[1], problem.highs[1]], 
+    compare_integrators([integ_mean_minsse], plot=True, verbose=1,
+                        # xlim=[problem.lows[0], problem.highs[0]], 
+                        # ylim=[problem.lows[1], problem.highs[1]], 
+                        xlim=[0, 7], ylim=[0, 7],
                         problem=problem, dimensions=[0, 1], integrator_specific_kwargs=
                         {'ActiveTQ': {'max_iter' : max_iter}},
-                        n_repeat=1, plot_samples=True, title='')
+                        n_repeat=1, plot_samples=False, title=None)
     # compare_integrators([integ_rbf_non_adaptive], plot=True, verbose=1,
     #                     xlim=[problem.lows[0], problem.highs[0]], 
     #                     problem=problem, dimensions=[0, 1], 

@@ -37,8 +37,9 @@ def handle_bound(value, D, default_value) -> np.ndarray:
         return np.array(value)
     else:
         raise ValueError(
-            "value must be a float, list, or numpy.ndarray"
-            f"with length {D} when given as a list or numpy.ndarray"
+            "bound must be a float, list, or numpy.ndarray "
+            f"with length {D} when given as a list or numpy.ndarray. \n"
+            f"got {type(value).__name__} with length {len(value)}"
         )
 
 

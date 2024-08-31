@@ -79,6 +79,12 @@ class SimpleTree(Tree):
                 finished_containers.append(c)
             else:
                 children = self.split.split(c)
+                if sum([child.N for child in children]) != c.N:
+                    raise RuntimeError(
+                        "Sum of children samples is not "
+                        "equal to parent samples. \n"
+                        "Please check the split method"
+                    )
                 if len(children) == 1:
                     finished_containers.append(c)
                 else:

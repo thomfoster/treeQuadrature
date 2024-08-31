@@ -155,10 +155,7 @@ def _plot_containers_2D(
     cbar.set_label(c_bar_labels, fontsize=font_size)
     cbar.ax.tick_params(labelsize=c_bar_tick_size)
 
-    if title:
-        plt.title(title, fontsize=font_size * 1.2)
-    else:
-        plt.title("Container Contributions", fontsize=font_size * 1.2)
+    plt.title(title, fontsize=font_size * 1.2)
     ax.tick_params(axis="both", labelsize=font_size)
     plt.show()
 
@@ -217,11 +214,7 @@ def _plot_containers_1D(
     # labels and legend
     plt.xlabel("x", fontsize=font_size)
     plt.ylabel("Value", fontsize=font_size)
-    if title:
-        plt.title(title, fontsize=font_size * 1.2)
-    else:
-        plt.title("Integrand and Container Contributions",
-                  fontsize=font_size * 1.2)
+    plt.title(title, fontsize=font_size * 1.2)
     plt.legend(fontsize=font_size)
     plt.tick_params(axis="both", labelsize=font_size)
 

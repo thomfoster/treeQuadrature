@@ -1,5 +1,5 @@
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.example_problems import QuadraticProblem
+from treeQuadrature.example_problems import Quadratic
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.container_integrators import AdaptiveRbfIntegral, PolyIntegral
 from treeQuadrature.samplers import McmcSampler
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     location_prefix = 'rbf_poly/'
 
     for D in Ds:
-        problems = [QuadraticProblem(D)]
+        problems = [Quadratic(D)]
 
         output_file = os.path.join(script_dir, 
                                 f"../test_results/{location_prefix}results_{D}D_{args.n_repeat}repeat.csv")

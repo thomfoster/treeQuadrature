@@ -103,7 +103,7 @@ class Oscillatory(Problem):
     def __init__(self, D: int, u: int = 0,
                  a: Optional[np.ndarray] = None):
         """
-        Initialize the OscillatoryProblem with the given dimensionality,
+        Initialise the Oscillatory Problem with the given dimensionality,
         frequency vector, and phase shift parameter.
 
         Parameters

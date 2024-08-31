@@ -8,8 +8,8 @@ csv_files = glob.glob("test_results/fifth_run/results_*csv")  # Update the path 
 all_data = pd.concat([pd.read_csv(f) for f in csv_files])
 
 # fifth run
-genres = ['Camel', 'QuadCamel', 'SimpleGaussian', 'ExponentialProductProblem', 
-          'QuadraticProblem', 'Ripple', 'Oscillatory', 'ProductPeak', 'C0function', 'CornerPeak', 'Discontinuous']
+genres = ['Camel', 'QuadCamel', 'SimpleGaussian', 'ExponentialProduct', 
+          'Quadratic', 'Ripple', 'Oscillatory', 'ProductPeak', 'C0function', 'CornerPeak', 'Discontinuous']
 genres = ['SimpleGaussian']
 # third run 
 # genres = ['SimpleGaussian', 'Camel', 'QuadCamel']

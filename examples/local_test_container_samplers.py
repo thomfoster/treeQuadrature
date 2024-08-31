@@ -1,5 +1,5 @@
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.example_problems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem, SimpleGaussian, Camel, QuadCamel
+from treeQuadrature.example_problems import ProductPeak, ExponentialProduct, C0, CornerPeak, Oscillatory, SimpleGaussian, Camel, QuadCamel
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.container_integrators import AdaptiveRbfIntegral
 from treeQuadrature.samplers import McmcSampler, SobolSampler
@@ -34,10 +34,10 @@ if __name__ == '__main__':
         problems = [
             SimpleGaussian(D)
             # Camel(D),
-            # ProductPeakProblem(D, a=13),
-            # C0Problem(D, a=10),
-            # CornerPeakProblem(D, a=10),
-            # ExponentialProductProblem(D)
+            # ProductPeak(D, a=13),
+            # C0(D, a=10),
+            # CornerPeak(D, a=10),
+            # ExponentialProduct(D)
         ]
 
         output_file = os.path.join(script_dir, 

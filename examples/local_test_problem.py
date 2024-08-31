@@ -1,5 +1,4 @@
-from curses.ascii import SI
-from treeQuadrature.example_problems import RippleProblem, SimpleGaussian, Camel, QuadraticProblem, C0Problem, OscillatoryProblem, CornerPeakProblem, ProductPeakProblem, ExponentialProductProblem, QuadCamel
+from treeQuadrature.example_problems import Ripple, SimpleGaussian, Camel, Quadratic, C0, Oscillatory, CornerPeak, ProductPeak, ExponentialProduct, QuadCamel
 from treeQuadrature.integrators import BatchGpIntegrator, DistributedGpTreeIntegrator, SmcIntegrator, DistributedTreeIntegrator, VegasIntegrator, vegas_integrator
 from treeQuadrature.container_integrators import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral, PolyIntegral, IterativeRbfIntegral
 from treeQuadrature.integrators import TreeIntegrator
@@ -13,15 +12,15 @@ import numpy as np
 D = 2
 
 ### Set problem
-# problem = Camel(D=D)
-problem = SimpleGaussian(D=D)
-# problem = RippleProblem(D=D)
-# problem = QuadraticProblem(D=D)
-# problem = OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D)))
-# problem = C0Problem(D, np.array([1.1] * D))
-# problem = CornerPeakProblem(D=D, a=np.array([10]*D))
-# problem = ProductPeakProblem(D=D, a=np.array([10]*D))
-# problem = ExponentialProductProblem(D)
+problem = Camel(D=D)
+# problem = SimpleGaussian(D=D)
+# problem = Ripple(D=D)
+# problem = Quadratic(D=D)
+# problem = Oscillatory(D, a=np.array(10 / np.linspace(1, D, D)))
+# problem = C0(D, np.array([1.1] * D))
+# problem = CornerPeak(D=D, a=np.array([10]*D))
+# problem = ProductPeak(D=D, a=np.array([10]*D))
+# problem = ExponentialProduct(D)
 
 ### set basic parameters
 n_samples = 20

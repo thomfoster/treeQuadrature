@@ -1,4 +1,4 @@
-from treeQuadrature.example_problems import QuadraticProblem, ExponentialProductProblem, Problem
+from treeQuadrature.example_problems import Quadratic, ExponentialProduct, Problem
 from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.container_integrators import AdaptiveRbfIntegral, RandomIntegral, PolyIntegral, ContainerIntegral
 from treeQuadrature.splits import MinSseSplit
@@ -52,8 +52,8 @@ if __name__ == '__main__':
 
     problems = []
     for D in Ds:
-        problems.append(QuadraticProblem(D))
-        problems.append(ExponentialProductProblem(D))
+        problems.append(Quadratic(D))
+        problems.append(ExponentialProduct(D))
 
     for problem in problems:
         print(f'testing {str(problem)}')

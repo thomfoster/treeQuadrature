@@ -1,5 +1,5 @@
 from treeQuadrature.integrators import TreeIntegrator
-from treeQuadrature.example_problems import ProductPeakProblem, ExponentialProductProblem, C0Problem, CornerPeakProblem, OscillatoryProblem, RippleProblem, Camel
+from treeQuadrature.example_problems import ProductPeak, ExponentialProduct, C0, CornerPeak, Oscillatory, Ripple, Camel
 from treeQuadrature.splits import MinSseSplit
 from treeQuadrature.container_integrators import AdaptiveRbfIntegral, MidpointIntegral, RandomIntegral
 from treeQuadrature.samplers import McmcSampler
@@ -32,13 +32,13 @@ if __name__ == '__main__':
 
     for D in Ds:
         problems = [
-            ProductPeakProblem(D, a=10),
-            C0Problem(D, a=10),
+            ProductPeak(D, a=10),
+            C0(D, a=10),
             Camel(D),
-            RippleProblem(D),
-            CornerPeakProblem(D, a=10),
-            ExponentialProductProblem(D), 
-            OscillatoryProblem(D, a=np.array(10/ np.linspace(1, D, D)))
+            Ripple(D),
+            CornerPeak(D, a=10),
+            ExponentialProduct(D), 
+            Oscillatory(D, a=np.array(10/ np.linspace(1, D, D)))
         ]
 
         output_file = os.path.join(script_dir, 

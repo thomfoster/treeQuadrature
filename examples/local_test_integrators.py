@@ -3,7 +3,7 @@ import numpy as np
 
 from treeQuadrature.compare_integrators import test_integrators
 from treeQuadrature.container_integrators.gp_integral import KernelIntegral
-from treeQuadrature.example_problems import SimpleGaussian, Camel, QuadCamel, ExponentialProductProblem, QuadraticProblem, RippleProblem, OscillatoryProblem, ProductPeakProblem, CornerPeakProblem, DiscontinuousProblem, C0Problem
+from treeQuadrature.example_problems import SimpleGaussian, Camel, QuadCamel, ExponentialProduct, Quadratic, Ripple, Oscillatory, ProductPeak, CornerPeak, DiscontinuousProblem, C0
 from treeQuadrature.container_integrators import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral
 from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit
@@ -107,13 +107,13 @@ if __name__ == '__main__':
             problems = [
                 SimpleGaussian(D),
                 Camel(D),
-                ExponentialProductProblem(D),
-                QuadraticProblem(D),
-                RippleProblem(D),
-                OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
-                C0Problem(D, a=1.1),
-                ProductPeakProblem(D, a=10),
-                CornerPeakProblem(D, a=10), 
+                ExponentialProduct(D),
+                Quadratic(D),
+                Ripple(D),
+                Oscillatory(D, a=np.array(10 / np.linspace(1, D, D))),
+                C0(D, a=1.1),
+                ProductPeak(D, a=10),
+                CornerPeak(D, a=10), 
                 DiscontinuousProblem(D, a=10)
             ]
         else:
@@ -121,13 +121,13 @@ if __name__ == '__main__':
                 SimpleGaussian(D),
                 Camel(D),
                 QuadCamel(D),
-                ExponentialProductProblem(D),
-                QuadraticProblem(D),
-                RippleProblem(D),
-                OscillatoryProblem(D, a=np.array(10 / np.linspace(1, D, D))),
-                ProductPeakProblem(D, a=10),
-                C0Problem(D, a=1.1),
-                CornerPeakProblem(D, a=10), 
+                ExponentialProduct(D),
+                Quadratic(D),
+                Ripple(D),
+                Oscillatory(D, a=np.array(10 / np.linspace(1, D, D))),
+                ProductPeak(D, a=10),
+                C0(D, a=1.1),
+                CornerPeak(D, a=10), 
                 DiscontinuousProblem(D, a=10)
             ]
 

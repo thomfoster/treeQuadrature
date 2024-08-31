@@ -1,4 +1,4 @@
-from treeQuadrature.example_problems import QuadraticProblem, ExponentialProductProblem, Gaussian
+from treeQuadrature.example_problems import Quadratic, ExponentialProduct, Gaussian
 from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.container_integrators import AdaptiveRbfIntegral, RandomIntegral
 from treeQuadrature.splits import MinSseSplit
@@ -25,9 +25,9 @@ if __name__ == '__main__':
 
     Ds = np.arange(2, 12, 2)
     for D in Ds:
-        # problem = QuadraticProblem(D=D)
+        # problem = Quadratic(D=D)
         # problem = Gaussian(D=D, lows=-1.0, highs=1.0, Sigma=1/200)
-        problem = ExponentialProductProblem(D=D)
+        problem = ExponentialProduct(D=D)
 
         print(f'solving {str(problem)}')
 

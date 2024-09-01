@@ -27,20 +27,25 @@ def test_io(integrator_instance):
 
 @pytest.mark.parametrize("integrator_instance", [
     tq.integrators.TreeIntegrator(
-        base_N=0, integral=tq.container_integrators.MidpointIntegral(), 
-        tree=tq.trees.LimitedSampleTree(N=500, active_N=100, 
-                                        split=tq.splits.KdSplit(), 
-                                        weighting_function=lambda container: container.volume)), 
+        base_N=0, integral=tq.container_integrators.MidpointIntegral(),
+        tree=tq.trees.LimitedSampleTree(
+            N=500, active_N=100,
+            split=tq.splits.KdSplit(),
+            weighting_function=lambda container: container.volume)),
     tq.integrators.TreeIntegrator(
-        base_N=500, tree=tq.trees.WeightedTree(split=tq.splits.KdSplit(), 
-                                               weighting_function=lambda container: container.volume, 
-                                               max_splits=20, 
-                                               stopping_condition=lambda container: container.N < 2), 
+        base_N=500, tree=tq.trees.WeightedTree(
+            split=tq.splits.KdSplit(),
+            weighting_function=lambda container: container.volume, 
+            max_splits=20, 
+            stopping_condition=lambda container: container.N < 2),
         integral=tq.container_integrators.MidpointIntegral()),
-    tq.integrators.TreeIntegrator(200, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()), 
-                                    integral=tq.container_integrators.MidpointIntegral()),
-    tq.integrators.BatchGpIntegrator(200, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()), 
-                                    integral=tq.container_integrators.KernelIntegral(n_splits=0))
+    tq.integrators.TreeIntegrator(
+        200, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()),
+        integral=tq.container_integrators.MidpointIntegral()),
+    tq.integrators.BatchGpIntegrator(
+        200, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()),
+        integral=tq.container_integrators.KernelIntegral(n_splits=0)),
+    tq.integrators.VegasTreeIntegrator(200, 200)
 ])
 def test_treeIntegrator_io(integrator_instance):
     problem = tq.example_problems.SimpleGaussian(1)
@@ -57,20 +62,30 @@ def test_treeIntegrator_io(integrator_instance):
     assert len(res['contributions']) == len(res['containers'])
 
 @pytest.mark.parametrize("integrator_instance", [
-    tq.integrators.TreeIntegrator(300, integral=tq.container_integrators.KernelIntegral(n_splits=0)),
-    tq.integrators.TreeIntegrator(300, integral=tq.container_integrators.AdaptiveRbfIntegral(n_splits=0)),
-    tq.integrators.TreeIntegrator(300, integral=tq.container_integrators.MedianIntegral()),
-    tq.integrators.TreeIntegrator(1000, integral=tq.container_integrators.RandomIntegral()),
+    tq.integrators.TreeIntegrator(
+        300, integral=tq.container_integrators.KernelIntegral(
+            n_splits=0)),
+    tq.integrators.TreeIntegrator(
+        300, integral=tq.container_integrators.AdaptiveRbfIntegral(
+            n_splits=0)),
+    tq.integrators.TreeIntegrator(
+        300, integral=tq.container_integrators.MedianIntegral()),
+    tq.integrators.TreeIntegrator(
+        1000, integral=tq.container_integrators.RandomIntegral()),
     tq.integrators.BayesMcIntegrator(200),
     tq.integrators.SmcIntegrator(300),
-    tq.integrators.BatchGpIntegrator(300, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()), 
-                                    integral=tq.container_integrators.KernelIntegral(n_splits=0))
+    tq.integrators.VegasTreeIntegrator(300, 300),
+    tq.integrators.BatchGpIntegrator(
+        300, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()),
+        integral=tq.container_integrators.KernelIntegral(n_splits=0))
 ])
 def test_return_std(integrator_instance):
     problem = tq.example_problems.SimpleGaussian(1)
 
     res = integrator_instance(problem, return_std=True)
-    if "TreeIntegrator" in str(integrator_instance) or 'BatchGpIntegrator' in str(integrator_instance):
+    if "TreeIntegrator" in str(integrator_instance) or (
+        "BatchGpIntegrator" in str(integrator_instance)
+    ):
         for std in res['stds']:
             assert isinstance(std, float)
             assert std >= 0
@@ -109,23 +124,28 @@ queues = [
 @pytest.mark.parametrize("split", splits)
 @pytest.mark.parametrize("integral", integrals)
 def test_SimpleIntegrator(D, N, P, split, integral):
-    # UniformSplit generates lot of empty containers, not suitable for MedianIntegral
-    if "MedianIntegral" in str(integral) and "UniformSplit" in str(split):
+    # UniformSplit generates lot of empty containers,
+    # not suitable for MedianIntegral
+    if "MedianIntegral" in str(integral) and (
+        "UniformSplit" in str(split)):
         return
     
     problem = tq.example_problems.SimpleGaussian(D)
-    integ = tq.integrators.TreeIntegrator(N, tq.trees.SimpleTree(P=P, split=split), 
-                                          integral=integral)
+    integ = tq.integrators.TreeIntegrator(
+        N, tq.trees.SimpleTree(P=P, split=split), 
+        integral=integral)
     _ = integ(problem)
 
 @pytest.mark.parametrize("D", [1,2])
 @pytest.mark.parametrize("base_N", [1000])
 @pytest.mark.parametrize("split", splits)
 @pytest.mark.parametrize("integral", integrals)
-@pytest.mark.parametrize("weighting_function", [lambda container: container.volume])
+@pytest.mark.parametrize("weighting_function",
+                         [lambda container: container.volume])
 @pytest.mark.parametrize("active_N", [0, 10])
 @pytest.mark.parametrize("max_splits", [np.inf, 50])
-@pytest.mark.parametrize("stopping_condition", [lambda container: container.N < 2])
+@pytest.mark.parametrize("stopping_condition",
+                         [lambda container: container.N < 2])
 @pytest.mark.parametrize("queue", queues)
 def test_QueueIntegrator(
     D, base_N, split, integral, weighting_function,
@@ -162,7 +182,8 @@ def test_QueueIntegrator(
 
     if "RandomIntegral" in str(integral): 
         # accounts for random samples used in container integration
-        assert base_N + ns*n_sub_splits*active_N + len(fcs)*integral.n_samples == N
+        assert base_N + ns*n_sub_splits*active_N + \
+            len(fcs)*integral.n_samples == N
     else:
         assert base_N + ns*n_sub_splits*active_N == N
 
@@ -171,10 +192,12 @@ def test_QueueIntegrator(
 
 @pytest.mark.parametrize("D", [1,2])
 @pytest.mark.parametrize("N", [1000])
-@pytest.mark.parametrize("base_N, active_N", [(0,100), (500,10), (1000, 100)])
+@pytest.mark.parametrize("base_N, active_N",
+                         [(0,100), (500,10), (1000, 100)])
 @pytest.mark.parametrize("split", splits)
 @pytest.mark.parametrize("integral", integrals)
-@pytest.mark.parametrize("weighting_function", [lambda container: container.volume])
+@pytest.mark.parametrize("weighting_function",
+                         [lambda container: container.volume])
 @pytest.mark.parametrize("queue", queues)
 def test_LimitedSampleIntegrator(
     D, N, base_N, active_N, split, integral, weighting_function, queue
@@ -188,9 +211,10 @@ def test_LimitedSampleIntegrator(
         return
 
     problem = tq.example_problems.SimpleGaussian(D)
-    active_tree = tq.trees.LimitedSampleTree(N=N, active_N=active_N, 
-                                        split=split, queue=queue,
-                                        weighting_function=weighting_function)
+    active_tree = tq.trees.LimitedSampleTree(
+        N=N, active_N=active_N, 
+        split=split, queue=queue,
+        weighting_function=weighting_function)
     integ = tq.integrators.TreeIntegrator(
         base_N=base_N, 
         integral=integral, 
@@ -203,15 +227,16 @@ def test_LimitedSampleIntegrator(
 @pytest.mark.parametrize("integral", integrals)
 def test_DistributedTreeIntegrator(D, max_samples, split, integral):
     problem = tq.example_problems.SimpleGaussian(D)
-    integ = tq.integrators.DistributedTreeIntegrator(7500, max_samples, integral,
-                                                       max_container_samples=50)
+    integ = tq.integrators.DistributedTreeIntegrator(
+        7500, max_samples, integral, max_container_samples=50)
     
     # UniformSplit generates too many containers
     if "UniformSplit" in str(split):
         return 
 
     # cannot control n_samples
-    if "MedianIntegral" in str(integral) or "MidpointIntegral" in str(integral):
+    if "MedianIntegral" in str(integral) or (
+        "MidpointIntegral" in str(integral)):
         return
     
     res = integ(problem, return_N=True)

@@ -155,10 +155,7 @@ def _plot_containers_2D(
     cbar.set_label(c_bar_labels, fontsize=font_size)
     cbar.ax.tick_params(labelsize=c_bar_tick_size)
 
-    if title:
-        plt.title(title, fontsize=font_size * 1.2)
-    else:
-        plt.title("Container Contributions", fontsize=font_size * 1.2)
+    plt.title(title, fontsize=font_size * 1.2)
     ax.tick_params(axis="both", labelsize=font_size)
     plt.show()
 
@@ -217,11 +214,7 @@ def _plot_containers_1D(
     # labels and legend
     plt.xlabel("x", fontsize=font_size)
     plt.ylabel("Value", fontsize=font_size)
-    if title:
-        plt.title(title, fontsize=font_size * 1.2)
-    else:
-        plt.title("Integrand and Container Contributions",
-                  fontsize=font_size * 1.2)
+    plt.title(title, fontsize=font_size * 1.2)
     plt.legend(fontsize=font_size)
     plt.tick_params(axis="both", labelsize=font_size)
 
@@ -285,8 +278,13 @@ def plot_integrand(
     xlim,
     ylim=None,
     n_points=500,
-    levels=10,
     file_path: Optional[str] = None,
+    plot_type: str = "contour",
+    title: Optional[str] = "Integrand Plot",
+    font_size: int = 12,
+    tick_size: int = 10,
+    title_font_size: int = 14,
+    **kwargs
 ):
     """
     Plot the integrand
@@ -295,42 +293,75 @@ def plot_integrand(
     Parameters
     ----------
     integrand : function
-        the function to be plotted
+        The function to be plotted.
     D : int
-        dimension of the input space
+        Dimension of the input space.
     xlim : list of 2 floats
-        the range of x-axis
+        The range of x-axis.
     ylim : list of 2 floats, optional
-        the range of y-axis
-        ignored by 1D problems
-    n_points: int, optioanl
-        number of points in each dimension for
-        plotting the Contours
-        Defaults to 500
-    levels : int, optional
-        levels of the Contour plot
-        ignored when D = 1
-        Defaults to 10
+        The range of y-axis. \n
+        Ignored by 1D problems.
+    n_points : int, optional
+        Number of points in each dimension
+        for plotting. \n
+        Defaults to 500.
     file_path : str, optional
-        If given, the figure will be saved to
-        the specified path.
+        If given, the figure will be saved to the specified path. \n
+        Otherwise, the figure will be displayed.
+    plot_type : str, optional
+        The type of 2D-plot to be used. \n
+        Options are 'contour' (contour lines) and 'heat' (heatmap).
+    title : str, optional
+        The title of the plot. Set to None to omit the title. \n
+        Defaults to "Integrand Plot".
+    font_size : int, optional
+        Font size for the axis labels. Defaults to 12.
+    tick_size : int, optional
+        Font size for the axis tick labels. Defaults to 10.
+    title_font_size : int, optional
+        Font size for the plot title. Defaults to 14.
+    **kwargs : Any, optional
+        Additional arguments for the plot function. \n
+        For plt.imshow when plot_type='heat'
+        and for plt.contour when plot_type='contour'. \n
+        Rotation of x-axis can be set using 'rotation' key.
     """
 
     if D == 1:
-        _plot_integrand_1D(integrand, xlim, n_points, file_path)
+        _plot_integrand_1D(
+            integrand, xlim, n_points, file_path, title,
+            font_size, tick_size, title_font_size)
     elif D == 2:
-        _plot_integrand_2D(integrand, xlim, ylim, levels, n_points, file_path)
+        if plot_type == "contour":
+            _plot_integrand_2D_contour(
+                integrand, xlim, ylim, n_points, file_path,
+                title, tick_size, title_font_size,
+                **kwargs)
+        elif plot_type == "heat":
+            _plot_integrand_2D_heat(
+                integrand, xlim, ylim, n_points, file_path,
+                title, tick_size, title_font_size, **kwargs)
+        else:
+            raise ValueError("plot_type must be 'contour' or 'heat'")
     else:
-        raise Exception("only supports 1D and 2D problems")
+        raise Exception("Only supports 1D and 2D problems")
 
 
-def _plot_integrand_1D(f, xlim, n_points, file_path):
+def _plot_integrand_1D(f, xlim, n_points, file_path,
+                       title, font_size,
+                       tick_size, title_font_size):
     x = np.linspace(xlim[0], xlim[1], n_points).reshape(-1, 1)
     ys = f(x)
 
     plt.plot(x, ys)
-    plt.xlabel("x")
-    plt.ylabel("Value")
+    plt.xlabel("x", fontsize=font_size)
+    plt.ylabel("Value", fontsize=font_size)
+    plt.xticks(fontsize=tick_size)
+    plt.yticks(fontsize=tick_size)
+
+    if title:
+        plt.title(title, fontsize=title_font_size)
+
     if file_path:
         plt.savefig(file_path)
         plt.close()
@@ -339,10 +370,12 @@ def _plot_integrand_1D(f, xlim, n_points, file_path):
         plt.show()
 
 
-def _plot_integrand_2D(f, xlim, ylim, levels, n_points, file_path):
+def _plot_integrand_2D_contour(f, xlim, ylim, n_points, file_path,
+                               title, tick_size,
+                               title_font_size, **kwargs):
     """
-    plot Contour lines of a 2D distribution
-    Automatically adapts the grid to significant values
+    Plot Contour lines of a 2D distribution.
+    Automatically adapts the grid to significant values.
     """
 
     x = np.linspace(xlim[0], xlim[1], n_points)
@@ -350,7 +383,7 @@ def _plot_integrand_2D(f, xlim, ylim, levels, n_points, file_path):
     X, Y = np.meshgrid(x, y)
     Z = np.array([[f([xs, ys])[0, 0] for xs in x] for ys in y])
 
-    # adapt the window to PDF
+    # Adapt the window to PDF
     threshold = 1e-3
     mask = Z > threshold
 
@@ -365,13 +398,67 @@ def _plot_integrand_2D(f, xlim, ylim, levels, n_points, file_path):
     Y_trimmed = Y[min_row:max_row + 1, min_col:max_col + 1]
     Z_trimmed = Z[min_row:max_row + 1, min_col:max_col + 1]
 
-    contour = plt.contour(
-        X_trimmed, Y_trimmed, Z_trimmed, levels=levels, cmap="viridis"
-    )
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.colorbar(contour)
+    applicable_kwargs = {key: kwargs[key] for key in kwargs
+                         if key in plt.contour.__code__.co_varnames}
+    cmap = applicable_kwargs.pop("cmap", "viridis")
+    contour = plt.contour(X_trimmed, Y_trimmed, Z_trimmed,
+                          cmap=cmap,
+                          **applicable_kwargs)
+    rotation = kwargs.get("rotation", 0)
+    plt.xticks(fontsize=tick_size, rotation=rotation)
+    plt.yticks(fontsize=tick_size)
+    cbar = plt.colorbar(contour)
+    cbar.ax.tick_params(labelsize=tick_size)
+    plt.tight_layout()
 
+    if title:
+        plt.title(title, fontsize=title_font_size)
+
+    if file_path:
+        plt.savefig(file_path)
+        plt.close()
+        print(f"figure saved to {file_path}")
+    else:
+        plt.show()
+
+
+def _plot_integrand_2D_heat(f, xlim, ylim, n_points,
+                            file_path=None, title=None,
+                            font_size=12, tick_size=10,
+                            title_font_size=14, **kwargs):
+    """
+    Plot a heatmap of a 2D distribution.
+    """
+
+    # Generate grid points
+    x = np.linspace(xlim[0], xlim[1], n_points)
+    y = np.linspace(ylim[0], ylim[1], n_points)
+
+    # Compute function values
+    Z = np.array([[f([xs, ys])[0, 0] for xs in x] for ys in y])
+
+    # Create heatmap using imshow
+    applicable_kwargs = {key: kwargs[key] for key in kwargs
+                         if key in plt.imshow.__code__.co_varnames}
+    plt.imshow(Z, extent=[xlim[0], xlim[1], ylim[0], ylim[1]],
+               origin='lower', cmap='viridis', aspect='auto',
+               **applicable_kwargs)
+
+    # Add colorbar
+    cbar = plt.colorbar()
+    cbar.set_label('Function Value', fontsize=font_size)
+    cbar.ax.tick_params(labelsize=tick_size)
+
+    # Add labels
+    rotation = kwargs.get("rotation", 0)
+    plt.xticks(fontsize=tick_size, rotation=rotation)
+    plt.yticks(fontsize=tick_size)
+    plt.tight_layout()
+
+    if title:
+        plt.title(title, fontsize=title_font_size)
+
+    # Save or show the plot
     if file_path:
         plt.savefig(file_path)
         plt.close()

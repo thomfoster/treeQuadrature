@@ -1,6 +1,5 @@
 from typing import List, Optional
 from inspect import signature
-
 import warnings
 import numpy as np
 
@@ -18,7 +17,8 @@ from ..utils import ResultDict
 
 def integral_wrapper(
     integral: ContainerIntegral, cont: Container,
-    integrand: callable, return_std: bool
+    integrand: callable, return_std: bool,
+    **kwargs
 ):
     """
     Perform integration on an individual container.
@@ -33,6 +33,8 @@ def integral_wrapper(
         The integrand function to be integrated.
     return_std : bool
         Whether to return the standard deviation of the integral.
+    kwargs : Any
+        Additional arguments to be passed to the integral method.
 
     Returns
     -------
@@ -44,6 +46,10 @@ def integral_wrapper(
     params = {}
     if hasattr(integral, "get_additional_params"):
         params.update(integral.get_additional_params())
+
+    params.update(kwargs)
+
+    initial_N = cont.N
 
     if return_std:
         params["return_std"] = True
@@ -61,6 +67,16 @@ def integral_wrapper(
         raise KeyError(
             "results of containerIntegral does not have key 'std'"
             )
+
+    # check number of evaluations
+    if hasattr(integral, "n_samples") and (
+        initial_N + integral.n_samples != cont.N
+    ):
+        raise ValueError(
+            "Number of samples in container changed "
+            f"from {initial_N} to {cont.N}"
+            "The change does not match 'n_samples' of integral"
+        )
 
     return integral_results, cont
 
@@ -135,7 +151,7 @@ class TreeIntegrator(Integrator):
         return_containers: bool = False,
         return_std: bool = False,
         verbose: bool = False,
-        return_all: bool = False,
+        return_raw: bool = False,
         *args,
         **kwargs,
     ) -> ResultDict:
@@ -143,64 +159,68 @@ class TreeIntegrator(Integrator):
         Perform the integration process.
 
         Arguments
-        ----------
+        ---------
         problem : Problem
-            The integration problem to be solved
+            The integration problem to be solved.
         return_N : bool
-            if true, return the number of function evaluations
+            If true, return the number of function evaluations.
         return_containers : bool
-            if true, return containers and their contributions as well
+            If true, return containers and their contributions as well.
         return_std : bool
-            if true, return the standard deviation estimate.
-            Ignored if self.integral does not have return_std attribute
-        verbose: bool, Optional
-            if true, print the stages (for debugging)
-            Defaults to False
+            If true, return the standard deviation estimate.
+            Ignored if self.integral does not have return_std attribute.
+        return_raw : bool
+            If true, return the raw results from self.integral.containerIntegral.
+        verbose: bool, optional
+            If true, print the stages (for debugging). Defaults to False.
         *args, **kwargs : Any
-            Additional arguments to be passed to the tree construction method
+            Additional arguments to be passed to the tree construction method.
 
-        Return
+        Returns
         -------
         ResultDict
-            - 'estimate' (float) : estimated integral value
-            - 'n_evals' (int) :  number of function estiamtions,
-              if return_N is True
-            - 'containers' (list[Container]) : list of Containers,
-              if return_containers is True
-            - 'contribtions' (list[float]) : contributions of each
-              container in estimate, if return_containers is True
-            - 'stds' (list[float]) : standard deviation of the
-              integral estimate in each container, if return_std is True
+            - 'estimate' (float): Estimated integral value.
+            - 'n_evals' (int): Number of function evaluations, if return_N is True.
+            - 'containers' (list[Container]): List of Containers,
+            if return_containers is True.
+            - 'contributions' (list[float]): Contributions of each container
+            in estimate, if return_containers is True.
+            - 'stds' (list[float]): Standard deviation of the integral estimate
+            in each container, if return_std is True.
         list[dict], list[Container]
-            if return_all, returns a list of raw results
-            from self.integral.containerIntegral
+            If return_raw, returns a list of raw results from self.integral.containerIntegral.
 
         Example
         -------
-        >>> # You can use settings othe than default in the following way
+        You can use settings other than default in the following way:
+
         >>> from treeQuadrature.integrators import TreeIntegrator
         >>> from treeQuadrature.splits import MinSseSplit
         >>> from treeQuadrature.containerIntegration import RandomIntegral
         >>> from treeQuadrature.example_problems import SimpleGaussian
         >>> from treeQuadrature.trees import WeightedTree
-        >>> # Define the problem
+
+        Define the problem:
+
         >>> problem = SimpleGaussian(D=2)
-        >>> # Define the a tree splitting containers with larger volume first
+
+        Define a tree splitting containers with larger volume first:
+
         >>> minSseSplit = MinSseSplit()
         >>> volume_weighting = lambda container: container.volume
         >>> stopping_small_containers = lambda container: container.N < 2
         >>> tree = WeightedTree(split=minSseSplit, max_splits=50,
         >>>     weighting_function=volume_weighting,
         >>>     stopping_condition=stopping_small_containers)
-        >>> # Combine all compartments into a TreeIntegrator
-        >>> integ_weighted = TreeIntegrator(
-        >>>     base_N=1000, tree=tree, integral=RandomIntegral())
+
+        Combine all compartments into a TreeIntegrator:
+
+        >>> integ_weighted = TreeIntegrator(base_N=1000, tree=tree, integral=RandomIntegral())
         >>> estimate = integ_weighted(problem)
-        >>> print("error of random integral =",
-        >>>       str(
-        >>>         100 * np.abs(estimate - problem.answer) / problem.answer),
-        >>>       "%")
+        >>> print("Error of random integral =",
+        >>>       str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
         """
+
         X, y = self._draw_initial_samples(
             problem, verbose)
         root = self._construct_root_container(
@@ -212,12 +232,13 @@ class TreeIntegrator(Integrator):
         compute_std = self._check_return_std(return_std)
 
         results, containers = self.integrate_containers(
-            leaf_containers, problem, compute_std, verbose
+            leaf_containers, problem, compute_std, verbose,
+            **kwargs
         )
 
         return self._compile_results(
             results, containers, compute_std,
-            return_N, return_containers, return_all
+            return_N, return_containers, return_raw
         )
 
     def _draw_initial_samples(self, problem: Problem, verbose: bool):
@@ -249,7 +270,8 @@ class TreeIntegrator(Integrator):
     ) -> Container:
         if verbose:
             print("constructing root container")
-        return Container(X, y, mins=problem.lows, maxs=problem.highs)
+        root = Container(X, y, mins=problem.lows, maxs=problem.highs)
+        return root
 
     def _construct_tree(
         self, root: Container, problem: Problem,
@@ -302,9 +324,9 @@ class TreeIntegrator(Integrator):
 
     def _compile_results(
         self, results, containers, compute_std, return_N,
-        return_containers, return_all
+        return_containers, return_raw
     ):
-        if return_all:
+        if return_raw:
             return results, containers
 
         contributions = [result["integral"] for result in results]
@@ -338,6 +360,7 @@ class TreeIntegrator(Integrator):
         problem: Problem,
         compute_std: bool = False,
         verbose: bool = False,
+        **kwargs,
     ):
         if verbose:
             print(f"integrating containers, parallel : {self.parallel}")
@@ -349,6 +372,14 @@ class TreeIntegrator(Integrator):
         modified_containers = []
         results = []
 
+        integrator_parameters = signature(
+            self.integral.containerIntegral).parameters
+
+        applicable_kwargs = {
+            k: v for k, v in kwargs.items()
+            if k in integrator_parameters
+        }
+
         if self.parallel:
             with ProcessPoolExecutor() as executor:
                 futures = {
@@ -358,6 +389,7 @@ class TreeIntegrator(Integrator):
                         cont,
                         problem.integrand,
                         compute_std,
+                        **applicable_kwargs
                     ): cont
                     for cont in containers
                 }

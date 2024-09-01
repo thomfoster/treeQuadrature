@@ -1,6 +1,6 @@
 import numpy as np
 import warnings
-from typing import Optional
+from typing import Optional, List
 
 from .base_class import Split
 from ..container import Container
@@ -87,7 +87,7 @@ class MinSseSplit(Split):
         self.dimension_proportion = max(0, min(
             dimension_proportion, 1))
 
-    def split(self, container: Container):
+    def split(self, container: Container) -> List[Container]:
         """
         Split the container into two sub-containers that minimises
         the sum of squared errors (SSE) or another

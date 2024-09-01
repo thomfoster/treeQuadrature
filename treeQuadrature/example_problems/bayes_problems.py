@@ -95,7 +95,8 @@ class SimpleGaussian(BayesProblem):
         """
         super().__init__(
             D,
-            d=dists.MultivariateNormal(D=D, mean=[0.0] * D, cov=1 / 200),
+            d=dists.MultivariateNormal(
+                D=D, mean=[0.0] * D, cov=1 / 200),
             lows=-1.0,
             highs=1.0,
         )
@@ -147,11 +148,13 @@ class Gaussian(BayesProblem):
         """
         # Value checks
         self.mu = handle_bound(mu, D, 0)
-        self.Sigma = Gaussian._handle_Sigma(Sigma, D)
+        # self.Sigma = Gaussian._handle_Sigma(Sigma, D)
+        self.Sigma = Sigma
 
         super().__init__(
             D,
-            d=dists.MultivariateNormal(D=D, mean=self.mu, cov=self.Sigma),
+            d=dists.MultivariateNormal(
+                D=D, mean=self.mu, cov=self.Sigma),
             lows=lows,
             highs=highs,
         )

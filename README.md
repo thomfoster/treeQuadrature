@@ -131,7 +131,7 @@ To define a new container integrator, you can create a subclass of the `Containe
 
 Below is a list of the key classes included in this module:
 
-- **`KernelIntegral`**: A sophisticated integrator that uses Gaussian Processes (GP) with an RBF kernel by default to estimate the integral value over a container. This method is effective for handling integrands that exhibit complex behavior, offering both an estimated integral value and an uncertainty measure.
+- **`KernelIntegral`**: A sophisticated integrator that uses Gaussian Processes (GP) with an RBF kernel by default to estimate the integral value over a container. This method is effective for handling integrands that exhibit complex behavior, offering both an estimated integral value and an uncertainty measure. User can specify other methods of fitting Gaussian Process through defining a subclass of `treeQuadrature.gaussian_process.GPFit`, but the default is `sklearn.gaussian_process.GaussianProcessRegressor`. 
 
 - **`AdaptiveRbfIntegral`**: An advanced integrator that adapts the length scale and search range of the RBF kernel to the specific container being integrated. This adaptive approach allows for more accurate integration in cases where the function's behavior varies significantly across the domain.
 

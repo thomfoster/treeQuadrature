@@ -6,6 +6,7 @@ from .bmc_integrator import BayesMcIntegrator
 from .batch_gp_integrator import BatchGpIntegrator
 from .distributed_tree_integrator import DistributedTreeIntegrator
 from .distributed_gp_integrator import DistributedGpTreeIntegrator
+from .vegas_tree_integrator import VegasTreeIntegrator
 
 __all__ = [
     "Integrator",
@@ -16,4 +17,5 @@ __all__ = [
     "DistributedGpTreeIntegrator",
     "VegasIntegrator",
     "SmcIntegrator",
+    "VegasTreeIntegrator"
 ]

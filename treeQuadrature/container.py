@@ -118,7 +118,8 @@ class Container:
         self,
         X: np.ndarray,
         y: Optional[np.ndarray] = None,
-        warning: bool = True
+        warning: bool = True,
+        return_bool: bool = False
     ):
         """
         Check whether all the points X are in the container
@@ -164,8 +165,11 @@ class Container:
                 elif above_bound[0].size > 0:
                     warnings.warn(f"Deviation above bounds: {deviation_above}")
 
-        return X[in_bounds] if (
-            y is None) else X[in_bounds], y[in_bounds]
+        if return_bool:
+            return np.all(in_bounds)
+        else:
+            return X[in_bounds] if (
+                y is None) else X[in_bounds], y[in_bounds]
 
     def add(self, new_X: np.ndarray, new_y: np.ndarray):
         """

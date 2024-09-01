@@ -306,7 +306,8 @@ def plot_integrand(
         for plotting. \n
         Defaults to 500.
     file_path : str, optional
-        If given, the figure will be saved to the specified path.
+        If given, the figure will be saved to the specified path. \n
+        Otherwise, the figure will be displayed.
     plot_type : str, optional
         The type of 2D-plot to be used. \n
         Options are 'contour' (contour lines) and 'heat' (heatmap).

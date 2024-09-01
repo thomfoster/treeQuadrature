@@ -159,67 +159,68 @@ class TreeIntegrator(Integrator):
         Perform the integration process.
 
         Arguments
-        ----------
+        ---------
         problem : Problem
-            The integration problem to be solved
+            The integration problem to be solved.
         return_N : bool
-            if true, return the number of function evaluations
+            If true, return the number of function evaluations.
         return_containers : bool
-            if true, return containers and their contributions as well
+            If true, return containers and their contributions as well.
         return_std : bool
-            if true, return the standard deviation estimate.
-            Ignored if self.integral does not have return_std attribute
+            If true, return the standard deviation estimate.
+            Ignored if self.integral does not have return_std attribute.
         return_raw : bool
-            if true, return the raw results
-            from self.integral.containerIntegral
-        verbose: bool, Optional
-            if true, print the stages (for debugging)
-            Defaults to False
+            If true, return the raw results from self.integral.containerIntegral.
+        verbose: bool, optional
+            If true, print the stages (for debugging). Defaults to False.
         *args, **kwargs : Any
-            Additional arguments to be passed to the tree construction method
+            Additional arguments to be passed to the tree construction method.
 
-        Return
+        Returns
         -------
         ResultDict
-            - 'estimate' (float) : estimated integral value
-            - 'n_evals' (int) :  number of function estiamtions,
-              if return_N is True
-            - 'containers' (list[Container]) : list of Containers,
-              if return_containers is True
-            - 'contribtions' (list[float]) : contributions of each
-              container in estimate, if return_containers is True
-            - 'stds' (list[float]) : standard deviation of the
-              integral estimate in each container, if return_std is True
+            - 'estimate' (float): Estimated integral value.
+            - 'n_evals' (int): Number of function evaluations, if return_N is True.
+            - 'containers' (list[Container]): List of Containers,
+            if return_containers is True.
+            - 'contributions' (list[float]): Contributions of each container
+            in estimate, if return_containers is True.
+            - 'stds' (list[float]): Standard deviation of the integral estimate
+            in each container, if return_std is True.
         list[dict], list[Container]
-            if return_raw, returns a list of raw results
-            from self.integral.containerIntegral
+            If return_raw, returns a list of raw results from self.integral.containerIntegral.
 
         Example
         -------
-        >>> # You can use settings othe than default in the following way
+        You can use settings other than default in the following way:
+
         >>> from treeQuadrature.integrators import TreeIntegrator
         >>> from treeQuadrature.splits import MinSseSplit
         >>> from treeQuadrature.containerIntegration import RandomIntegral
         >>> from treeQuadrature.example_problems import SimpleGaussian
         >>> from treeQuadrature.trees import WeightedTree
-        >>> # Define the problem
+
+        Define the problem:
+
         >>> problem = SimpleGaussian(D=2)
-        >>> # Define the a tree splitting containers with larger volume first
+
+        Define a tree splitting containers with larger volume first:
+
         >>> minSseSplit = MinSseSplit()
         >>> volume_weighting = lambda container: container.volume
         >>> stopping_small_containers = lambda container: container.N < 2
         >>> tree = WeightedTree(split=minSseSplit, max_splits=50,
         >>>     weighting_function=volume_weighting,
         >>>     stopping_condition=stopping_small_containers)
-        >>> # Combine all compartments into a TreeIntegrator
-        >>> integ_weighted = TreeIntegrator(
-        >>>     base_N=1000, tree=tree, integral=RandomIntegral())
+
+        Combine all compartments into a TreeIntegrator:
+
+        >>> integ_weighted = TreeIntegrator(base_N=1000, tree=tree, integral=RandomIntegral())
         >>> estimate = integ_weighted(problem)
-        >>> print("error of random integral =",
-        >>>       str(
-        >>>         100 * np.abs(estimate - problem.answer) / problem.answer),
-        >>>       "%")
+        >>> print("Error of random integral =",
+        >>>       str(100 * np.abs(estimate - problem.answer) / problem.answer), "%")
         """
+
         X, y = self._draw_initial_samples(
             problem, verbose)
         root = self._construct_root_container(

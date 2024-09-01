@@ -85,6 +85,8 @@ def compare_integrators(
         Default is 1.
     xlim, ylim : List[float], optional
         The limits for the plot containers. \n
+        If plot=True and xlim=None,
+        the limits will be determined automatically. \n
         Will not be used when plot=False.
     dimensions : List[float], optional
         Which dimensions to plot for higher dimensional problems.
@@ -210,8 +212,26 @@ def compare_integrators(
             print(f"Maximum samples in containers: {np.max(n_samples)}")
             contributions = result["contributions"]
             if plot:
+                if dimensions:
+                    all_dims = set(range(problem.D))
+                    if not set(dimensions).issubset(all_dims):
+                        raise ValueError(
+                            f"Invalid dimensions {dimensions} "
+                            f"for {problem.D} dimensional problem"
+                        )
+                # Set default limits if not provided
                 if xlim is None:
-                    raise ValueError("xlim must be provided for plotting")
+                    xlim = [
+                        problem.lows[dimensions[0]]
+                        if dimensions else problem.lows[0],
+                        problem.highs[dimensions[0]]
+                        if dimensions else problem.highs[0]]
+                if ylim is None and problem.D > 1:
+                    ylim = [
+                        problem.lows[dimensions[1]]
+                        if dimensions else problem.lows[1],
+                        problem.highs[dimensions[1]]
+                        if dimensions else problem.highs[1]]
                 plot_params = signature(plot_containers).parameters
                 applicable_kwargs = {
                     k: v for k, v in kwargs.items()

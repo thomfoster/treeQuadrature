@@ -6,6 +6,7 @@ from inspect import signature
 
 from ..container import Container
 from .tree_integrator import TreeIntegrator
+from .distributed_tree_integrator import DistributedTreeIntegrator
 from ..trees import Tree
 from ..example_problems import Problem
 from ..samplers import Sampler, UniformSampler
@@ -80,11 +81,12 @@ def plot_transformed_samples(vegas_integrator, n_samples: int=100,
 
 
 class VegasTreeIntegrator(TreeIntegrator):
-    def __init__(self, tree_N: int, vegas_N: int,
+    def __init__(self, vegas_N: int,
                  tree: Optional[Tree]=None,
                  integral: Optional[ContainerIntegral]=None,
-                 sampler: Optional[Sampler]=None,
-                 vegas_iter: int=10
+                 vegas_iter: int=10,
+                 max_N: Optional[int]=None,
+                 **kwargs: Any
         ):
         """
         Integrator that combines the Vegas algorithm with
@@ -92,8 +94,6 @@ class VegasTreeIntegrator(TreeIntegrator):
 
         Parameters
         ----------
-        tree_N : int
-            number of samples for building the tree
         vegas_N : int
             The number of samples for building Vegas map
         tree : Tree, optional
@@ -101,20 +101,37 @@ class VegasTreeIntegrator(TreeIntegrator):
             If None, a default SimpleTree is used
         integral : ContainerIntegral, optional
             The container integrator to use. \n
-            If None, a default RandomIntegral is used. 
-        sampler : Sampler, optional
-            The sampler to use. \n
-            If None, a default UniformSampler is used. 
+            If None, a default RandomIntegral is used.
         vegas_iter : int, optional
             The number of iterations for the Vegas algorithm. 
+            Default: 10
+        max_N : int, optional
+            The maximum number of evaluations allowed. 
+            If given, DistributedTreeIntegrator will be used. 
+        **kwargs : Any
+            Additional keyword arguments to initialise the
+            DistributedTreeIntegrator when specifying max_N
         """
-
-        sampler = sampler if (
-            sampler is not None) else UniformSampler()
         
-        super().__init__(tree_N, tree, integral, sampler)
+        # base_N used for drawing samples not used here, set to 0
+        # as Vegas samples are used
+        super().__init__(0, tree, integral)
         self.vegas_iter = vegas_iter
         self.vegas_N = vegas_N
+        if max_N:
+            if max_N <= vegas_N:
+                raise ValueError(
+                    "max_N must be greater than vegas_N")
+            self.limit_samples = True
+            dist_kwargs = {
+                k: v for k, v in kwargs.items()
+                if k in signature(
+                    DistributedTreeIntegrator).parameters
+            }
+            self.distributed = DistributedTreeIntegrator(
+                0, max_N, **dist_kwargs)
+        else:
+            self.limit_samples = False
 
     def __call__(self, problem: Problem,
                  return_N: bool=False,
@@ -150,21 +167,26 @@ class VegasTreeIntegrator(TreeIntegrator):
 
         # Use half of the evaluations to create a VEGAS map
         vegas_integrator, X_transformed, y_transformed = self._build_vegas_map(
-            self.vegas_N, problem, plot_vegas, **kwargs)
+            self.vegas_N, problem, plot_vegas, verbose, **kwargs)
 
-        # Step 3: Construct tree on the transformed space
+        # Construct tree on the transformed space
         root = Container(X_transformed, y_transformed, 
                          mins=0, maxs=1)
         finished_containers = self._construct_tree(
             root, problem, verbose, **kwargs)
 
-        # Step 4: Integrate the transformed problem
+        # Integrate the transformed problem
         problem_transformed = TransformedProblem(
             problem.D, vegas_integrator.map, problem.integrand)
 
-        results, modified_containers = self.integrate_containers(
-            finished_containers, problem_transformed, compute_std,
-            **kwargs)
+        if self.limit_samples:
+            results, modified_containers = self.distributed.integrate_containers(
+                finished_containers, problem_transformed, compute_std, verbose,
+                **kwargs)
+        else:
+            results, modified_containers = self.integrate_containers(
+                finished_containers, problem_transformed, compute_std, verbose,
+                **kwargs)
 
         return self._compile_results(
             results, modified_containers, compute_std, return_N,
@@ -172,7 +194,8 @@ class VegasTreeIntegrator(TreeIntegrator):
 
     def _build_vegas_map(self, N,
                          problem: Problem,
-                         plot_vegas: bool, **kwargs):
+                         plot_vegas: bool, verbose,
+                         **kwargs):
         domain_bounds = []
         for i in range(problem.D): 
             domain_bounds.append([problem.lows[i], problem.highs[i]])
@@ -197,6 +220,11 @@ class VegasTreeIntegrator(TreeIntegrator):
 
         vegas_integrator = vegas.Integrator(domain_bounds)
         vegas_n = int(N // self.vegas_iter)
+
+        if verbose:
+            print(f"Building Vegas map with {self.vegas_iter} iterations "
+                  f"and {vegas_n} samples per iteration")
+        
         vegas_integrator(batch_integrand, nitn=self.vegas_iter, 
                          neval=vegas_n)
 

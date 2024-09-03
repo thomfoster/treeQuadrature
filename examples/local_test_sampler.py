@@ -1,12 +1,13 @@
-from treeQuadrature.example_problems import PyramidProblem, Ripple, Camel, QuadCamel
+from treeQuadrature.example_problems import Ripple, Camel, QuadCamel
 from treeQuadrature.samplers import Sampler, ImportanceSampler, McmcSampler, SobolSampler, StratifiedSampler, AdaptiveImportanceSampler, LHSImportanceSampler
 from treeQuadrature import Container
 from treeQuadrature.visualisation import plot_containers
 
-problem = Ripple(D=2)
+problem = Camel(D=2)
 
 iSampler = ImportanceSampler()
 mcmcSampler = McmcSampler()
+mcmc_heated = McmcSampler(temperature=2)
 sobolSampler = SobolSampler()
 stratifiedSampler = StratifiedSampler()
 aiSampler = AdaptiveImportanceSampler()

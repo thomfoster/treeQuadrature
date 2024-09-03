@@ -150,7 +150,8 @@ class MinSseSplit(Split):
                 best_score = score
 
         if best_thresh == np.inf:  # no split found
-            warnings.warn("no split found")
+            warnings.warn("no split found",
+                          RuntimeWarning)
             return [container]
 
         lcont, rcont = container.split(best_dimension, best_thresh)

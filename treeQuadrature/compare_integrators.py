@@ -113,9 +113,13 @@ def compare_integrators(
         if verbose >= 1:
             print(f"Testing {integrator_name}")
 
+        is_tree = isinstance(integrators[0], TreeIntegrator)
+
         estimates = []
         n_evals_list = []
         times = []
+        if is_tree:
+            containers_list = []
 
         integrator_params = signature(integrator.__call__).parameters
         applicable_kwargs = {k: v for k, v in kwargs.items()
@@ -173,8 +177,11 @@ def compare_integrators(
             n_evals_list.append(n_evals)
             times.append(end_time - start_time)
 
+            if is_tree:
+                containers_list.append(result["containers"])
+
         if len(estimates) == 0:
-            raise Exception("no run succeeded")
+            raise Exception(f"no run succeeded for {integrator_name}")
 
         avg_estimate = np.mean(estimates)
         std_estimate = np.std(estimates)
@@ -202,15 +209,13 @@ def compare_integrators(
         print(f"Number of evaluations: {avg_n_evals:.2f} ± {std_n_evals:.2f}")
         print(f"Time taken: {avg_time:.2f} s ± {std_time:.2f} s")
 
-        if "containers" in result and "contributions" in result:
+        if is_tree:
             default_title = "Integral estimate using " + integrator_name
-            containers = result["containers"]
-            print(f"Number of containers: {len(containers)}")
-            n_samples = [cont.N for cont in containers]
-            print(f"Average samples/container: {np.mean(n_samples)}")
-            print(f"Minimum samples in containers: {np.min(n_samples)}")
-            print(f"Maximum samples in containers: {np.max(n_samples)}")
-            contributions = result["contributions"]
+            container_lengths = [len(cont) for cont in containers_list]
+            print("Number of containers: "
+                  f"{np.median(container_lengths)} ± {np.std(container_lengths)}")
+            
+            ## Only plot the last iteration 
             if plot:
                 if dimensions:
                     all_dims = set(range(problem.D))
@@ -239,8 +244,8 @@ def compare_integrators(
                 }
                 title = applicable_kwargs.pop("title", default_title)
                 plot_containers(
-                    containers,
-                    contributions,
+                    result["containers"],
+                    result["contributions"],
                     xlim=xlim,
                     ylim=ylim,
                     integrand=problem.integrand,

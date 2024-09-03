@@ -401,7 +401,8 @@ class TreeIntegrator(Integrator):
         else:
             for cont in containers:
                 integral_results, modified_cont = integral_wrapper(
-                    self.integral, cont, problem.integrand, compute_std
+                    self.integral, cont, problem.integrand, compute_std,
+                    **applicable_kwargs
                 )
                 results.append(integral_results)
                 modified_containers.append(modified_cont)

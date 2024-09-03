@@ -128,7 +128,7 @@ class LimitedSampleTree(Tree):
 
         if iteration_count == max_iter:
             warnings.warn(
-                "Maximum iterations reached. "
+                f"Maximum iterations {max_iter} reached. "
                 "Either increase max_iter or check split and samples.",
                 RuntimeWarning,
             )

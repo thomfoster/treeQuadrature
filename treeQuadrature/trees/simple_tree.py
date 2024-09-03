@@ -40,7 +40,7 @@ class SimpleTree(Tree):
         self.max_iter = max_iter
 
     def construct_tree(
-        self, root: Container, verbose: bool = False, max_iter=1e3
+        self, root: Container, verbose: bool = False, max_iter=5e3
     ) -> List[Container]:
         """
         Construct a tree of containers.
@@ -108,7 +108,7 @@ class SimpleTree(Tree):
 
         if iteration_count == max_iter:
             warnings.warn(
-                "maximum iterations reached for constructing the tree, "
+                f"maximum iterations {max_iter} reached for constructing the tree, "
                 "either incresae max_iter or check split and samples",
                 RuntimeWarning,
             )

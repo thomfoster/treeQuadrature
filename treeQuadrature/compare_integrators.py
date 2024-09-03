@@ -294,7 +294,7 @@ def test_integrators(
     verbose: int = 1,
     seed: int = 2024,
     n_repeat: int = 1,
-    integrator_specific_kwargs: Optional[dict] = None,
+    integrator_specific_kwargs: dict={},
     retest_integrators: List[str] = [],
 ) -> None:
     """

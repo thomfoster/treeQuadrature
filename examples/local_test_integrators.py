@@ -2,65 +2,41 @@ import argparse, os, json
 import numpy as np 
 
 from treeQuadrature.compare_integrators import test_integrators
-from treeQuadrature.container_integrators.gp_integral import KernelIntegral
-from treeQuadrature.example_problems import SimpleGaussian, Camel, QuadCamel, ExponentialProduct, Quadratic, Ripple, Oscillatory, ProductPeak, CornerPeak, DiscontinuousProblem, C0
-from treeQuadrature.container_integrators import RandomIntegral, KernelIntegral, AdaptiveRbfIntegral
-from treeQuadrature.integrators import TreeIntegrator
+from treeQuadrature.example_problems import (
+    SimpleGaussian, Camel, QuadCamel, 
+    ExponentialProduct, Quadratic, Ripple,
+    Oscillatory, ProductPeak, CornerPeak,
+    Discontinuous, C0
+)
+from treeQuadrature.container_integrators import RandomIntegral, AdaptiveRbfIntegral
 from treeQuadrature.splits import MinSseSplit, KdSplit
-from treeQuadrature.integrators import DistributedTreeIntegrator, VegasIntegrator, BayesMcIntegrator, SmcIntegrator, BatchGpIntegrator
+from treeQuadrature.integrators import DistributedTreeIntegrator, VegasIntegrator, VegasTreeIntegrator
 from treeQuadrature.samplers import McmcSampler, LHSImportanceSampler, UniformSampler, ImportanceSampler
-from treeQuadrature.trees import LimitedSampleTree
+from treeQuadrature.trees import LimitedSampleTree, SimpleTree
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Run integrator tests with various configurations.")
 parser.add_argument('--dimensions', type=int, nargs='+', default=[2], help='List of problem dimensions (default: [2])')
 parser.add_argument('--n_samples', type=int, default=20, help='number of samples drawn from each container (default: 20)')
-parser.add_argument('--base_N', type=int, default=7_500, help='Base sample size for integrators when D = 3 (default: 75_000)')
-parser.add_argument('--max_samples', type=int, default=15_000, help='Maximum sample size when D = 2 (default: 15_000)')
-parser.add_argument('--gp_min_container_samples', type=int, default=20, help='minimum sample size for a container when fitting GP (default: 20)')
-parser.add_argument('--gp_max_container_samples', type=int, default=150, help='maximum sample size for a container when fitting GP (default: 150)')
-parser.add_argument('--lsi_base_N', type=int, default=1_000, help='Base sample size for LimitedSampleTree when D = 3 (default: 1_000)')
+parser.add_argument('--base_N', type=int, default=30_000, help='Base sample size for integrators when D = 3 (default: 30_000)')
+parser.add_argument('--max_samples', type=int, default=60_000, help='Maximum sample size when D = 2 (default: 60_000)')
+parser.add_argument('--min_container_samples', type=int, default=32, help='minimum sample size for a container when fitting GP (default: 32)')
+parser.add_argument('--max_container_samples', type=int, default=600, help='maximum sample size for a container when fitting GP (default: 800)')
+parser.add_argument('--lsi_base_N', type=int, default=6_000, help='Base sample size for LimitedSampleTree when D = 3 (default: 1_000)')
 parser.add_argument('--lsi_active_N', type=int, default=0, help='active sample size for LimitedSampleTree (default: 0)')
-parser.add_argument('--bmc_N', type=int, default=1200, help='Base sample size for BMC (default: 1200)')
 parser.add_argument('--P', type=int, default=50, help='Size of the largest container (default: 50)')
 parser.add_argument('--vegas_iter', type=int, default=10, help='Number of iterations for VegasIntegrator (default: 10)')
 parser.add_argument('--max_time', type=float, default=180.0, help='Maximum allowed time for each integrator (default: 180.0)')
-parser.add_argument('--n_repeat', type=int, default=5, help='Number of repetitions for each test (default: 5)')
+parser.add_argument('--n_repeat', type=int, default=10, help='Number of repetitions for each test (default: 10)')
 parser.add_argument('--sampler', type=str, default='mcmc', help="The sampler used, must be one of 'mcmc', 'lhs', 'is' (default: mcmc)")
 parser.add_argument('--split', type=str, default='minsse', help="The splitting method used, must be one of 'minsse', 'kd' (default: 'minsse')")
 parser.add_argument('--retest', type=str, nargs='+', default=[], help='List of integrators to be retested (default: [])')
+parser.add_argument('--file_location', type=str, default='', help='file location prefix (default: saved to test_results/)')
 
 # receive arguments from parser
 args = parser.parse_args()
 
-### define the problems
-Ds = args.dimensions
-               
-### container Integrals 
-ranIntegral = RandomIntegral(n_samples=args.n_samples)
-aRbf = AdaptiveRbfIntegral(n_samples= args.n_samples, max_redraw=0, n_splits=0)
-non_iter_rbf = KernelIntegral(max_redraw=0, n_splits=0, 
-                            n_samples=args.n_samples)
-
-### Splits
-if args.split == 'minsse':
-    split = MinSseSplit()
-elif args.split == 'kd':
-    split = KdSplit()
-
-### Sampler
-if args.sampler == 'mcmc':
-    sampler = McmcSampler()
-elif args.sampler == 'lhs':
-    sampler = LHSImportanceSampler()
-elif args.sampler == 'unif':
-    sampler = UniformSampler()
-elif args.sampler == 'is':
-    sampler = ImportanceSampler()
-else:
-    raise ValueError("Sampler must be one of 'mcmc', 'sobol', 'is', 'unif'")
-
-## change base_N and max_n_samples with dimension
+# change base_N and max_n_samples with dimension
 def get_base_N(D) -> int:
     return max(int(args.base_N * (D / 3)), 6000)
 
@@ -70,14 +46,49 @@ def get_max_n_samples(D) -> int:
 def get_lsi_base_N(D) -> int:
     return int(args.lsi_base_N * (D / 3))
 
+def get_max_iter(D) -> int:
+    return int(2000 + D * 500)
+
 def volume_weighting_function(container):
     return container.volume
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-location_prefix = 'fifth_run/'
-location_postfix = ''
 
 if __name__ == '__main__':
+    ### define the problems
+    Ds = args.dimensions
+                
+    ### container Integrals 
+    ranIntegral = RandomIntegral(n_samples=args.n_samples)
+    aRbf = AdaptiveRbfIntegral(n_samples= args.n_samples)
+
+    # =======
+    # Splits
+    # =======
+    if args.split == 'minsse':
+        split = MinSseSplit()
+    elif args.split == 'kd':
+        split = KdSplit()
+    else:
+        raise ValueError("Only 'minsse' and 'kd' supported")
+
+    # =======
+    # Sampler
+    # =======
+    if args.sampler == 'mcmc':
+        sampler = McmcSampler()
+    elif args.sampler == 'lhs':
+        sampler = LHSImportanceSampler()
+    elif args.sampler == 'unif':
+        sampler = UniformSampler()
+    elif args.sampler == 'is':
+        sampler = ImportanceSampler()
+    else:
+        raise ValueError(
+            "Sampler must be one of 'mcmc', 'sobol', 'is', 'unif'")
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    location_prefix = args.file_location
+
     args_dict = vars(args).copy()
     del args_dict['dimensions']
     # will be redistributed by integrator anyway
@@ -85,20 +96,24 @@ if __name__ == '__main__':
     
     for D in Ds:
         ### remember to change file path for new run of experiments
-        output_path = os.path.join(script_dir, 
-                                f"../test_results/{location_prefix}results_{D}D_{args.n_repeat}repeat{location_postfix}.csv")
-        config_path = os.path.join(script_dir, 
-                                f"../test_results/{location_prefix}configs_{D}D_{args.n_repeat}repeat{location_postfix}.json")
+        output_path = os.path.join(
+            script_dir,
+            f"../test_results/{location_prefix}results_{D}D_{args.n_repeat}repeat.csv")
+        config_path = os.path.join(
+            script_dir,
+            f"../test_results/{location_prefix}configs_{D}D_{args.n_repeat}repeat.json")
 
         base_N = get_base_N(D)
         max_samples = get_max_n_samples(D)
         lsi_base_N = get_lsi_base_N(D)
         lsi_N = int(max_samples / (args.n_samples + 1))
+        max_iter = get_max_iter(D)
 
         args_dict['max_samples'] = max_samples
         args_dict['base_N'] = base_N
         args_dict['lsi_base_N'] = lsi_base_N
         args_dict['lsi_N'] = lsi_N
+        args_dict['max_iter'] = lsi_N
 
         with open(config_path, 'w') as file:
             json.dump(args_dict, file, indent=4)
@@ -114,7 +129,7 @@ if __name__ == '__main__':
                 C0(D, a=1.1),
                 ProductPeak(D, a=10),
                 CornerPeak(D, a=10), 
-                DiscontinuousProblem(D, a=10)
+                Discontinuous(D, a=10)
             ]
         else:
             problems = [
@@ -128,40 +143,62 @@ if __name__ == '__main__':
                 ProductPeak(D, a=10),
                 C0(D, a=1.1),
                 CornerPeak(D, a=10), 
-                DiscontinuousProblem(D, a=10)
+                Discontinuous(D, a=10)
             ]
 
-        integ_simple = DistributedTreeIntegrator(base_N, args.P, max_samples, split, ranIntegral, 
-                                                sampler=sampler)
+        # =======
+        # Trees
+        # =======
+        tree_active = LimitedSampleTree(
+        N=lsi_N, active_N=args.lsi_active_N, split=split,
+        weighting_function=volume_weighting_function,
+        max_iter=max_iter * 2) # allow twice more splits
+        tree_simple = SimpleTree(
+            split, args.P, max_iter=max_iter)
+
+        # ===========
+        # Integrators
+        # ===========
+        integ_simple = DistributedTreeIntegrator(
+            base_N, max_samples, ranIntegral,
+            sampler=sampler, tree=tree_simple,
+            min_container_samples=args.min_container_samples,
+            max_container_samples=args.max_container_samples)
         integ_simple.name = 'TQ with mean'
         
-        active_tree = LimitedSampleTree(N=lsi_N, active_N=args.lsi_active_N,
-                                                             split=split, weighting_function=volume_weighting_function)
-        integ_activeTQ = DistributedTreeIntegrator(lsi_base_N, max_samples, ranIntegral, sampler=sampler,
-                                                    tree=active_tree)
+        # half min samples to compensate
+        integ_activeTQ = DistributedTreeIntegrator(
+            lsi_base_N, max_samples, ranIntegral, sampler=sampler,
+            tree=tree_active, min_container_samples=args.min_container_samples // 2,
+            max_container_samples=args.max_container_samples)
         integ_activeTQ.name = 'ActiveTQ'
         
-        integ_rbf = DistributedTreeIntegrator(base_N, args.P, max_samples, split, aRbf, sampler=sampler, 
-                                                min_container_samples=args.gp_min_container_samples, 
-                                                max_container_samples=args.gp_max_container_samples)
+        integ_rbf = DistributedTreeIntegrator(
+            base_N, max_samples, aRbf,
+            sampler=sampler, tree=tree_simple,
+            min_container_samples=args.min_container_samples,
+            max_container_samples=args.max_container_samples)
         integ_rbf.name = 'TQ with Rbf'
         
         n_iter = args.vegas_iter
-        n_vegas = int(max_samples / (n_iter + 5))  # 5 accounts for adaptive iterations
+        # 5 accounts for adaptive iterations
+        n_vegas = int(max_samples / (n_iter + 5))
         integ_vegas= VegasIntegrator(n_vegas, n_iter)
         integ_vegas.name = 'Vegas'
-        
-        integ_bmc = BayesMcIntegrator(N=args.bmc_N, sampler=sampler)
-        integ_bmc.name = 'BMC'
-        
-        integ_smc = SmcIntegrator(N=max_samples, sampler=ImportanceSampler())
-        integ_smc.name = 'SMC'
+
+        integ_vegas_tree_rbf = VegasTreeIntegrator(
+            base_N, tree=tree_simple,
+            integral=aRbf,
+            max_N=max_samples,
+            min_container_samples=args.min_container_samples,
+            max_container_samples=args.max_container_samples,
+            vegas_iter=n_iter+5)
+        integ_vegas_tree_rbf.name = 'Vegas + TQ + RBF'
 
         # Now run the tests for the current dimension D
-        test_integrators([integ_simple, integ_activeTQ, integ_rbf, integ_vegas],
-                        problems=problems, 
-                        output_file=output_path,
-                        max_time=args.max_time, n_repeat=args.n_repeat, 
-                        integrator_specific_kwargs={'ActiveTQ': {'integrand' : None}, 
-                                                    'TQ with RBF' : {'max_iter' : 1000}}, 
-                                                    retest_integrators=args.retest)
+        test_integrators([
+            integ_simple, integ_activeTQ, integ_rbf, integ_vegas, integ_vegas_tree_rbf],
+            problems=problems,
+            output_file=output_path,
+            max_time=args.max_time, n_repeat=args.n_repeat,
+            retest_integrators=args.retest)

@@ -15,8 +15,8 @@ from .container import Container
 
 def plot_containers(
     containers: List[Container],
-    contributions: List[float],
-    xlim: List[float],
+    contributions: Optional[List[float]]=None,
+    xlim: Optional[List[float]]=None,
     ylim: Optional[List[float]] = None,
     integrand: Optional[Callable] = None,
     title: Optional[str] = None,
@@ -28,8 +28,8 @@ def plot_containers(
     **kwargs,
 ) -> None:
     """
-    Plot containers and their contributions
-    for 1D problems, the integrand can be plotted
+    Plot containers and their contributions. \n
+    For 1D problems, the integrand will be plotted.
 
     Parameters
     ----------
@@ -37,10 +37,13 @@ def plot_containers(
         list of Container objects
     contributions : list
         numerical values of contributions of each container
-    xlim : list of 2 floats
+    xlim : list of 2 floats, optional
         the range of x-axis
+        will be set automatically if not provided
     ylim : list of 2 floats, optional
-        the range of y-axis
+        the range of y-axis. \n
+        if not provided, it
+        will be set automatically. \n
         ignored by 1D problems
     integrand : function, optional
         ignored by 2D problems
@@ -61,15 +64,17 @@ def plot_containers(
         2D plot.
         Default : 'Contributions'
     **kwargs : Any, optional
-        additional arguments for _plot_containers_1D and _plot_containers_2D
+        additional arguments for
+        _plot_containers_1D and _plot_containers_2D
 
     """
 
-    assert len(containers) == len(contributions), (
-        "The length of containers and contributions must be the same, "
-        f"got {len(containers)} containers and "
-        f"{len(contributions)} contributions"
-    )
+    if contributions is not None:
+        assert len(containers) == len(contributions), (
+            "The length of containers and contributions must be the same, "
+            f"got {len(containers)} containers and "
+            f"{len(contributions)} contributions"
+        )
 
     # check dimensions
     all_dimensions = list(range(containers[0].D))
@@ -117,52 +122,166 @@ def plot_containers(
 
 
 def _plot_containers_2D(
-    containers,
-    contributions,
-    xlim,
-    ylim,
-    title,
-    plot_samples,
-    dim1,
-    dim2,
-    colors,
-    c_bar_labels,
-    font_size,
+    containers: List[Container],
+    contributions: Optional[List[float]]=None,
+    xlim: Optional[List[float]]=None,
+    ylim: Optional[List[float]]=None,
+    title: Optional[str]=None,
+    plot_samples: bool=True,
+    dim1: int=0,
+    dim2: int=1,
+    colors: str = "YlOrRd",
+    c_bar_labels: str = "Contributions",
     c_bar_tick_size=12,
+    font_size: int=15,
+    file_path: Optional[str] = None,
+    resolution: int = 200
 ):
+    """
+    Plot the containers and their contributions, slicing
+    along dim1 and dim2.
+
+    Parameters
+    ----------
+    containers : list
+        list of Containers to plot
+    contributions : list, optional
+        numerical values of contributions
+        of each container.
+    xlim : list of 2 floats, optional
+        the range of x-axis. \n
+        will be set automatically if not provided.
+    ylim : list of 2 floats, optional
+        the range of y-axis. \n
+        will be set automatically if not provided.
+    dim1, dim2 : int
+        the dimensions to plot.
+    colors : str, optional
+        the colour map used to plot 2D. \n
+        defaults to 'YlOrRd'.
+    c_bar_labels : str, optional
+        labels for colour bar in 2D plot. \n
+        defaults to 'Contributions'.
+    c_bar_tick_size : int, optional
+        font size for the colour bar. \n
+        Defaults to 12.
+    title : str, optional
+        title of the plot. \n
+        If not provided,
+        no title will be added.
+    plot_samples : bool, optional
+        if True, samples will be
+        placed on the plot as well. \n
+        Defaults to True.
+    font_size : int, optional
+        font size for the plot. \n
+        Defaults to 15.
+    file_path : str, optional
+        if provided, the figure will be saved. \n
+        otherwise, the figure will be displayed.
+    resolution : int, optional
+        resolution of the saved figure. \n
+        Defaults to 200.
+    """
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot()
+
+    # Automatically set xlim and ylim if they are None
+    if xlim is None:
+        xlim = [min([container.mins[dim1] for container in containers]),
+                max([container.maxs[dim1] for container in containers])]
+    if ylim is None:
+        ylim = [min([container.mins[dim2] for container in containers]),
+                max([container.maxs[dim2] for container in containers])]
+
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
-    cmap = colormaps[colors].resampled(256)
 
-    norm = plt.Normalize(min(contributions), max(contributions))
+    has_contributions = contributions is not None
+    if has_contributions:
+        cmap = colormaps[colors].resampled(256)
+        norm = plt.Normalize(min(contributions), max(contributions))
 
-    for container, contribution in zip(containers, contributions):
+    for i, container in enumerate(containers):
+        if has_contributions:
+            facecolor = cmap(norm(contributions[i]))
+        else:
+            facecolor = "none"        
+
         plot_container(
             ax,
             container,
             dim1,
             dim2,
             plot_samples=plot_samples,
-            facecolor=cmap(norm(contribution)),
+            facecolor=facecolor,
             alpha=0.4,
         )
 
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])
-    cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label(c_bar_labels, fontsize=font_size)
-    cbar.ax.tick_params(labelsize=c_bar_tick_size)
+    if contributions is not None:
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        cbar = fig.colorbar(sm, ax=ax)
+        cbar.set_label(c_bar_labels, fontsize=font_size)
+        cbar.ax.tick_params(labelsize=c_bar_tick_size)
 
     plt.title(title, fontsize=font_size * 1.2)
     ax.tick_params(axis="both", labelsize=font_size)
-    plt.show()
+
+    if file_path:
+        plt.savefig(file_path, dpi=resolution)
+        plt.close()
+        print(f"figure saved to {file_path}")
+    else:
+        plt.show()
 
 
 def _plot_containers_1D(
-    containers, contributions, xlim, integrand, title, plot_samples, font_size
+    containers: List[Container],
+    contributions: Optional[List[float]]=None,
+    xlim: Optional[List[float]]=None,
+    integrand: Optional[Callable]=None,
+    title: Optional[str]=None,
+    plot_samples: bool=True,
+    font_size: int=15,
+    file_path: Optional[str] = None,
+    resolution: int = 200
 ):
+    """
+    Plot the containers and their contributions in 1D.
+
+    Parameters
+    ----------
+    containers : list
+        list of Containers to plot
+    contributions : list, optional
+        numerical values of contributions
+        of each container.
+    xlim : list of 2 floats, optional
+        the range of x-axis. \n
+        will be set automatically if not provided.
+    integrand : function, optional
+        the integrand to plot. \n
+        If not provided,
+        the integrand will not be plotted.
+    title : str, optional
+        title of the plot. \n
+        If not provided,
+        no title will be added.
+    plot_samples : bool, optional
+        if True, samples will be
+        placed on the plot as well. \n
+        Defaults to True.
+    font_size : int, optional
+        font size for the plot. \n
+        Defaults to 15.
+    file_path : str, optional
+        if provided, the figure will be saved. \n
+        otherwise, the figure will be displayed.
+    resolution : int, optional
+        resolution of the saved figure. \n
+        Defaults to 200.
+    """
     if integrand is not None:
         # plot the integrand
         x_values = np.linspace(xlim[0], xlim[1], 2000).reshape(-1, 1)
@@ -210,6 +329,9 @@ def _plot_containers_1D(
     # ==============
     # Setting Canvas
     # ==============
+    if xlim is None:
+        xlim = [min([container.mins[0] for container in containers]),
+                max([container.maxs[0] for container in containers])]
     plt.xlim(xlim)
     # labels and legend
     plt.xlabel("x", fontsize=font_size)
@@ -218,7 +340,12 @@ def _plot_containers_1D(
     plt.legend(fontsize=font_size)
     plt.tick_params(axis="both", labelsize=font_size)
 
-    plt.show()
+    if file_path:
+        plt.savefig(file_path, dpi=resolution)
+        plt.close()
+        print(f"figure saved to {file_path}")
+    else:
+        plt.show()
 
 
 def plot_container(ax: Axes, container: Container,

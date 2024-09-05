@@ -14,12 +14,13 @@ if __name__ == '__main__':
     # problem = SimpleGaussian(D=2)
 
     aRbf = AdaptiveRbfIntegral(
-        n_samples=10, max_redraw=0, n_splits=0, 
+        n_samples=3, max_redraw=0, n_splits=0, 
         fit_residuals=True)
 
-    integ = TreeIntegrator(200, integral=aRbf)
+    integ = TreeIntegrator(160, integral=aRbf)
 
-    results, containers = integ(problem, return_raw=True, return_model=True)
+    results, containers = integ(problem, return_raw=True,
+                                return_model=True, return_std=True)
 
     print("Number of containers: ", len(containers))
     
@@ -36,7 +37,8 @@ if __name__ == '__main__':
     print(f"Number of evaluations: {n_evals}")
 
     plot_gps(gp_models, containers, title=None, alpha=0.9, 
-             colormap=cm.coolwarm)
+             colormap=cm.coolwarm, plot_uncertainty=True,
+             plot_samples=True)
 
     # if problem.D == 2:
     #     plot_containers(containers, contributions, 

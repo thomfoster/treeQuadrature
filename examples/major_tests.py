@@ -247,7 +247,7 @@ integ_vegas_tree_rbf.name = 'Vegas + TQ + RBF'
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_mean], plot=False, verbose=1,
+    compare_integrators([integ_mean_minsse], plot=False, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]],
                         problem=problem, dimensions=[0, 1], integrator_specific_kwargs=

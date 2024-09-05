@@ -1,5 +1,5 @@
 from queue import SimpleQueue
-from typing import List
+from typing import List, Union
 import time
 import warnings
 
@@ -40,32 +40,48 @@ class SimpleTree(Tree):
         self.max_iter = max_iter
 
     def construct_tree(
-        self, root: Container, verbose: bool = False, max_iter=5e3
+        self, root: Union[Container, List[Container]],
+        verbose: bool = False, max_iter=5e3,
+        warning: bool = True
     ) -> List[Container]:
         """
         Construct a tree of containers.
 
         Parameters
         ----------
-        root : Container
-            The root container with all initial samples.
+        root : Container or List[Container]
+            The root container or a list of containers
+            with initial samples.
         verbose : bool, optional
             Whether to print verbose output, by default False.
         max_iter : int, optional
             Maximum number of binary splits.
             by default 2000.
-
+        warning: bool, optional
+            If True, show warning when max_iter is reached. \n
+            by default True.
         Returns
         -------
         List[Container]
             A list of finished containers.
         """
-        self._check_root(root)
+        # Handle single container or list of containers
+        if isinstance(root, Container):
+            containers_to_process = [root]
+        elif isinstance(root, list):
+            containers_to_process = root
+        else:
+            raise ValueError(
+                "root must be a Container or a list of Containers")
+
+        for container in containers_to_process:
+            self._check_root(container)
 
         # Construct tree
         finished_containers = []
         q = SimpleQueue()
-        q.put(root)
+        for container in containers_to_process:
+            q.put(container)
 
         # for verbose tracking
         start_time = time.time()
@@ -101,20 +117,23 @@ class SimpleTree(Tree):
                 )
 
         total_time = time.time() - start_time
-        if verbose:
-            print(f"Total finished containers: {len(finished_containers)}")
-            print(f"Total iterations: {iteration_count}")
-            print(f"Total time taken: {total_time:.2f}s")
 
         if iteration_count == max_iter:
-            warnings.warn(
-                f"maximum iterations {max_iter} reached for constructing the tree, "
-                "either incresae max_iter or check split and samples",
-                RuntimeWarning,
-            )
+            if warning:
+                warnings.warn(
+                    f"maximum iterations {max_iter} reached for "
+                    "constructing the tree, "
+                    "either incresae max_iter or check split and samples",
+                    RuntimeWarning,
+                )
             # append containers left
             while not q.empty():
                 c = q.get()
                 finished_containers.append(c)
+
+        if verbose:
+            print(f"Total finished containers: {len(finished_containers)}")
+            print(f"Total iterations: {iteration_count}")
+            print(f"Total time taken: {total_time:.2f}s")
 
         return finished_containers

@@ -121,22 +121,25 @@ class DistributedTreeIntegrator(TreeIntegrator):
         remaining_samples = self.max_n_samples - used_samples
 
         # Maximum value of min_container_samples that can be used
-        upper_cap = (self.max_n_samples - used_samples) // len(containers)
+        upper_cap = (
+            self.max_n_samples - used_samples) // len(containers)
 
         if upper_cap >= self.min_container_samples:
-            # No need to adjust, 
+            # No need to adjust,
             # the condition is already satisfied
             pass
         elif upper_cap >= 2:
             warnings.warn(
-                f"Too many samples to distribute. Reducing 'min_container_samples' "
+                f"Too many samples to distribute. \n"
+                "Reducing 'min_container_samples' "
                 f"from {self.min_container_samples} to {upper_cap}."
             )
             self.min_container_samples = upper_cap
         else:
             raise RuntimeError(
                 "Too many samples to distribute. "
-                "Even with 'min_container_samples = 2', the condition cannot be satisfied. "
+                "Even with 'min_container_samples = 2', "
+                "the condition cannot be satisfied. "
                 "Consider increasing 'max_n_samples', "
                 "or reduce the number of containers."
             )

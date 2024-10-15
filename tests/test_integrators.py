@@ -9,7 +9,10 @@ import numpy as np
 @pytest.mark.parametrize("integrator_instance", [
     tq.integrators.SmcIntegrator(100),
     tq.integrators.VegasIntegrator(100, 10),
-    tq.integrators.BayesMcIntegrator(100)
+    tq.integrators.BayesMcIntegrator(100),
+    tq.integrators.ISTreeIntegrator(
+        100,
+        tree=tq.trees.SimpleTree(split=tq.splits.KdSplit())),
 ])
 def test_io(integrator_instance):
     """Checks each integrator has the desired IO for an integrator"""

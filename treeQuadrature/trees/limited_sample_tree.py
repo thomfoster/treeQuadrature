@@ -16,6 +16,7 @@ class LimitedSampleTree(Tree):
         active_N: int = 0,
         split: Split = MinSseSplit(),
         queue: Optional[ReservoirQueue] = None,
+        max_iter: int=5e3,
         *args,
         **kwargs,
     ):
@@ -33,6 +34,9 @@ class LimitedSampleTree(Tree):
         queue : class
             Queue class to manage the containers,
             default is PriorityQueue.
+        max_iter : int, optional
+            Maximum number of binary splits,
+            by default 2000.
         """
         super().__init__(*args, **kwargs)
         self.N = N
@@ -43,10 +47,11 @@ class LimitedSampleTree(Tree):
             self.queue = ReservoirQueue(accentuation_factor=100)
         else:
             self.queue = queue
+        self.max_iter = max_iter
 
     def construct_tree(
         self, root: Container, integrand: Callable,
-        verbose: bool = False, max_iter=1e3
+        verbose: bool = False,
     ) -> List[Container]:
         """
         Actively refine the containers with samples.
@@ -63,9 +68,6 @@ class LimitedSampleTree(Tree):
         verbose : bool, optional
             Whether to print verbose output,
             by default False.
-        max_iter : int, optional
-            Maximum number of binary splits,
-            by default 2000.
 
         Returns
         -------
@@ -87,7 +89,7 @@ class LimitedSampleTree(Tree):
         start_time = time.time()
         iteration_count = 0
 
-        while not q.empty() and iteration_count < max_iter:
+        while not q.empty() and iteration_count < self.max_iter:
 
             # save_weights_image(q)
 
@@ -126,9 +128,9 @@ class LimitedSampleTree(Tree):
 
         total_time = time.time() - start_time
 
-        if iteration_count == max_iter:
+        if iteration_count == self.max_iter:
             warnings.warn(
-                "Maximum iterations reached. "
+                f"Maximum iterations {self.max_iter} reached. "
                 "Either increase max_iter or check split and samples.",
                 RuntimeWarning,
             )

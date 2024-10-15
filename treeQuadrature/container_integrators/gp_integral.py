@@ -104,8 +104,8 @@ class KernelIntegral(ContainerIntegral):
 
         self.options: Dict[str, Any] = {
             "n_samples": 15,
-            "n_splits": 5,
-            "max_redraw": 5,
+            "n_splits": 0,
+            "max_redraw": 0,
             "threshold": 0.7,
             "threshold_direction": "up",
             "check_GP": False,
@@ -290,8 +290,8 @@ class AdaptiveRbfIntegral(ContainerIntegral):
     def __init__(
         self,
         n_samples: int = 15,
-        n_splits: int = 4,
-        max_redraw: int = 4,
+        n_splits: int = 0,
+        max_redraw: int = 0,
         threshold: float = 0.7,
         threshold_direction: str = "up",
         fit_residuals: bool = True,
@@ -508,8 +508,8 @@ class PolyIntegral(ContainerIntegral):
         degrees: List[int],
         coeffs=None,
         n_samples: int = 20,
-        n_splits: int = 4,
-        max_redraw: int = 4,
+        n_splits: int = 0,
+        max_redraw: int = 0,
         threshold: float = 10,
         fit_residuals: bool = True,
         GPFit: Type[GPFit] = SklearnGPFit,
@@ -753,7 +753,7 @@ class IterativeRbfIntegral(IterativeGpIntegral):
     def __init__(
         self,
         n_samples: int = 20,
-        n_splits: int = 4,
+        n_splits: int = 0,
         fit_residuals: bool = True,
         scoring: Optional[Callable] = r2,
         score_direction="up",

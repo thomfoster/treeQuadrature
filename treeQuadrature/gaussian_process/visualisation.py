@@ -218,6 +218,7 @@ def plot_gps(gp_fits: List[GPFit],
              alpha: float = 0.8,
              sample_color='r',
              plot_samples=True,
+             plot_uncertainty=False,
              grid_points=100):
     """
     Plot the Gaussian Process (GP) posterior mean function for
@@ -246,6 +247,9 @@ def plot_gps(gp_fits: List[GPFit],
     plot_samples : bool, optional
         If True, the sample points will be plotted. \n
         Default: True.
+    plot_uncertainty : bool, optional
+        If True, the uncertainty/error bars will be plotted. \n
+        Default: False.
     sample_color : str, optional
         The color of the sample points. \n
         Default: 'r'. (red) \n
@@ -280,7 +284,9 @@ def plot_gps(gp_fits: List[GPFit],
 
             # Predict the GP mean at each grid point
             y_mean = gp_fit.y_mean
-            y_pred = gp_fit.predict(grid, return_std=False) + y_mean
+            y_pred, y_std = gp_fit.predict(
+                grid, return_std=True)
+            y_pred += y_mean
 
             normalized_y_mean = (
                 y_mean - min_y_mean) / (max_y_mean - min_y_mean)
@@ -289,11 +295,23 @@ def plot_gps(gp_fits: List[GPFit],
             # Plot the GP mean curve
             plt.plot(x_grid, y_pred, color=color)
 
+            # Plot uncertainty/error bars if requested
+            if plot_uncertainty:
+                plt.fill_between(
+                    x_grid,
+                    y_pred - y_std,
+                    y_pred + y_std,
+                    color=color,
+                    alpha=0.2,
+                    label=f'Uncertainty (GP {i + 1})'
+                )
+
             # Plot fitting points
-            y_points = gp_fit.y_train_ + y_mean
-            plt.scatter(
-                gp_fit.X_train_, y_points,
-                color=color, edgecolor='k', zorder=5)
+            if plot_samples:
+                y_points = gp_fit.y_train_ + y_mean
+                plt.scatter(
+                    gp_fit.X_train_, y_points,
+                    color=color, edgecolor='k', zorder=5)
 
             # Plot vertical lines to mark the boundaries of the container
             y_min_boundary = gp_fit.predict(

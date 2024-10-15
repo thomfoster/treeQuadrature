@@ -1,6 +1,8 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import numpy as np
 from typing import Optional, List
+from inspect import signature
+import warnings
 
 from .tree_integrator import TreeIntegrator
 from ..container_integrators import ContainerIntegral
@@ -16,6 +18,7 @@ def integral_wrapper(
     integrand: callable,
     return_std: bool,
     n_samples: int,
+    **kwargs
 ):
     """
     wrapper function of container_integral for parallel processing
@@ -34,6 +37,8 @@ def integral_wrapper(
     params = {}
     if hasattr(integral, "get_additional_params"):
         params.update(integral.get_additional_params())
+
+    params.update(kwargs)
 
     if return_std:
         params["return_std"] = True
@@ -109,19 +114,34 @@ class DistributedTreeIntegrator(TreeIntegrator):
         problem: Problem,
         compute_std: bool = False,
         verbose: bool = False,
+        **kwargs
     ):
         # Determine the number of remaining samples to distribute
         used_samples = np.sum([cont.N for cont in containers])
         remaining_samples = self.max_n_samples - used_samples
 
-        if (
-            used_samples + len(containers) * self.min_container_samples
-            > self.max_n_samples
-        ):
+        # Maximum value of min_container_samples that can be used
+        upper_cap = (
+            self.max_n_samples - used_samples) // len(containers)
+
+        if upper_cap >= self.min_container_samples:
+            # No need to adjust,
+            # the condition is already satisfied
+            pass
+        elif upper_cap >= 2:
+            warnings.warn(
+                f"Too many samples to distribute. \n"
+                "Reducing 'min_container_samples' "
+                f"from {self.min_container_samples} to {upper_cap}."
+            )
+            self.min_container_samples = upper_cap
+        else:
             raise RuntimeError(
-                "too many samples to distribute. "
-                "either decrease 'min_container_samples' "
-                "or increase 'max_n_samples'"
+                "Too many samples to distribute. "
+                "Even with 'min_container_samples = 2', "
+                "the condition cannot be satisfied. "
+                "Consider increasing 'max_n_samples', "
+                "or reduce the number of containers."
             )
 
         if remaining_samples > 0:
@@ -159,6 +179,14 @@ class DistributedTreeIntegrator(TreeIntegrator):
         modified_containers = []
         results = []
 
+        integrator_parameters = signature(
+            self.integral.containerIntegral).parameters
+
+        applicable_kwargs = {
+            k: v for k, v in kwargs.items()
+            if k in integrator_parameters
+        }
+
         if self.parallel:
             with ProcessPoolExecutor() as executor:
                 futures = {
@@ -169,6 +197,7 @@ class DistributedTreeIntegrator(TreeIntegrator):
                         problem.integrand,
                         compute_std,
                         n_samples=samples_distribution.get(cont),
+                        **applicable_kwargs
                     ): cont
                     for cont in containers
                 }
@@ -185,14 +214,15 @@ class DistributedTreeIntegrator(TreeIntegrator):
                     problem.integrand,
                     compute_std,
                     samples_distribution.get(cont),
+                    **applicable_kwargs
                 )
                 results.append(integral_results)
                 modified_containers.append(modified_cont)
 
         return results, modified_containers
 
+    @staticmethod
     def _distribute_samples(
-        self,
         finished_containers,
         remaining_samples,
         min_container_samples,

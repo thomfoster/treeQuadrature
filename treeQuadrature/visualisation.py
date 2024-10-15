@@ -15,8 +15,8 @@ from .container import Container
 
 def plot_containers(
     containers: List[Container],
-    contributions: List[float],
-    xlim: List[float],
+    contributions: Optional[List[float]] = None,
+    xlim: Optional[List[float]] = None,
     ylim: Optional[List[float]] = None,
     integrand: Optional[Callable] = None,
     title: Optional[str] = None,
@@ -28,8 +28,8 @@ def plot_containers(
     **kwargs,
 ) -> None:
     """
-    Plot containers and their contributions
-    for 1D problems, the integrand can be plotted
+    Plot containers and their contributions. \n
+    For 1D problems, the integrand will be plotted.
 
     Parameters
     ----------
@@ -37,10 +37,13 @@ def plot_containers(
         list of Container objects
     contributions : list
         numerical values of contributions of each container
-    xlim : list of 2 floats
+    xlim : list of 2 floats, optional
         the range of x-axis
+        will be set automatically if not provided
     ylim : list of 2 floats, optional
-        the range of y-axis
+        the range of y-axis. \n
+        if not provided, it
+        will be set automatically. \n
         ignored by 1D problems
     integrand : function, optional
         ignored by 2D problems
@@ -61,15 +64,17 @@ def plot_containers(
         2D plot.
         Default : 'Contributions'
     **kwargs : Any, optional
-        additional arguments for _plot_containers_1D and _plot_containers_2D
+        additional arguments for
+        _plot_containers_1D and _plot_containers_2D
 
     """
 
-    assert len(containers) == len(contributions), (
-        "The length of containers and contributions must be the same, "
-        f"got {len(containers)} containers and "
-        f"{len(contributions)} contributions"
-    )
+    if contributions is not None:
+        assert len(containers) == len(contributions), (
+            "The length of containers and contributions must be the same, "
+            f"got {len(containers)} containers and "
+            f"{len(contributions)} contributions"
+        )
 
     # check dimensions
     all_dimensions = list(range(containers[0].D))
@@ -117,52 +122,170 @@ def plot_containers(
 
 
 def _plot_containers_2D(
-    containers,
-    contributions,
-    xlim,
-    ylim,
-    title,
-    plot_samples,
-    dim1,
-    dim2,
-    colors,
-    c_bar_labels,
-    font_size,
+    containers: List[Container],
+    contributions: Optional[List[float]] = None,
+    xlim: Optional[List[float]] = None,
+    ylim: Optional[List[float]] = None,
+    title: Optional[str] = None,
+    plot_samples: bool = True,
+    dim1: int = 0,
+    dim2: int = 1,
+    colors: str = "YlOrRd",
+    c_bar_labels: str = "Contributions",
     c_bar_tick_size=12,
+    font_size: int = 15,
+    file_path: Optional[str] = None,
+    resolution: int = 200,
 ):
+    """
+    Plot the containers and their contributions, slicing
+    along dim1 and dim2.
+
+    Parameters
+    ----------
+    containers : list
+        list of Containers to plot
+    contributions : list, optional
+        numerical values of contributions
+        of each container.
+    xlim : list of 2 floats, optional
+        the range of x-axis. \n
+        will be set automatically if not provided.
+    ylim : list of 2 floats, optional
+        the range of y-axis. \n
+        will be set automatically if not provided.
+    dim1, dim2 : int
+        the dimensions to plot.
+    colors : str, optional
+        the colour map used to plot 2D. \n
+        defaults to 'YlOrRd'.
+    c_bar_labels : str, optional
+        labels for colour bar in 2D plot. \n
+        defaults to 'Contributions'.
+    c_bar_tick_size : int, optional
+        font size for the colour bar. \n
+        Defaults to 12.
+    title : str, optional
+        title of the plot. \n
+        If not provided,
+        no title will be added.
+    plot_samples : bool, optional
+        if True, samples will be
+        placed on the plot as well. \n
+        Defaults to True.
+    font_size : int, optional
+        font size for the plot. \n
+        Defaults to 15.
+    file_path : str, optional
+        if provided, the figure will be saved. \n
+        otherwise, the figure will be displayed.
+    resolution : int, optional
+        resolution of the saved figure. \n
+        Defaults to 200.
+    """
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot()
+
+    # Automatically set xlim and ylim if they are None
+    if xlim is None:
+        xlim = [
+            min([container.mins[dim1] for container in containers]),
+            max([container.maxs[dim1] for container in containers]),
+        ]
+    if ylim is None:
+        ylim = [
+            min([container.mins[dim2] for container in containers]),
+            max([container.maxs[dim2] for container in containers]),
+        ]
+
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
-    cmap = colormaps[colors].resampled(256)
 
-    norm = plt.Normalize(min(contributions), max(contributions))
+    has_contributions = contributions is not None
+    if has_contributions:
+        cmap = colormaps[colors].resampled(256)
+        norm = plt.Normalize(min(contributions), max(contributions))
 
-    for container, contribution in zip(containers, contributions):
+    for i, container in enumerate(containers):
+        if has_contributions:
+            facecolor = cmap(norm(contributions[i]))
+        else:
+            facecolor = "none"
+
         plot_container(
             ax,
             container,
             dim1,
             dim2,
             plot_samples=plot_samples,
-            facecolor=cmap(norm(contribution)),
+            facecolor=facecolor,
             alpha=0.4,
         )
 
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])
-    cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label(c_bar_labels, fontsize=font_size)
-    cbar.ax.tick_params(labelsize=c_bar_tick_size)
+    if contributions is not None:
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        cbar = fig.colorbar(sm, ax=ax)
+        cbar.set_label(c_bar_labels, fontsize=font_size)
+        cbar.ax.tick_params(labelsize=c_bar_tick_size)
 
     plt.title(title, fontsize=font_size * 1.2)
     ax.tick_params(axis="both", labelsize=font_size)
-    plt.show()
+
+    if file_path:
+        plt.savefig(file_path, dpi=resolution)
+        plt.close()
+        print(f"figure saved to {file_path}")
+    else:
+        plt.show()
 
 
 def _plot_containers_1D(
-    containers, contributions, xlim, integrand, title, plot_samples, font_size
+    containers: List[Container],
+    contributions: Optional[List[float]] = None,
+    xlim: Optional[List[float]] = None,
+    integrand: Optional[Callable] = None,
+    title: Optional[str] = None,
+    plot_samples: bool = True,
+    font_size: int = 15,
+    file_path: Optional[str] = None,
+    resolution: int = 200,
 ):
+    """
+    Plot the containers and their contributions in 1D.
+
+    Parameters
+    ----------
+    containers : list
+        list of Containers to plot
+    contributions : list, optional
+        numerical values of contributions
+        of each container.
+    xlim : list of 2 floats, optional
+        the range of x-axis. \n
+        will be set automatically if not provided.
+    integrand : function, optional
+        the integrand to plot. \n
+        If not provided,
+        the integrand will not be plotted.
+    title : str, optional
+        title of the plot. \n
+        If not provided,
+        no title will be added.
+    plot_samples : bool, optional
+        if True, samples will be
+        placed on the plot as well. \n
+        Defaults to True.
+    font_size : int, optional
+        font size for the plot. \n
+        Defaults to 15.
+    file_path : str, optional
+        if provided, the figure will be saved. \n
+        otherwise, the figure will be displayed.
+    resolution : int, optional
+        resolution of the saved figure. \n
+        Defaults to 200.
+    """
     if integrand is not None:
         # plot the integrand
         x_values = np.linspace(xlim[0], xlim[1], 2000).reshape(-1, 1)
@@ -210,6 +333,11 @@ def _plot_containers_1D(
     # ==============
     # Setting Canvas
     # ==============
+    if xlim is None:
+        xlim = [
+            min([container.mins[0] for container in containers]),
+            max([container.maxs[0] for container in containers]),
+        ]
     plt.xlim(xlim)
     # labels and legend
     plt.xlabel("x", fontsize=font_size)
@@ -218,7 +346,12 @@ def _plot_containers_1D(
     plt.legend(fontsize=font_size)
     plt.tick_params(axis="both", labelsize=font_size)
 
-    plt.show()
+    if file_path:
+        plt.savefig(file_path, dpi=resolution)
+        plt.close()
+        print(f"figure saved to {file_path}")
+    else:
+        plt.show()
 
 
 def plot_container(ax: Axes, container: Container,
@@ -284,7 +417,7 @@ def plot_integrand(
     font_size: int = 12,
     tick_size: int = 10,
     title_font_size: int = 14,
-    **kwargs
+    **kwargs,
 ):
     """
     Plot the integrand
@@ -329,27 +462,49 @@ def plot_integrand(
 
     if D == 1:
         _plot_integrand_1D(
-            integrand, xlim, n_points, file_path, title,
-            font_size, tick_size, title_font_size)
+            integrand,
+            xlim,
+            n_points,
+            file_path,
+            title,
+            font_size,
+            tick_size,
+            title_font_size,
+        )
     elif D == 2:
         if plot_type == "contour":
             _plot_integrand_2D_contour(
-                integrand, xlim, ylim, n_points, file_path,
-                title, tick_size, title_font_size,
-                **kwargs)
+                integrand,
+                xlim,
+                ylim,
+                n_points,
+                file_path,
+                title,
+                tick_size,
+                title_font_size,
+                **kwargs,
+            )
         elif plot_type == "heat":
             _plot_integrand_2D_heat(
-                integrand, xlim, ylim, n_points, file_path,
-                title, tick_size, title_font_size, **kwargs)
+                integrand,
+                xlim,
+                ylim,
+                n_points,
+                file_path,
+                title,
+                tick_size,
+                title_font_size,
+                **kwargs,
+            )
         else:
             raise ValueError("plot_type must be 'contour' or 'heat'")
     else:
         raise Exception("Only supports 1D and 2D problems")
 
 
-def _plot_integrand_1D(f, xlim, n_points, file_path,
-                       title, font_size,
-                       tick_size, title_font_size):
+def _plot_integrand_1D(
+    f, xlim, n_points, file_path, title, font_size, tick_size, title_font_size
+):
     x = np.linspace(xlim[0], xlim[1], n_points).reshape(-1, 1)
     ys = f(x)
 
@@ -370,9 +525,10 @@ def _plot_integrand_1D(f, xlim, n_points, file_path,
         plt.show()
 
 
-def _plot_integrand_2D_contour(f, xlim, ylim, n_points, file_path,
-                               title, tick_size,
-                               title_font_size, **kwargs):
+def _plot_integrand_2D_contour(
+    f, xlim, ylim, n_points, file_path,
+    title, tick_size, title_font_size, **kwargs
+):
     """
     Plot Contour lines of a 2D distribution.
     Automatically adapts the grid to significant values.
@@ -394,16 +550,19 @@ def _plot_integrand_2D_contour(f, xlim, ylim, n_points, file_path,
     min_col, max_col = np.where(cols)[0][[0, -1]]
 
     # Trim the X, Y, Z arrays
-    X_trimmed = X[min_row:max_row + 1, min_col:max_col + 1]
-    Y_trimmed = Y[min_row:max_row + 1, min_col:max_col + 1]
-    Z_trimmed = Z[min_row:max_row + 1, min_col:max_col + 1]
+    X_trimmed = X[min_row: max_row + 1, min_col: max_col + 1]
+    Y_trimmed = Y[min_row: max_row + 1, min_col: max_col + 1]
+    Z_trimmed = Z[min_row: max_row + 1, min_col: max_col + 1]
 
-    applicable_kwargs = {key: kwargs[key] for key in kwargs
-                         if key in plt.contour.__code__.co_varnames}
+    applicable_kwargs = {
+        key: kwargs[key] for key in kwargs
+        if key in plt.contour.__code__.co_varnames
+    }
     cmap = applicable_kwargs.pop("cmap", "viridis")
-    contour = plt.contour(X_trimmed, Y_trimmed, Z_trimmed,
-                          cmap=cmap,
-                          **applicable_kwargs)
+    contour = plt.contour(
+        X_trimmed, Y_trimmed, Z_trimmed,
+        cmap=cmap, **applicable_kwargs
+    )
     rotation = kwargs.get("rotation", 0)
     plt.xticks(fontsize=tick_size, rotation=rotation)
     plt.yticks(fontsize=tick_size)
@@ -422,10 +581,18 @@ def _plot_integrand_2D_contour(f, xlim, ylim, n_points, file_path,
         plt.show()
 
 
-def _plot_integrand_2D_heat(f, xlim, ylim, n_points,
-                            file_path=None, title=None,
-                            font_size=12, tick_size=10,
-                            title_font_size=14, **kwargs):
+def _plot_integrand_2D_heat(
+    f,
+    xlim,
+    ylim,
+    n_points,
+    file_path=None,
+    title=None,
+    font_size=12,
+    tick_size=10,
+    title_font_size=14,
+    **kwargs,
+):
     """
     Plot a heatmap of a 2D distribution.
     """
@@ -438,15 +605,22 @@ def _plot_integrand_2D_heat(f, xlim, ylim, n_points,
     Z = np.array([[f([xs, ys])[0, 0] for xs in x] for ys in y])
 
     # Create heatmap using imshow
-    applicable_kwargs = {key: kwargs[key] for key in kwargs
-                         if key in plt.imshow.__code__.co_varnames}
-    plt.imshow(Z, extent=[xlim[0], xlim[1], ylim[0], ylim[1]],
-               origin='lower', cmap='viridis', aspect='auto',
-               **applicable_kwargs)
+    applicable_kwargs = {
+        key: kwargs[key] for key in kwargs
+        if key in plt.imshow.__code__.co_varnames
+    }
+    plt.imshow(
+        Z,
+        extent=[xlim[0], xlim[1], ylim[0], ylim[1]],
+        origin="lower",
+        cmap="viridis",
+        aspect="auto",
+        **applicable_kwargs,
+    )
 
     # Add colorbar
     cbar = plt.colorbar()
-    cbar.set_label('Function Value', fontsize=font_size)
+    cbar.set_label("Function Value", fontsize=font_size)
     cbar.ax.tick_params(labelsize=tick_size)
 
     # Add labels
@@ -557,8 +731,7 @@ def plot_errors(
 
     if display_names and len(display_names) != len(integrators):
         raise ValueError(
-            "'display_names' should have the same length as integrators"
-        )
+            "'display_names' should have the same length as integrators")
 
     plt.rcParams.update({"font.size": font_size})
 
@@ -582,8 +755,8 @@ def plot_errors(
 
     for genre in genres:
         genre_data = data[
-            data["problem"].str.contains(genre, na=False, case=False)
-        ]
+            data["problem"].str.contains(
+                genre, na=False, case=False)]
 
         if genre_data.empty:
             print(f"Genre {genre} not found in the 'problem' column")
@@ -591,9 +764,8 @@ def plot_errors(
 
         dimensions = genre_data["Dimension"].unique()
         if len(dimensions) == 0:
-            warnings.warn(
-                f"no data available for problem {genre}, will be skipped"
-            )
+            warnings.warn(f"no data available for problem {genre}, "
+                          "will be skipped")
             continue
 
         dimensions.sort()
@@ -605,8 +777,7 @@ def plot_errors(
 
         for idx, integrator in enumerate(integrators):
             genre_integrator_data = genre_data[
-                genre_data["integrator"] == integrator
-            ]
+                genre_data["integrator"] == integrator]
             errors = []
             error_stds = []
             all_errors_list = []
@@ -620,13 +791,14 @@ def plot_errors(
                     continue
 
                 error_list_str = data_dim["errors"].values[0]
-                if isinstance(error_list_str, float) and (
+                if isinstance(
+                    error_list_str, float) and (
                     np.isnan(error_list_str)
                 ):
                     continue
                 else:
-                    error_list = list(map(float,
-                                          error_list_str.strip("[]").split()))
+                    error_list = list(
+                        map(float, error_list_str.strip("[]").split()))
 
                 error_std = float(data_dim["error_std"].values[0])
                 if plot_absolute and (
@@ -671,8 +843,9 @@ def plot_errors(
                         label=f"{integrator} Std",
                     )
                 else:
-                    plt.errorbar(x_offset, errors, yerr=error_stds,
-                                 fmt="o", capsize=5)
+                    plt.errorbar(
+                        x_offset, errors, yerr=error_stds,
+                        fmt="o", capsize=5)
 
             label = display_names[idx] if display_names else integrator
             plt.plot(x_offset, errors, label=label, marker="o", color=color)
@@ -693,7 +866,8 @@ def plot_errors(
             plt.title(f"Error and Error Std for {genre}")
         plt.xlabel("Dimension", fontsize=axis_label_font_size)
         if plot_absolute:
-            plt.ylabel("Absolute Error", fontsize=axis_label_font_size)
+            plt.ylabel("Absolute Error",
+                       fontsize=axis_label_font_size)
         else:
             plt.ylabel(
                 f'{data["error_type"].values[0]} (%)',
@@ -751,7 +925,8 @@ def plot_times(
 
     Notes
     -----
-    The data should contain columns 'problem', 'integrator', and 'time_taken'
+    The data should contain columns 'problem',
+    'integrator', and 'time_taken'
 
     Usage
     -----
@@ -770,12 +945,12 @@ def plot_times(
     else:
         for integrator in integrators:
             if integrator not in all_integrators:
-                raise ValueError(f"Integrator {integrator} not found in data")
+                raise ValueError(
+                    f"Integrator {integrator} not found in data")
 
-    if len(display_names) != len(integrators):
+    if display_names and len(display_names) != len(integrators):
         raise ValueError(
-            "'display_names' should have the same length as integrators"
-            )
+            "'display_names' should have the same length as integrators")
 
     data["Dimension"] = data["problem"].str.extract(r"D=(\d+)").astype(int)
 
@@ -784,8 +959,7 @@ def plot_times(
         dimensions = genre_data["Dimension"].unique()
         if len(dimensions) == 0:
             warnings.warn(
-                f"no data available for problem {genre}, will be skipped"
-            )
+                f"no data available for problem {genre}, will be skipped")
             continue
         dimensions.sort()
 
@@ -793,8 +967,7 @@ def plot_times(
 
         for i, integrator in enumerate(integrators):
             genre_integrator_data = genre_data[
-                genre_data["integrator"] == integrator
-            ]
+                genre_data["integrator"] == integrator]
             times = []
 
             for dim in dimensions:
@@ -813,7 +986,8 @@ def plot_times(
                 else:
                     times.append(float("nan"))
 
-            plt.gca().xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+            plt.gca().xaxis.set_major_locator(
+                ticker.MaxNLocator(integer=True))
             label = display_names[i] if display_names else integrator
 
             if same_figure:
@@ -835,17 +1009,15 @@ def plot_times(
                     )
                     plt.savefig(file_path)
                     plt.close()
-                    print(
-                        f"Figure saved to {file_path}"
-                    )
+                    print(f"Figure saved to {file_path}")
                 else:
                     plt.savefig(
-                        f"figures/{genre}_time_plot_{integrator}.png"
-                    )
+                        f"figures/{genre}_time_plot_{integrator}.png")
                     plt.close()
                     print(
                         "Figure saved to figures/"
-                        f"{genre}_time_plot_{integrator}.png")
+                        f"{genre}_time_plot_{integrator}.png"
+                    )
 
         if same_figure:
             if title:
@@ -857,11 +1029,13 @@ def plot_times(
             plt.grid(True)
             plt.tight_layout()
             if filename_prefix:
-                plt.savefig(f"figures/{filename_prefix}{genre}_time_plot.png")
+                plt.savefig(
+                    f"figures/{filename_prefix}{genre}_time_plot.png")
                 plt.close()
                 print(
                     "Figure saved to figures/"
-                    f"{filename_prefix}{genre}_time_plot.png")
+                    f"{filename_prefix}{genre}_time_plot.png"
+                )
             else:
                 plt.savefig(f"figures/{genre}_time_plot.png")
                 plt.close()

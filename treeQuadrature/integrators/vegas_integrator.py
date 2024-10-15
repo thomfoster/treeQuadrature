@@ -32,7 +32,8 @@ class VegasIntegrator(Integrator):
         self.n_adaptive = n_adaptive
 
     def __call__(self, problem: Problem,
-                 return_N: bool = False) -> ResultDict:
+                 return_N: bool = False,
+                 **kwargs) -> ResultDict:
         """
         Perform the integration process using the VEGAS algorithm.
 
@@ -42,6 +43,9 @@ class VegasIntegrator(Integrator):
             The integration problem
         return_N : bool, optional
             If True, return the number of samples used.
+        kwargs : dict
+            Additional keyword arguments to pass
+            to vegas integrator.
 
         Return
         -------
@@ -61,7 +65,7 @@ class VegasIntegrator(Integrator):
         f = ShapeAdapter(problem.integrand)
 
         # adaptive runs
-        integ(f, nitn=self.n_adaptive, neval=self.N)
+        integ(f, nitn=self.n_adaptive, neval=self.N, **kwargs)
 
         result_vegas = integ(f, nitn=self.n_iter, neval=self.N)
         estimate = result_vegas.mean

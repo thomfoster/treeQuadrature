@@ -19,24 +19,6 @@ class MinSseSplit(Split):
         This prevents creating very small partitions
         that might not generalize well.
 
-    dimension_weights : callable, optional (default=None)
-        A function that computes weights for selecting
-        dimensions during splitting. \n
-
-        This function should accept the container object as input,
-        and return a 1D array of weights corresponding to each dimension.
-
-        - **Parameters:**
-            - **container (Container):**
-                The container holding the samples and target values.
-
-        - **Returns:**
-            - **weights (np.ndarray):**
-                A 1D array with a weight for each dimension.
-
-        If None, all dimensions are equally
-        likely to be chosen for splitting.
-
     scoring_function : callable, optional (default=None)
         A custom function to evaluate the quality of potential splits.
 
@@ -68,24 +50,20 @@ class MinSseSplit(Split):
 
         If None, the default sum of squared errors (SSE) is used.
 
-    dimension_proportion: float, optional (default=1.0)
-        Proportion of dimensions to consider for splitting.
-        If 1.0, all dimensions are considered. Must be between 0 and 1.
+    random_selection: bool, optional (default=False)
+        If true, randomly select dimensions to search for split
+        instead of using all dimensions.
     """
 
     def __init__(
         self,
         min_samples_leaf: int = 1,
-        dimension_weights: Optional[callable] = None,
         scoring_function: Optional[callable] = None,
-        dimension_proportion: float = 1.0,
+        random_selection: bool = False
     ) -> None:
         self.min_samples_leaf = min_samples_leaf
-        self.dimension_weights = dimension_weights
         self.scoring_function = scoring_function or self.default_sse_score
-        # Clamping between 0 and 1
-        self.dimension_proportion = max(0, min(
-            dimension_proportion, 1))
+        self.random_selection = random_selection
 
     def split(self, container: Container) -> List[Container]:
         """
@@ -109,31 +87,21 @@ class MinSseSplit(Split):
 
         ys = container.y.reshape(-1)
 
-        if self.dimension_weights:
-            dimension_weights = self.dimension_weights(container)
+        # split wider sides with higher probability. 
+        if self.random_selection:
+            dimension_weights = container.maxs - container.mins
+            dimension_probs = dimension_weights / sum(dimension_weights)
 
-            # Remove negative values and normalize weights
-            dimension_weights = np.clip(dimension_weights,
-                                        a_min=0, a_max=None)
-            total_weight = np.sum(dimension_weights)
-
-            # If total weight is zero, assign equal probability
-            if total_weight == 0:
-                dimension_probs = np.ones(dims) / dims
-            else:
-                dimension_probs = dimension_weights / total_weight
+            # Select a proportion of dimensions based on dimension_proportion
+            num_selected_dimensions = int(np.sqrt(dims))
+            selected_dimensions = np.random.choice(
+                range(dims),
+                size=num_selected_dimensions,
+                p=dimension_probs,
+                replace=False
+            )
         else:
-            # Assign equal weights if no weights are specified
-            dimension_probs = np.ones(dims) / dims
-
-        # Select a proportion of dimensions based on dimension_proportion
-        num_dimensions_to_select = max(1, int(
-            self.dimension_proportion * dims))
-        selected_dimensions = np.random.choice(
-            range(dims),
-            size=num_dimensions_to_select,
-            replace=False, p=dimension_probs
-        )
+            selected_dimensions = range(dims)
 
         best_dimension = -1
         best_thresh = np.inf
@@ -260,6 +228,18 @@ class MinSseSplit(Split):
         """
         Default scoring function: Sum of squared errors (SSE).
         """
-        var_left = (sum_sq_left - (sum_left**2) / count_left) / count_left
-        var_right = (sum_sq_right - (sum_right**2) / count_right) / count_right
+        var_left = (sum_sq_left - sum_left**2 / count_left)
+        var_right = (sum_sq_right - sum_right**2 / count_right)
         return var_left * count_left + var_right * count_right
+
+
+def relative_sse_score(
+        sum_left, sum_right, sum_sq_left, sum_sq_right, count_left, count_right
+    ):
+    """
+    Divide the variance by sum of squared to remove effect of magnitude. 
+    """
+    var_left = sum_sq_left - sum_left**2 / count_left
+    var_right = sum_sq_right - sum_right**2 / count_right
+    return var_left * count_left / sum_sq_left + \
+        var_right * count_right / sum_sq_right

@@ -48,7 +48,8 @@ class MinSseSplit(Split):
               the split quality, where a lower
               score indicates a better split.
 
-        If None, the default sum of squared errors (SSE) is used.
+        If None, the default relative sum of squared errors
+        (RelSSE) is used.
 
     random_selection: bool, optional (default=False)
         If true, randomly select dimensions to search for split
@@ -62,7 +63,7 @@ class MinSseSplit(Split):
         random_selection: bool = False
     ) -> None:
         self.min_samples_leaf = min_samples_leaf
-        self.scoring_function = scoring_function or self.default_sse_score
+        self.scoring_function = scoring_function or relative_sse_score
         self.random_selection = random_selection
 
     def split(self, container: Container) -> List[Container]:
@@ -220,9 +221,9 @@ class MinSseSplit(Split):
                     best_score = score
 
         return best_thresh, best_score
+    
 
-    @staticmethod
-    def default_sse_score(
+def sse_score(
         sum_left, sum_right, sum_sq_left, sum_sq_right, count_left, count_right
     ):
         """
@@ -231,7 +232,6 @@ class MinSseSplit(Split):
         var_left = (sum_sq_left - sum_left**2 / count_left)
         var_right = (sum_sq_right - sum_right**2 / count_right)
         return var_left * count_left + var_right * count_right
-
 
 def relative_sse_score(
         sum_left, sum_right, sum_sq_left, sum_sq_right, count_left, count_right

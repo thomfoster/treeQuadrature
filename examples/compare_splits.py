@@ -2,7 +2,7 @@ from treeQuadrature.integrators import DistributedTreeIntegrator
 from treeQuadrature.samplers import McmcSampler
 from treeQuadrature.container_integrators import RandomIntegral
 from treeQuadrature.trees import SimpleTree
-from treeQuadrature.splits import MinSseSplit, relative_sse_score
+from treeQuadrature.splits import MinSseSplit, relative_sse_score, sse_score
 from treeQuadrature.example_problems import Camel, Ripple
 from treeQuadrature.compare_integrators import test_integrators
 
@@ -24,8 +24,9 @@ rmeanIntegral = RandomIntegral()
 # =======
 # splits
 # =======
-split_default_sse = MinSseSplit()
-split_default_sse_random = MinSseSplit(random_selection=True)
+split_default_sse = MinSseSplit(scoring_function=sse_score)
+split_default_sse_random = MinSseSplit(scoring_function=sse_score,
+                                       random_selection=True)
 split_rel_sse = MinSseSplit(scoring_function=relative_sse_score)
 split_rel_sse_random = MinSseSplit(scoring_function=relative_sse_score,
                                    random_selection=True)

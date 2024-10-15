@@ -5,7 +5,8 @@ from treeQuadrature.example_problems import (
 )
 from treeQuadrature.integrators import (
     BatchGpIntegrator, DistributedGpTreeIntegrator, SmcIntegrator, 
-    DistributedTreeIntegrator, VegasIntegrator, VegasTreeIntegrator
+    DistributedTreeIntegrator, VegasIntegrator, VegasTreeIntegrator,
+    ISTreeIntegrator
 )
 from treeQuadrature.container_integrators import (
     RandomIntegral, KernelIntegral, AdaptiveRbfIntegral, 
@@ -13,7 +14,7 @@ from treeQuadrature.container_integrators import (
 )
 from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit, UniformSplit
-from treeQuadrature.splits.min_sse_split import relative_sse_score
+from treeQuadrature.splits.min_sse_split import relative_sse_score, sse_score
 from treeQuadrature.samplers import (
     ImportanceSampler, UniformSampler, McmcSampler,
     SobolSampler, LHSImportanceSampler
@@ -95,8 +96,9 @@ lhsSampler = LHSImportanceSampler()
 
 
 split = MinSseSplit(scoring_function=relative_sse_score)
-split_default_sse = MinSseSplit()
-split_random = MinSseSplit(scoring_function=relative_sse_score, random_selection=True)
+split_default_sse = MinSseSplit(scoring_function=sse_score)
+split_random = MinSseSplit(scoring_function=relative_sse_score,
+                           random_selection=True)
 split_kd = KdSplit()
 split_uniform = UniformSplit()
 
@@ -173,6 +175,10 @@ integ_mean_random_split = DistributedTreeIntegrator(
     min_container_samples=min_container_samples)
 integ_mean_random_split.name = 'TQ with mean and random splitting'
 
+integ_is = ISTreeIntegrator(
+    N, tree_simple, mcmcSampler
+)
+integ_is.name = 'Tree with importance sampling'
 
 integ_activeTQ = DistributedTreeIntegrator(
     N, max_n_samples=max_n_samples,
@@ -249,7 +255,7 @@ integ_vegas_tree_rbf.name = 'Vegas + TQ + RBF'
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_mean, integ_mean_default_sse], plot=True, verbose=1,
+    compare_integrators([integ_mean_default_sse, integ_mean], plot=True, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]],
                         problem=problem, dimensions=[0, 1], integrator_specific_kwargs=

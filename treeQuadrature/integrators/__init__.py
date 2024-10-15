@@ -7,6 +7,7 @@ from .batch_gp_integrator import BatchGpIntegrator
 from .distributed_tree_integrator import DistributedTreeIntegrator
 from .distributed_gp_integrator import DistributedGpTreeIntegrator
 from .vegas_tree_integrator import VegasTreeIntegrator
+from .is_tree_integrator import ISTreeIntegrator
 
 __all__ = [
     "Integrator",

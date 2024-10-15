@@ -134,7 +134,7 @@ class Container:
             corresponding values
         warning : bool, optional
             if true, throw a warning if some points are outside
-            Defaults to True
+            Defaults to False
 
         Returns
         -------

@@ -158,4 +158,6 @@ def test_infinite_container(D, mins, maxs):
 
     cont = tq.container.Container(X, y, mins=mins, maxs=maxs)
     samples = cont.rvs(10)
-    assert cont.filter_points(samples, return_bool=True), 'some samples not in the container'
+    filtered_points = cont.filter_points(samples, warning=False)
+    assert filtered_points.shape[0] == 10, (
+        'some samples not in the container')

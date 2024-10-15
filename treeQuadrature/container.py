@@ -140,7 +140,7 @@ class Container:
         -------
         np.ndarray, np.ndarray or bool
             Two arrays: one of the points that are within the container,
-            and another of the corresponding y values.
+            and another of the corresponding y values. \n
             bool: indicates whether all points are inside the container
 
         """
@@ -164,8 +164,10 @@ class Container:
                 elif above_bound[0].size > 0:
                     warnings.warn(f"Deviation above bounds: {deviation_above}")
 
-        return X[in_bounds] if (
-            y is None) else X[in_bounds], y[in_bounds]
+        if y is None:
+            return X[in_bounds]
+        else:
+            return X[in_bounds], y[in_bounds]
 
     def add(self, new_X: np.ndarray, new_y: np.ndarray):
         """

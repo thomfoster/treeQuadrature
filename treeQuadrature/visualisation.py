@@ -948,7 +948,7 @@ def plot_times(
                 raise ValueError(
                     f"Integrator {integrator} not found in data")
 
-    if len(display_names) != len(integrators):
+    if display_names and len(display_names) != len(integrators):
         raise ValueError(
             "'display_names' should have the same length as integrators")
 

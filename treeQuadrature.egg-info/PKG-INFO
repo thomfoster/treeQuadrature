@@ -1,10 +1,8 @@
-Metadata-Version: 1.0
+Metadata-Version: 2.1
 Name: treeQuadrature
 Version: 0.1
 Summary: Space partition trees for high dimensional integration
 Home-page: http://github.com/thomfoster
-Author: Thomas Foster
-Author-email: thomas.foster@keble.ox.ac.uk
+Author: Thomas Foster, Yuhang Lin, Otto Arends Page, Ben Lambert
+Author-email: fosterthom16@gmail.com, daniel.kansaki@outlook.com, otto.arendspage@jesus.ox.ac.uk, ben.lambert@stats.ox.ac.uk
 License: MIT
-Description: UNKNOWN
-Platform: UNKNOWN

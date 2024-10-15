@@ -1,0 +1,255 @@
+from scipy.stats import multivariate_normal
+from abc import ABC, abstractmethod
+import numpy as np
+
+
+class Distribution(ABC):
+    """
+    An abstract framework for distributions
+    for defining BayesProblem.
+    """
+
+    def __init__(self, D):
+        self.D = D  # dimensions of the distribution
+
+    @abstractmethod
+    def rvs(self, n: int, *args, **kwargs) -> np.ndarray:
+        """
+        Generate random variates of the distribution.
+
+        Args:
+        -----
+        n : int
+            number of samples
+        *args, **kwargs : Any
+            Additional arguments and keyword arguments
+            for generating the random variates.
+
+        Return
+        -------
+        np.ndarray
+            contains samples from the distribution,
+            must have shape (n, self.D)
+        """
+        pass
+
+    @abstractmethod
+    def pdf(self, X, *args, **kwargs) -> np.ndarray:
+        """
+        Calculate the probability density function (pdf)
+        at given point x.
+
+        Parameters:
+        -----------
+
+        X : np.ndarray
+            array of points on which the pdf value should be evaluated
+        *args, **kwargs: Any
+            Additional arguments and
+            keyword arguments for the pdf computation.
+
+        Returns: numpy.ndarray
+            The probability densities at x_i (rows of X)
+        """
+        pass
+
+
+# =====================
+# Example Distributions
+# =====================
+class Uniform(Distribution):
+    """
+    Uniform distribution
+
+    Attributes
+    ----------
+    low, high : float or numpy.ndarray of shape (D, )
+        the lower and uppper bounds
+        if float given, the same bound used for all dimensions
+    """
+
+    def __init__(self, D, low, high):
+        super().__init__(D=D)
+        self.low = self._handle_low_high(low)
+        self.high = self._handle_low_high(high)
+
+    def _handle_low_high(self, value):
+        if isinstance(value, (int, float)):
+            return np.array([value] * self.D)
+        elif isinstance(value, (list, np.ndarray)):
+            return np.array(value)
+
+    def rvs(self, n):
+        return np.random.uniform(low=self.low,
+                                 high=self.high, size=(n, self.D))
+
+    def pdf(self, X):
+        within_bounds = np.all((X >= self.low) & (X <= self.high), axis=1)
+        # Volume of the hyperrectangle
+        pdfVal = np.prod(self.high - self.low)
+
+        # Calculate the PDF values
+        pdf_values = np.where(
+            within_bounds, 1 / pdfVal, 0).reshape(X.shape[0], 1)
+        return pdf_values
+
+
+class MultivariateNormal(Distribution):
+    """
+    Multivariate Normal/Gaussian distribution
+
+    Attributes
+    ----------
+    mean : numpy.ndarray of shape (D, )
+        the mean vector of Gaussian distribution
+    cov : float, or numpy.ndarray of shape (D, D)
+        the covariance matrix
+        if float given, covariance matrix is cov * np.eye(D)
+    """
+
+    def __init__(self, D, mean, cov):
+        super().__init__(D=D)
+        self.mean = mean
+        assert len(mean) == D, "Mean vector length must match dimension D"
+        # Handle covariance matrix, expand if scalar
+        if np.isscalar(cov):
+            self.cov = cov * np.eye(D)
+        else:
+            self.cov = np.array(cov)
+            assert self.cov.shape == (D, D), (
+                "Covariance matrix must be of shape (D, D), "
+            )
+
+        # Check if the covariance matrix is positive definite
+        eigenvalues = np.linalg.eigvals(self.cov)
+        if np.any(eigenvalues <= 0):
+            raise ValueError("Covariance matrix must be positive definite")
+
+        self.d = multivariate_normal(mean=mean, cov=cov)
+
+    def rvs(self, n):
+        """Ensure resulting array is 2D"""
+        return self.d.rvs(n).reshape(-1, self.D)
+
+    def pdf(self, X):
+        """Ensure resulting array is 2D"""
+        return self.d.pdf(X).reshape(-1, 1)
+
+
+class MixtureDistribution:
+    """
+    Base class for our multimodal distributions
+
+    Attribtues
+    ----------
+    D : int
+        dimension of the problem
+    dists : list
+        component distributions
+    weights : list
+        weights of each component distribution
+    """
+
+    def __init__(self, D, weights):
+        self.D = D
+        # Inherited classes define how to choose mixture dists
+        self.dists = []
+        self.weights = weights
+
+    def rvs(self, n_samples):
+        if n_samples == 0:
+            return np.empty(shape=(0, self.D))
+
+        dists = list(range(len(self.dists)))
+        which_dist = np.random.choice(dists, size=(n_samples,), p=self.weights)
+        X = np.array(
+            [
+                self.dists[i]
+                .rvs(1)
+                .reshape(
+                    -1,
+                )
+                for i in which_dist
+            ]
+        )
+        return X
+
+    def pdf(self, x):
+        fvals = [
+            self.weights[i]
+            * dist.pdf(x).reshape(
+                -1,
+            )
+            for i, dist in enumerate(self.dists)
+        ]
+        fvals = np.stack(fvals)
+        sums = np.sum(fvals, axis=0)
+        return sums.reshape(-1, 1)
+
+
+class Camel(MixtureDistribution):
+    """
+    Specific multimodal distribution used as a test in the literature.
+
+    A pair of D-dimensional gaussian distributions,
+        with shared covariance sigma=1/200 I,
+        and means placed at 1/3 and 2/3 along the unit hypercube diagonal.
+
+    Default weights are equal
+    """
+
+    def __init__(self, D, weights=None):
+        self.D = D
+
+        if weights is None:
+            self.weights = [1 / 2] * 2
+        else:
+            assert len(weights) == 2, "weights of Camel must have length 2"
+            assert sum(weights) == 1, "sum of weights must be 1"
+            self.weights = weights
+
+        mean1 = (1 / np.sqrt(D)) * (1 / 3)
+        mean2 = (1 / np.sqrt(D)) * (2 / 3)
+
+        cov = 1 / 200
+
+        self.dists = [
+            multivariate_normal(mean=[mean1] * D, cov=cov),
+            multivariate_normal(mean=[mean2] * D, cov=cov),
+        ]
+
+
+class QuadCamel(MixtureDistribution):
+    """
+    Complementary test to the camel, more humps, more spaced out.
+
+    4 D-dimensiona gaussian distributions,
+        with shared covariance 1/200 I,
+        and means placed at 1,3,5,7 along the unit hypercube.
+
+    Default weights are equal
+    """
+
+    def __init__(self, D, weights=None):
+        self.D = D
+
+        if weights is None:
+            self.weights = [1 / 4] * 4
+        else:
+            assert len(weights) == 4, "weights of QuadCamel must have length 4"
+            assert sum(weights) == 1, "sum of weights must be 1"
+            self.weights = weights
+
+        mean1 = (1 / np.sqrt(D)) * 2
+        mean2 = (1 / np.sqrt(D)) * 4
+        mean3 = (1 / np.sqrt(D)) * 6
+        mean4 = (1 / np.sqrt(D)) * 8
+
+        cov = 1 / 200
+
+        self.dists = [
+            multivariate_normal(mean=[mean1] * D, cov=cov),
+            multivariate_normal(mean=[mean2] * D, cov=cov),
+            multivariate_normal(mean=[mean3] * D, cov=cov),
+            multivariate_normal(mean=[mean4] * D, cov=cov),
+        ]

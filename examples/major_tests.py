@@ -13,6 +13,7 @@ from treeQuadrature.container_integrators import (
 )
 from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit, UniformSplit
+from treeQuadrature.splits.min_sse_split import relative_sse_score
 from treeQuadrature.samplers import (
     ImportanceSampler, UniformSampler, McmcSampler,
     SobolSampler, LHSImportanceSampler
@@ -22,7 +23,7 @@ from treeQuadrature.trees import SimpleTree, LimitedSampleTree
 
 import numpy as np
 
-D = 10
+D = 2
 
 ### Set problem
 problem = Camel(D=D)
@@ -39,9 +40,6 @@ problem = Camel(D=D)
 ### set basic parameters
 n_samples = 20
 max_redraw = 4
-
-# for random split
-random_split_proportion = 0.5
 
 # for vegas and Vegas Tree
 vegas_n_iter = 10
@@ -95,22 +93,18 @@ mcmc_heated = McmcSampler(temperature=2)
 sobolSampler = SobolSampler()
 lhsSampler = LHSImportanceSampler()
 
-# =========
-# set split
-# =========
-def side_lengths(container: Container):
-    return container.maxs - container.mins
 
-split = MinSseSplit()
-split_random = MinSseSplit(dimension_weights=side_lengths,
-                    dimension_proportion=random_split_proportion)
+split = MinSseSplit(scoring_function=relative_sse_score)
+split_default_sse = MinSseSplit()
+split_random = MinSseSplit(scoring_function=relative_sse_score, random_selection=True)
 split_kd = KdSplit()
 split_uniform = UniformSplit()
 
 # ===========
 # set Tree
 # ===========
-tree_simple = SimpleTree(split=split, P=P, max_iter=5e3)
+tree_simple = SimpleTree(split=split, P=P)
+tree_simple_default_sse = SimpleTree(split=split_default_sse, P=P)
 
 tree_random = SimpleTree(split=split_random, P=P)
 
@@ -154,6 +148,14 @@ integ_mean = DistributedTreeIntegrator(
     max_container_samples=max_container_samples,
     min_container_samples=min_container_samples)
 integ_mean.name = 'TQ with mean'
+
+integ_mean_default_sse = DistributedTreeIntegrator(
+    N, max_n_samples=max_n_samples,
+    integral=rmeanIntegral, sampler=mcmcSampler,
+    tree=tree_simple_default_sse,
+    max_container_samples=max_container_samples,
+    min_container_samples=min_container_samples)
+integ_mean_default_sse.name = 'TQ with mean and default SSE score'
 
 integ_mean_heated = DistributedTreeIntegrator(
     N, max_n_samples=max_n_samples,
@@ -247,12 +249,12 @@ integ_vegas_tree_rbf.name = 'Vegas + TQ + RBF'
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_mean_minsse], plot=False, verbose=1,
+    compare_integrators([integ_mean, integ_mean_default_sse], plot=True, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]],
                         problem=problem, dimensions=[0, 1], integrator_specific_kwargs=
                         {'ActiveTQ': {'max_iter' : max_iter}},
-                        n_repeat=5)
+                        n_repeat=1)
     # compare_integrators([integ_rbf_non_adaptive], plot=True, verbose=1,
     #                     xlim=[problem.lows[0], problem.highs[0]], 
     #                     problem=problem, dimensions=[0, 1], 

@@ -48,7 +48,7 @@ def test_io(integrator_instance):
     tq.integrators.BatchGpIntegrator(
         200, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()),
         integral=tq.container_integrators.KernelIntegral(n_splits=0)),
-    tq.integrators.VegasTreeIntegrator(200, 200)
+    tq.integrators.VegasTreeIntegrator(200)
 ])
 def test_treeIntegrator_io(integrator_instance):
     problem = tq.example_problems.SimpleGaussian(1)
@@ -77,7 +77,7 @@ def test_treeIntegrator_io(integrator_instance):
         1000, integral=tq.container_integrators.RandomIntegral()),
     tq.integrators.BayesMcIntegrator(200),
     tq.integrators.SmcIntegrator(300),
-    tq.integrators.VegasTreeIntegrator(300, 300),
+    tq.integrators.VegasTreeIntegrator(300),
     tq.integrators.BatchGpIntegrator(
         300, tree=tq.trees.SimpleTree(split=tq.splits.KdSplit()),
         integral=tq.container_integrators.KernelIntegral(n_splits=0))

@@ -49,12 +49,10 @@ class VegasIntegrator(Integrator):
 
         Return
         -------
-        dict
-            with the following keys:
-            - 'estimate' (float):
-                estimated integral value
-            - 'n_evals' (int):
-                number of function estiamtions, if return_N is True
+        ResultDict
+            - 'estimate' (float): Estimated integral value.
+            - 'n_evals' (int): Number of function evaluations,
+            if return_N is True.
         """
         domain_bounds = []
         for i in range(problem.D):

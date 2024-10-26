@@ -110,9 +110,9 @@ class MinSseSplit(Split):
 
         # Evaluate splits
         for dim in selected_dimensions:
-            thresh, score = self.evaluate_split(samples,
-                                                ys, dim,
-                                                self.min_samples_leaf)
+            thresh, score = self.evaluate_split(
+                samples, ys, dim)
+
             if score < best_score:
                 best_dimension = dim
                 best_thresh = thresh
@@ -130,7 +130,8 @@ class MinSseSplit(Split):
         ):
             warnings.warn(
                 "Split resulted in a zero-volume container; "
-                "reverting to original container"
+                "reverting to original container",
+                RuntimeWarning
             )
             return [container]
 
@@ -138,7 +139,7 @@ class MinSseSplit(Split):
 
     def evaluate_split(
         self, samples: np.ndarray, ys: np.ndarray,
-        dim: int, min_samples_leaf: int
+        dim: int
     ):
         """
         Evaluate the best split for a given dimension.
@@ -151,8 +152,6 @@ class MinSseSplit(Split):
             The target values.
         dim : int
             The dimension along which to split.
-        min_samples_leaf : int
-            Minimum number of samples required in each leaf.
 
         Returns
         -------
@@ -168,10 +167,11 @@ class MinSseSplit(Split):
         xss = xs[indices]
         yss = np.array(ys[indices], copy=True)
 
-        return self.findMinSplit(xss, yss, min_samples_leaf)
+        thresh, score = self.findSplit(xss, yss)
 
-    def findMinSplit(self, xs: np.ndarray, ys: np.ndarray,
-                     min_samples_leaf: int):
+        return thresh, score
+
+    def findSplit(self, xs: np.ndarray, ys: np.ndarray):
         """
         Partition xs and ys such that the custom scoring
         function is minimised.
@@ -180,21 +180,19 @@ class MinSseSplit(Split):
         --------
         xs, ys: numpy.ndarray
             both 1D array, xs is sorted, ys aligned with xs
-        min_samples_leaf: int
-            Minimum number of samples required to be in each leaf.
         """
 
         best_thresh = np.inf
         best_score = np.inf
 
         n = ys.shape[0]
-        sum_left = np.sum(ys[: (min_samples_leaf - 1)])
+        sum_left = np.sum(ys[: (self.min_samples_leaf - 1)])
         sum_right = np.sum(ys) - sum_left
-        sum_sq_left = np.sum(ys[: (min_samples_leaf - 1)] ** 2)
+        sum_sq_left = np.sum(ys[: (self.min_samples_leaf - 1)] ** 2)
         sum_sq_right = np.sum(ys**2) - sum_sq_left
 
         # Iterate through all possible splits
-        for i in range(min_samples_leaf, n - min_samples_leaf + 1):
+        for i in range(self.min_samples_leaf, n - self.min_samples_leaf + 1):
             sum_left += ys[i - 1]
             sum_right -= ys[i - 1]
             sum_sq_left += ys[i - 1] ** 2
@@ -224,22 +222,36 @@ class MinSseSplit(Split):
     
 
 def sse_score(
-        sum_left, sum_right, sum_sq_left, sum_sq_right, count_left, count_right
-    ):
+    sum_left, sum_right, sum_sq_left, sum_sq_right, count_left, count_right
+):
         """
         Default scoring function: Sum of squared errors (SSE).
         """
-        var_left = (sum_sq_left - sum_left**2 / count_left)
-        var_right = (sum_sq_right - sum_right**2 / count_right)
-        return var_left * count_left + var_right * count_right
+        var_left = sum_sq_left - sum_left**2 / count_left
+        var_right = sum_sq_right - sum_right**2 / count_right
+        return var_left + var_right
 
 def relative_sse_score(
-        sum_left, sum_right, sum_sq_left, sum_sq_right, count_left, count_right
-    ):
+    sum_left, sum_right, sum_sq_left, sum_sq_right, count_left, count_right
+):
     """
     Divide the variance by sum of squared to remove effect of magnitude. 
     """
     var_left = sum_sq_left - sum_left**2 / count_left
     var_right = sum_sq_right - sum_right**2 / count_right
     return var_left * count_left / sum_sq_left + \
-        var_right * count_right / sum_sq_right
+        var_right *count_right / sum_sq_right
+
+def var_reduction_score(
+    sum_left, sum_right, sum_sq_left, sum_sq_right, count_left, count_right
+):
+    var_left = sum_sq_left - sum_left**2 / count_left
+    var_right = sum_sq_right - sum_right**2 / count_right
+    # total count
+    n = count_left + count_right
+    var_total = sum_sq_left + sum_sq_right - (
+        sum_left + sum_right) ** 2 / n
+    
+    # should divide by n but omitted
+    # as it's same across all splits
+    return var_total - var_left - var_right

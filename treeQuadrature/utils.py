@@ -173,15 +173,18 @@ def integrand_for_cuba(integrand_func):
         A function compatible with Cuba's expected integrand format.
     """
     def Integrand(ndim, xx, ncomp, ff, userdata):
-        # Convert `xx` (a ctypes array) to a numpy array for easier manipulation
-        xx_array = np.ctypeslib.as_array(xx, shape=(ndim.contents.value,))
-        xx_reshaped = xx_array.reshape(1, -1)  # Reshape to (1, D) for compatibility
+        num_dims = ndim.contents.value
 
-        # Compute the function value using `integrand_func`
+        # Convert `xx` (ctypes array) to a 1D numpy array,
+        # and reshape to (1, D)
+        xx_array = np.ctypeslib.as_array(xx, shape=(num_dims,))
+        xx_reshaped = xx_array.reshape(1, -1)  # Shape (1, D)
+
         result = integrand_func(xx_reshaped)
-
-        # Assign the first result to `ff[0]`
-        ff[0] = result[0]
+        
+        # Safely assign the result to `ff`
+        ff[0] = result[0][0] if (
+            isinstance(result, np.ndarray)) else float(result)
 
         return 0
 

@@ -1,5 +1,5 @@
 from queue import SimpleQueue
-from typing import List, Union
+from typing import List, Union, Optional
 import time
 import warnings
 
@@ -41,7 +41,8 @@ class SimpleTree(Tree):
 
     def construct_tree(
         self, root: Union[Container, List[Container]],
-        verbose: bool = False, max_iter=5e3,
+        verbose: bool = False, max_iter: int=5e3,
+        max_splits: Optional[int] = None,
         warning: bool = True
     ) -> List[Container]:
         """
@@ -57,6 +58,7 @@ class SimpleTree(Tree):
         max_iter : int, optional
             Maximum number of binary splits.
             by default 2000.
+        max_splits: int, optional
         warning: bool, optional
             If True, show warning when max_iter is reached. \n
             by default True.
@@ -86,8 +88,11 @@ class SimpleTree(Tree):
         # for verbose tracking
         start_time = time.time()
         iteration_count = 0
+        increment = 0  # in number of containers
 
         while not q.empty() and iteration_count < max_iter:
+            if max_splits and increment >= max_splits:
+                break
             iteration_count += 1
             c = q.get()
 
@@ -107,6 +112,8 @@ class SimpleTree(Tree):
                     for child in children:
                         q.put(child)
 
+                    increment += len(children) - 1
+
             # Log every 100 iterations
             if iteration_count % 100 == 0 and verbose:
                 elapsed_time = time.time() - start_time
@@ -118,7 +125,8 @@ class SimpleTree(Tree):
 
         total_time = time.time() - start_time
 
-        if iteration_count == max_iter:
+        reached_max_splits = max_splits and increment >= max_splits
+        if iteration_count == max_iter or reached_max_splits:
             if warning:
                 warnings.warn(
                     f"maximum iterations {max_iter} reached for "

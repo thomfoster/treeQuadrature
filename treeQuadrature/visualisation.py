@@ -25,6 +25,9 @@ def plot_containers(
     colors: str = "YlOrRd",
     c_bar_labels: str = "Contributions",
     font_size: int = 15,
+    file_path: Optional[str] = None,
+    resolution: int = 200,
+    running: bool = False,
     **kwargs,
 ) -> None:
     """
@@ -63,6 +66,18 @@ def plot_containers(
         labels for colour bar in
         2D plot.
         Default : 'Contributions'
+    file_path : str, optional
+        if provided, the figure will be saved. \n
+        otherwise, the figure will be displayed.
+    resolution : int, optional
+        resolution of the saved figure. \n
+        Defaults to 200.
+    running: bool, optional
+        If true, the other parts of code will keep running
+        while the plots are being produced.
+        plt.show() must be added in your codes
+        to see the plots
+        Default: False
     **kwargs : Any, optional
         additional arguments for
         _plot_containers_1D and _plot_containers_2D
@@ -119,6 +134,17 @@ def plot_containers(
             "Only 1D and 2D plots are supported. "
             "Please provide 2 dimensions to plot for higher dimensions"
         )
+    
+    if file_path:
+        plt.savefig(file_path, dpi=resolution)
+        plt.close()
+        print(f"figure saved to {file_path}")
+    else:
+        if running:
+            plt.draw()
+            plt.pause(0.1)
+        else:
+            plt.show()
 
 
 def _plot_containers_2D(
@@ -133,9 +159,7 @@ def _plot_containers_2D(
     colors: str = "YlOrRd",
     c_bar_labels: str = "Contributions",
     c_bar_tick_size=12,
-    font_size: int = 15,
-    file_path: Optional[str] = None,
-    resolution: int = 200,
+    font_size: int = 15
 ):
     """
     Plot the containers and their contributions, slicing
@@ -176,12 +200,6 @@ def _plot_containers_2D(
     font_size : int, optional
         font size for the plot. \n
         Defaults to 15.
-    file_path : str, optional
-        if provided, the figure will be saved. \n
-        otherwise, the figure will be displayed.
-    resolution : int, optional
-        resolution of the saved figure. \n
-        Defaults to 200.
     """
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot()
@@ -232,13 +250,6 @@ def _plot_containers_2D(
     plt.title(title, fontsize=font_size * 1.2)
     ax.tick_params(axis="both", labelsize=font_size)
 
-    if file_path:
-        plt.savefig(file_path, dpi=resolution)
-        plt.close()
-        print(f"figure saved to {file_path}")
-    else:
-        plt.show()
-
 
 def _plot_containers_1D(
     containers: List[Container],
@@ -247,9 +258,7 @@ def _plot_containers_1D(
     integrand: Optional[Callable] = None,
     title: Optional[str] = None,
     plot_samples: bool = True,
-    font_size: int = 15,
-    file_path: Optional[str] = None,
-    resolution: int = 200,
+    font_size: int = 15
 ):
     """
     Plot the containers and their contributions in 1D.
@@ -279,12 +288,6 @@ def _plot_containers_1D(
     font_size : int, optional
         font size for the plot. \n
         Defaults to 15.
-    file_path : str, optional
-        if provided, the figure will be saved. \n
-        otherwise, the figure will be displayed.
-    resolution : int, optional
-        resolution of the saved figure. \n
-        Defaults to 200.
     """
     if integrand is not None:
         # plot the integrand
@@ -345,13 +348,6 @@ def _plot_containers_1D(
     plt.title(title, fontsize=font_size * 1.2)
     plt.legend(fontsize=font_size)
     plt.tick_params(axis="both", labelsize=font_size)
-
-    if file_path:
-        plt.savefig(file_path, dpi=resolution)
-        plt.close()
-        print(f"figure saved to {file_path}")
-    else:
-        plt.show()
 
 
 def plot_container(ax: Axes, container: Container,

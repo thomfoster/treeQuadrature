@@ -8,6 +8,9 @@ from .distributed_tree_integrator import DistributedTreeIntegrator
 from .distributed_gp_integrator import DistributedGpTreeIntegrator
 from .vegas_tree_integrator import VegasTreeIntegrator
 from .is_tree_integrator import ISTreeIntegrator
+from .cuba.suave_integrator import SuaveIntegrator
+from .cuba.cuhre_integrator import CuhreIntegrator
+from .cuba.divonne_integrator import DivonneIntegrator
 
 __all__ = [
     "Integrator",
@@ -18,5 +21,9 @@ __all__ = [
     "DistributedGpTreeIntegrator",
     "VegasIntegrator",
     "SmcIntegrator",
-    "VegasTreeIntegrator"
+    "VegasTreeIntegrator",
+    "ISTreeIntegrator",
+    "SuaveIntegrator",
+    "CuhreIntegrator",
+    "DivonneIntegrator"
 ]

@@ -14,7 +14,7 @@ class ISTreeIntegrator(TreeIntegrator):
     def __init__(self, base_N, tree = None,
                  sampler = None, parallel = True,
                  N_init: int=10,
-                 N_eval: int=20_000,
+                 max_n_samples: int=30_000,
                  *args, **kwargs):
         """
         Initialise the ISTreeIntegrator.
@@ -37,13 +37,17 @@ class ISTreeIntegrator(TreeIntegrator):
             Number of initial samples used to determine
             container densities.
             Default: 10
+        max_n_samples: int, optional
+            Maximum number of samples allowed in total.
+            This includes samples for tree-construction
+            and importance sampling.
         *args, **kwargs : Any
             Additional arguments to be passed to the tree construction method.
         """
         super().__init__(base_N, tree, None, sampler, parallel,
                          *args, **kwargs)
         self.N_init = N_init
-        self.N_eval = N_eval
+        self.max_n_samples = max_n_samples
     
     def __call__(self, problem:Problem, return_N = False,
                  return_containers = False, return_std = False,
@@ -77,8 +81,7 @@ class ISTreeIntegrator(TreeIntegrator):
         return compiled_result
 
     def integrate_containers(self, containers:List[Container], problem:Problem,
-                             compute_std:bool = False,
-                             **kwargs):
+                             compute_std:bool = False):
         # generate N_init new uniform samples in each container
         cont_ss = [] # record square root of sum of squared
         for c in containers:
@@ -94,9 +97,11 @@ class ISTreeIntegrator(TreeIntegrator):
         weights = cont_ss * cont_vols
         probabilities = weights / sum(weights)
 
+        N_eval = self.max_n_samples - np.sum(
+            [cont.N for cont in containers])
         cont_indices = np.random.choice(list(range(len(containers))),
                                 p=probabilities,
-                                size=self.N_eval)
+                                size=N_eval)
         
         # Obtain the corresponding samples
         total_weighted_sum = 0
@@ -116,12 +121,12 @@ class ISTreeIntegrator(TreeIntegrator):
             weighted_squares_sum += np.sum(weighted_contributions ** 2)
 
             
-        estimate = total_weighted_sum / self.N_eval
+        estimate = total_weighted_sum / N_eval
         result = {'estimate' : estimate}
         if compute_std:
             # second moment
-            M2_hat = weighted_squares_sum / self.N_eval
-            variance_hat = (M2_hat - estimate**2) / self.N_eval
+            M2_hat = weighted_squares_sum / N_eval
+            variance_hat = (M2_hat - estimate**2) / N_eval
             result['std'] = np.sqrt(variance_hat)
 
         return result

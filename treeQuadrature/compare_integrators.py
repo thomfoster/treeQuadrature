@@ -41,6 +41,7 @@ def compare_integrators(
     dimensions: Optional[List[float]] = None,
     n_repeat: int = 1,
     integrator_specific_kwargs: Optional[dict] = None,
+    print_all_errors: bool=False,
     **kwargs: Any,
 ) -> None:
     """
@@ -99,6 +100,9 @@ def compare_integrators(
         and the values are dictionaries of specific arguments
         to be passed to those integrators. \n
         Default is None.
+    print_all_errors: bool, optional
+        If true, print all errors on top of
+        mean and std. 
     **kwargs : Any
         kwargs that should be used by integrator.__call__ method
         or the plot_containers method.
@@ -113,7 +117,7 @@ def compare_integrators(
         if verbose >= 1:
             print(f"Testing {integrator_name}")
 
-        is_tree = isinstance(integrators[0], TreeIntegrator)
+        is_tree = isinstance(integrators[i], TreeIntegrator)
 
         estimates = []
         n_evals_list = []
@@ -205,7 +209,9 @@ def compare_integrators(
         print(f"-------- {integrator_name} --------")
         print(f"True answer of {str(problem)}: {problem.answer}")
         print(f"Estimated value: {avg_estimate:.4f} ± {std_estimate:.4f}")
-        print(f"{error_name}: {avg_error:.2f} % ± {std_error:.2f} %")
+        print(f"mean {error_name}: {avg_error:.2f} % ± {std_error:.2f} %")
+        if print_all_errors:
+            print(f"{error_name} (%): {errors}")
         print(f"Number of evaluations: {avg_n_evals:.2f} ± {std_n_evals:.2f}")
         print(f"Time taken: {avg_time:.2f} s ± {std_time:.2f} s")
 

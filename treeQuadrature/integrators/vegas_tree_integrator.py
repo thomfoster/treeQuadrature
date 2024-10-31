@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 from inspect import signature
+import warnings
 
 from ..container import Container
 from .tree_integrator import TreeIntegrator
@@ -300,6 +301,17 @@ class VegasTreeIntegrator(TreeIntegrator):
             )
 
         vegas_integrator(batch_integrand, nitn=self.vegas_iter, neval=vegas_n)
+
+        nstrat = [vegas_integrator.nstrat[d] for d in range(problem.D)]
+        if verbose:
+            print(f"Vegas stratas used {nstrat}")
+        single_strat = np.any(np.array(nstrat) == 1)
+        if single_strat:
+            warnings.warn(
+                "Only one strata used by Vegas, "
+                "samples may be inaccurate. \n"
+                f"Stratas in each dimension: {nstrat}",
+                RuntimeWarning)
 
         if plot_vegas:
             plot_parameters = signature(plot_transformed_samples).parameters

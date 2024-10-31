@@ -38,7 +38,7 @@ class McmcSampler(Sampler):
         self.temperature = temperature
 
     def rvs(
-        self, n: int, mins: np.ndarray, maxs: np.ndarray, f: callable, **kwargs
+        self, n: int, mins: np.ndarray, maxs: np.ndarray, f: callable
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Generate exactly n MCMC samples using the EnsembleSampler.
@@ -79,18 +79,16 @@ class McmcSampler(Sampler):
         # Initialize walkers
         p0 = np.random.uniform(mins, maxs, size=(n_walkers, D))
 
-        # Calculate how many steps we need to take to get exactly n samples
         nsteps = (n // n_walkers) + self.burning
 
-        # Initialize and run the sampler
         sampler = EnsembleSampler(n_walkers, D, log_prob)
         sampler.run_mcmc(p0, nsteps, progress=False)
 
         # Extract exactly n samples after burn-in
-        flat_samples = sampler.get_chain(discard=self.burning, flat=True)
+        flat_samples = sampler.get_chain(discard=self.burning,
+                                         flat=True)
         samples = flat_samples[:n]
 
-        # Evaluate the function on the final samples
-        final_values = np.abs(f(samples))
+        function_values = np.abs(f(samples))
 
-        return samples, final_values
+        return samples, function_values

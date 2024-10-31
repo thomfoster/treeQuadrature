@@ -46,7 +46,8 @@ class RandomIntegral(ContainerIntegral):
         self.sampler = sampler
 
     def containerIntegral(
-        self, container: Container, f: Callable, return_std: bool = False
+        self, container: Container, f: Callable,
+        return_std: bool = False
     ):
 
         xs, ys = self.sampler.rvs(self.n_samples,

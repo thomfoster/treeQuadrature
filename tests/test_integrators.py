@@ -13,6 +13,9 @@ import numpy as np
     tq.integrators.ISTreeIntegrator(
         100,
         tree=tq.trees.SimpleTree(split=tq.splits.KdSplit())),
+    tq.integrators.SuaveIntegrator(),
+    tq.integrators.CuhreIntegrator(),
+    tq.integrators.DivonneIntegrator()
 ])
 def test_io(integrator_instance):
     """Checks each integrator has the desired IO for an integrator"""

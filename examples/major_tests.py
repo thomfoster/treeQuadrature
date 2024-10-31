@@ -6,7 +6,7 @@ from treeQuadrature.example_problems import (
 from treeQuadrature.integrators import (
     BatchGpIntegrator, DistributedGpTreeIntegrator, SmcIntegrator, 
     DistributedTreeIntegrator, VegasIntegrator, VegasTreeIntegrator,
-    ISTreeIntegrator
+    ISTreeIntegrator, SuaveIntegrator, CuhreIntegrator, DivonneIntegrator
 )
 from treeQuadrature.container_integrators import (
     RandomIntegral, KernelIntegral, AdaptiveRbfIntegral, 
@@ -14,29 +14,31 @@ from treeQuadrature.container_integrators import (
 )
 from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.splits import MinSseSplit, KdSplit, UniformSplit
-from treeQuadrature.splits.min_sse_split import relative_sse_score, sse_score
+from treeQuadrature.splits.min_sse_split import (
+    relative_sse_score, sse_score
+)
 from treeQuadrature.samplers import (
     ImportanceSampler, UniformSampler, McmcSampler,
     SobolSampler, LHSImportanceSampler
 )
-from treeQuadrature import compare_integrators, Container
+from treeQuadrature import compare_integrators
 from treeQuadrature.trees import SimpleTree, LimitedSampleTree
 
 import numpy as np
 
-D = 2
+D = 10
 
 ### Set problem
-problem = Camel(D=D)
-# problem = QuadCamel(D=D)
-# problem = SimpleGaussian(D=D)
+problem = SimpleGaussian(D=D)
+# problem = Camel(D=D)
 # problem = Ripple(D=D)
 # problem = Quadratic(D=D)
-# problem = Oscillatory(D, a=np.array(10 / np.linspace(1, D, D)))
 # problem = C0(D, np.array([1.1] * D))
 # problem = CornerPeak(D=D, a=np.array([10]*D))
 # problem = ProductPeak(D=D, a=np.array([10]*D))
 # problem = ExponentialProduct(D)
+# problem = QuadCamel(D=D)
+# problem = Oscillatory(D, a=np.array(10 / np.linspace(1, D, D)))
 
 ### set basic parameters
 n_samples = 20
@@ -47,8 +49,8 @@ vegas_n_iter = 10
 vegas_adaptive_iter = 5
 
 # for distributed integrators
-max_n_samples = int(60_000 * (D/2))
-N = int(30_000 * (D/3))
+max_n_samples = int(30_000 * (D/2))
+N = int(10_000 * (D/3))
 min_container_samples = 32
 max_container_samples = 600
 
@@ -95,7 +97,7 @@ sobolSampler = SobolSampler()
 lhsSampler = LHSImportanceSampler()
 
 
-split = MinSseSplit(scoring_function=relative_sse_score)
+split = MinSseSplit(scoring_function=relative_sse_score, min_samples_leaf=10)
 split_default_sse = MinSseSplit(scoring_function=sse_score)
 split_random = MinSseSplit(scoring_function=relative_sse_score,
                            random_selection=True)
@@ -149,7 +151,12 @@ integ_mean = DistributedTreeIntegrator(
     tree=tree_simple,
     max_container_samples=max_container_samples,
     min_container_samples=min_container_samples)
-integ_mean.name = 'TQ with mean'
+integ_mean.name = 'TQ with mean and relative SSE score'
+
+integ_is = ISTreeIntegrator(N, tree=tree_simple,
+                            sampler=mcmcSampler,
+                            max_n_samples=max_n_samples)
+integ_is.name = 'TQ with Importance Sampling estimator'
 
 integ_mean_default_sse = DistributedTreeIntegrator(
     N, max_n_samples=max_n_samples,
@@ -162,7 +169,7 @@ integ_mean_default_sse.name = 'TQ with mean and default SSE score'
 integ_mean_heated = DistributedTreeIntegrator(
     N, max_n_samples=max_n_samples,
     integral=rmeanIntegral, sampler=mcmc_heated,
-    tree=tree_simple,
+    tree=tree_simple_default_sse,
     max_container_samples=max_container_samples,
     min_container_samples=min_container_samples)
 integ_mean_heated.name = f'TQ with mean (heated, temperature={mcmc_heated.temperature})'
@@ -174,11 +181,6 @@ integ_mean_random_split = DistributedTreeIntegrator(
     max_container_samples=max_container_samples,
     min_container_samples=min_container_samples)
 integ_mean_random_split.name = 'TQ with mean and random splitting'
-
-integ_is = ISTreeIntegrator(
-    N, tree_simple, mcmcSampler
-)
-integ_is.name = 'Tree with importance sampling'
 
 integ_activeTQ = DistributedTreeIntegrator(
     N, max_n_samples=max_n_samples,
@@ -233,7 +235,7 @@ integ_smc.name = 'SMC'
 
 vegas_n = int(max_n_samples / (vegas_n_iter + vegas_adaptive_iter))
 integ_vegas = VegasIntegrator(vegas_n, vegas_n_iter, vegas_adaptive_iter)
-integ_vegas.name = f'Vegas {vegas_n_iter} iterations with {vegas_adaptive_iter} adaptive iterations'
+integ_vegas.name = f'Vegas'
 
 integ_vegas_tree = VegasTreeIntegrator(
     N, tree=tree_simple,
@@ -242,7 +244,16 @@ integ_vegas_tree = VegasTreeIntegrator(
     min_container_samples=min_container_samples,
     max_container_samples=max_container_samples,
     vegas_iter=vegas_n_iter+vegas_adaptive_iter)
-integ_vegas_tree.name = 'Vegas + TQ'
+integ_vegas_tree.name = 'Vegas + TQ (relative SSE)'
+
+integ_vegas_tree_default = VegasTreeIntegrator(
+    N, tree=tree_simple_default_sse,
+    integral=rmeanIntegral,
+    max_N=max_n_samples,
+    min_container_samples=min_container_samples,
+    max_container_samples=max_container_samples,
+    vegas_iter=vegas_n_iter+vegas_adaptive_iter)
+integ_vegas_tree_default.name = 'Vegas + TQ'
 
 integ_vegas_tree_rbf = VegasTreeIntegrator(
     N, tree=tree_simple,
@@ -253,14 +264,25 @@ integ_vegas_tree_rbf = VegasTreeIntegrator(
     vegas_iter=vegas_n_iter+vegas_adaptive_iter)
 integ_vegas_tree_rbf.name = 'Vegas + TQ + RBF'
 
+integ_suave = SuaveIntegrator(flatness=1.0, max_n_samples=max_n_samples)
+integ_suave.name = 'Suave'
+
+integ_cuhre = CuhreIntegrator(max_n_samples=max_n_samples)
+integ_cuhre.name = 'Cuhre'
+
+integ_divonne = DivonneIntegrator(max_n_samples=max_n_samples)
+integ_divonne.name = 'Divonne'
+
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_mean_default_sse, integ_mean], plot=True, verbose=1,
+    compare_integrators([integ_divonne],
+                        plot=False, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]],
                         problem=problem, dimensions=[0, 1], integrator_specific_kwargs=
                         {'ActiveTQ': {'max_iter' : max_iter}},
-                        n_repeat=1)
+                        n_repeat=5,
+                        print_all_errors=True, title=None)
     # compare_integrators([integ_rbf_non_adaptive], plot=True, verbose=1,
     #                     xlim=[problem.lows[0], problem.highs[0]], 
     #                     problem=problem, dimensions=[0, 1], 

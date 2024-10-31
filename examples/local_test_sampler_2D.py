@@ -1,9 +1,9 @@
-from treeQuadrature.example_problems import Ripple, Camel, QuadCamel
+from treeQuadrature.example_problems import Ripple, Camel, QuadCamel, ProductPeak
 from treeQuadrature.samplers import Sampler, ImportanceSampler, McmcSampler, SobolSampler, StratifiedSampler, AdaptiveImportanceSampler, LHSImportanceSampler
 from treeQuadrature import Container
-from treeQuadrature.visualisation import plot_containers
+from treeQuadrature.visualisation import plot_containers, plot_integrand
 
-problem = Camel(D=2)
+problem = Ripple(D=2)
 
 iSampler = ImportanceSampler()
 mcmcSampler = McmcSampler()
@@ -23,12 +23,12 @@ def test_sampler(sampler: Sampler, N: int):
     else:
         assert X.shape[0] == N
 
-    y = problem.integrand(X)
-    print(y.shape)
     root = Container(X, y, mins=problem.lows, maxs=problem.highs)
 
+    plot_integrand(problem.integrand, 2, xlim=[problem.lows[0], problem.highs[0]],
+                   ylim=[problem.lows[1], problem.highs[1]], plot_type='heat')
     plot_containers([root], [1.0], 
                    xlim=[problem.lows[0], problem.highs[0]], 
                    ylim=[problem.lows[1], problem.highs[1]], plot_samples=True)
     
-test_sampler(mcmcSampler, 10_000)
+test_sampler(mcmc_heated, 10_000)

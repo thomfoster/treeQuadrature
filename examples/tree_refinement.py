@@ -1,15 +1,18 @@
 from treeQuadrature.integrators import TreeIntegrator
 from treeQuadrature.trees import SimpleTree
 from treeQuadrature.example_problems import Problem, SimpleGaussian
-from treeQuadrature import Container 
+from treeQuadrature import Container
+from treeQuadrature.visualisation import plot_containers
 
 from typing import List, Optional
+import matplotlib.pyplot as plt
+import imageio.v2 as imageio
 
 
 def refine_tree(
     integrator: TreeIntegrator, 
     problem: Problem, 
-    additional_splits: List[int],
+    num_splits: List[int],
     containers: Optional[List[Container]]=None, 
     verbose:bool=True
 ):
@@ -24,7 +27,7 @@ def refine_tree(
         An instance of TreeIntegrator or a subclass.
     problem : Problem
         The integration problem to be solved.
-    additional_splits : list[int]
+    num_splits : list[int]
         A list of additional splits to be performed
         after the initial tree construction.
     containers : list[Container], optional
@@ -41,51 +44,38 @@ def refine_tree(
         splits and values are the
         relative errors of the integration results.
     """
-    # Initial tree construction or use provided containers
+    # Initial root container or use provided containers
     if containers is None:
         root = integrator._construct_root_container(
             *integrator._draw_initial_samples(
                 problem, verbose=False),
             problem, verbose=False
         )
-        leaf_containers = integrator._construct_tree(
-            root, problem, verbose=verbose)
+        leaf_containers = [root]
     else:
         leaf_containers = containers
     
     errors = {}
-    total_splits = 0
-
-    # Perform initial integration
-    results = integrator.integrate_containers(
-        leaf_containers, problem)
-    estimate = sum(result["integral"] for result in results[0])
-    relative_error = (estimate - problem.answer) / problem.answer
-    errors[total_splits] = relative_error
-    if verbose:
-        print(
-            f"Splits: {total_splits}, "
-            f"Estimate: {estimate}, "
-            f"Relative error: {relative_error:.4%}")
+    total_splits = len(leaf_containers)
+    max_num_split = max(num_splits)
 
     # Incrementally refine the tree and test accuracy
-    for splits in additional_splits:
-        total_splits += splits
-
-        # add more samples
-        for cont in leaf_containers:
-            xs = cont.rvs(10)
-            ys = problem.integrand(xs)
-            cont.add(xs, ys)
-        
+    for i, splits in enumerate(num_splits):
         leaf_containers = integrator.tree.construct_tree(
-            root=leaf_containers, max_iter=splits,
-            verbose=verbose, warning=False
+            root=leaf_containers, max_iter=max(max_num_split, total_splits),
+            verbose=False,
+            max_splits=splits,
+            warning=False
         )
+        if len(leaf_containers) - total_splits == 0:
+            print("No new containers splitted, stopping the refinement")
+            break
+        total_splits = len(leaf_containers)
         
         # Perform integration on the refined tree
         results = integrator.integrate_containers(leaf_containers, problem)
-        estimate = sum(result["integral"] for result in results[0])
+        contributions = [result["integral"] for result in results[0]]
+        estimate = sum(contributions)
         relative_error = (estimate - problem.answer) / problem.answer
         errors[total_splits] = relative_error
         if verbose:
@@ -93,15 +83,34 @@ def refine_tree(
                 f"Splits: {total_splits}, "
                 f"Estimate: {estimate}, "
                 f"Relative error: {relative_error:.4%}")
+            
+        # TODO - test codes to be deleted
+        plot_containers(leaf_containers, contributions,
+                        xlim=[-0.4, 0.4],
+                        ylim=[-0.4, 0.4],
+                        file_path=f"figures/tree_splitting/containers_{i}.png",
+                        title=f'{total_splits} splits')
+        
+        plt.close()
     
     return errors
 
 
 if __name__ == '__main__':
-    tree = SimpleTree()
-    integrator = TreeIntegrator(10_000, tree=tree)
+    D = 2
+    N = int(20_000 * (D/3))
+    integrator = TreeIntegrator(N, tree=SimpleTree(P=20))
+    problem = SimpleGaussian(D)
+    num_splits = [5] * 20
 
-    problem = SimpleGaussian(D=2)
-    additional_splits = [100] * 5
+    filenames = [f"figures/tree_splitting/containers_{i}.png"
+                 for i in range(len(num_splits))]
 
-    refine_tree(integrator, problem, additional_splits)
+    errors = refine_tree(integrator, problem, num_splits)
+
+    # Create a GIF from the saved images
+    with imageio.get_writer('figures/tree_construction.gif',
+                            mode='I', duration=0.5) as writer:
+        for filename in filenames:
+            image = imageio.imread(filename)
+            writer.append_data(image)

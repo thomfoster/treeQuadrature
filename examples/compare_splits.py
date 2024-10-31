@@ -16,7 +16,7 @@ parser.add_argument('--max_time', type=float, default=180.0,
 parser.add_argument('--n_repeat', type=int, default=5,
                     help='Number of repetitions for each test (default: 5)')
 args = parser.parse_args()
-Ds = range(1, 16, 2)
+Ds = range(1, 12, 2)
 
 mcmcSampler = McmcSampler()
 rmeanIntegral = RandomIntegral()
@@ -53,7 +53,7 @@ if __name__ == '__main__':
             tree=SimpleTree(split=split_default_sse),
             max_container_samples=max_container_samples,
             min_container_samples=min_container_samples)
-        integ_default_sse.name = 'TQ using SSE score, no randomness'
+        integ_default_sse.name = 'TQ using SSE score (fixed), no randomness'
 
         # default SSE score, with randomness in choosing the split dimensions
         integ_default_sse_random = DistributedTreeIntegrator(
@@ -62,7 +62,7 @@ if __name__ == '__main__':
             tree=SimpleTree(split=split_default_sse_random),
             max_container_samples=max_container_samples,
             min_container_samples=min_container_samples)
-        integ_default_sse_random.name = 'TQ using SSE score, with randomness'
+        integ_default_sse_random.name = 'TQ using SSE score (fixed), with randomness'
 
         # relative SSE score, no randomness in choosing the split dimensions
         integ_rel_sse = DistributedTreeIntegrator(

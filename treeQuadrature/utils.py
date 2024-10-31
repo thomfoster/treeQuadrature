@@ -154,3 +154,59 @@ class ResultDict(MutableMapping):
             raise TypeError("'estimate' must be a float, "
                             f"got {type(default).__name__}")
         return self._data.setdefault(key, default)
+
+
+def integrand_for_cuba(integrand_func):
+    """
+    Creates an Integrand function in the format expected by Cuba.
+
+    Parameters
+    ----------
+    integrand_func : callable
+        A function that takes a numpy.ndarray of shape (N, D)
+        and returns an array of shape (N, 1).
+        This is the usual form of TQ package.
+    
+    Returns
+    -------
+    Integrand : function
+        A function compatible with Cuba's expected integrand format.
+    """
+    def Integrand(ndim, xx, ncomp, ff, userdata):
+        # Convert `xx` (a ctypes array) to a numpy array for easier manipulation
+        xx_array = np.ctypeslib.as_array(xx, shape=(ndim.contents.value,))
+        xx_reshaped = xx_array.reshape(1, -1)  # Reshape to (1, D) for compatibility
+
+        # Compute the function value using `integrand_func`
+        result = integrand_func(xx_reshaped)
+
+        # Assign the first result to `ff[0]`
+        ff[0] = result[0]
+
+        return 0
+
+    return Integrand
+
+
+def compile_cuba_results(results):
+    """
+    Takes the results from cuba integrators
+    and convert that to ResultDict used by
+    TreeQuadrature.
+    """
+    contributions = []
+    errors = []
+    fitness = []
+
+    for comp in results['results']:
+        contributions.append(comp['integral'])
+        errors.append(comp['error'])
+        fitness.append(comp['prob'])
+
+    resultDict = ResultDict(estimate=sum(contributions))
+    resultDict['n_evals'] = results['neval']
+    resultDict['contributions'] =contributions
+    resultDict['stds'] = errors
+    resultDict['chi2_fitness'] = fitness
+
+    return resultDict

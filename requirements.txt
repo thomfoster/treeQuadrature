@@ -9,3 +9,4 @@ vegas
 pandas
 scikit-learn
 emcee
+pymultinest

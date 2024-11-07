@@ -1,5 +1,5 @@
 from treeQuadrature.example_problems import SimpleGaussian
-from treeQuadrature.samplers import McmcSampler
+from treeQuadrature.samplers import McmcSampler, Sampler
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,7 +11,7 @@ N = 20000 # number of samples
 num_runs = 5
 dimensions = np.arange(1, 17, 1)
 
-def sample_from_gaussian(D: int,
+def sample_from_gaussian(D: int, sampler: Sampler,
                          plot: bool=False):
     print(f"Testing D = {D}")
     problem = SimpleGaussian(D)
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         var_discrepancy = []
         
         for D in dimensions:
-            X, y = sample_from_gaussian(D)
+            X, y = sample_from_gaussian(D, sampler)
             
             # Compute discrepancies
             var_discrepancy.append(np.abs(np.var(X) - 1/200))

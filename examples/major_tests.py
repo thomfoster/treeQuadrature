@@ -60,7 +60,7 @@ P = 50
 # for activeTQ
 lsi_N = 10000 * (D/3)
 active_N = 0
-max_iter = 5000 + 1000 * D
+max_iter = 5000 + 2000 * D
 
 # for batch GP 
 batch_gp_grid_size = 0.03
@@ -169,7 +169,7 @@ integ_mean_default_sse.name = 'TQ with mean and default SSE score'
 integ_mean_heated = DistributedTreeIntegrator(
     N, max_n_samples=max_n_samples,
     integral=rmeanIntegral, sampler=mcmc_heated,
-    tree=tree_simple_default_sse,
+    tree=tree_simple,
     max_container_samples=max_container_samples,
     min_container_samples=min_container_samples)
 integ_mean_heated.name = f'TQ with mean (heated, temperature={mcmc_heated.temperature})'
@@ -275,7 +275,7 @@ integ_divonne.name = 'Divonne'
 
 if __name__ == '__main__':
     print(f"maximum allowed samples: {max_n_samples}")
-    compare_integrators([integ_divonne],
+    compare_integrators([integ_mean_heated, integ_mean],
                         plot=False, verbose=1,
                         xlim=[problem.lows[0], problem.highs[0]], 
                         ylim=[problem.lows[1], problem.highs[1]],

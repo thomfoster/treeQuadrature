@@ -34,9 +34,6 @@ class LimitedSampleTree(Tree):
         queue : class
             Queue class to manage the containers,
             default is PriorityQueue.
-        max_iter : int, optional
-            Maximum number of binary splits,
-            by default 2000.
         """
         super().__init__(*args, **kwargs)
         self.N = N
@@ -47,11 +44,10 @@ class LimitedSampleTree(Tree):
             self.queue = ReservoirQueue(accentuation_factor=100)
         else:
             self.queue = queue
-        self.max_iter = max_iter
 
     def construct_tree(
         self, root: Container, integrand: Callable,
-        verbose: bool = False,
+        verbose: bool = False, max_iter: Optional[int]=None,
     ) -> List[Container]:
         """
         Actively refine the containers with samples.
@@ -63,8 +59,8 @@ class LimitedSampleTree(Tree):
         integrand : Callable
             The integrand function.
         max_iter : int, optional
-            Maximum number of iterations,
-            by default 1e4.
+            Maximum number of splits,
+            by default one fifth of N.
         verbose : bool, optional
             Whether to print verbose output,
             by default False.
@@ -76,6 +72,8 @@ class LimitedSampleTree(Tree):
         """
         if self.active_N == 0:
             self._check_root(root)
+        if max_iter is None:
+            max_iter = self.N // 5
 
         base_N = root.N
 
@@ -89,7 +87,7 @@ class LimitedSampleTree(Tree):
         start_time = time.time()
         iteration_count = 0
 
-        while not q.empty() and iteration_count < self.max_iter:
+        while not q.empty() and iteration_count < max_iter:
 
             # save_weights_image(q)
 
@@ -128,9 +126,9 @@ class LimitedSampleTree(Tree):
 
         total_time = time.time() - start_time
 
-        if iteration_count == self.max_iter:
+        if iteration_count == max_iter:
             warnings.warn(
-                f"Maximum iterations {self.max_iter} reached. "
+                f"Maximum iterations {max_iter} reached. "
                 "Either increase max_iter or check split and samples.",
                 RuntimeWarning,
             )

@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>treeQuadrature.gaussian_process package &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="treeQuadrature.integrators package" href="treeQuadrature.integrators.html" />
+    <link rel="prev" title="treeQuadrature.example_problems package" href="treeQuadrature.example_problems.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="treequadrature-gaussian-process-package">
+<h1>treeQuadrature.gaussian_process package<a class="headerlink" href="#treequadrature-gaussian-process-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-treeQuadrature.gaussian_process.diagnosis">
+<span id="treequadrature-gaussian-process-diagnosis-module"></span><h2>treeQuadrature.gaussian_process.diagnosis module<a class="headerlink" href="#module-treeQuadrature.gaussian_process.diagnosis" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.diagnosis.default_criterion">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.diagnosis.</span></span><span class="sig-name descname"><span class="pre">default_criterion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/diagnosis.html#default_criterion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.diagnosis.default_criterion" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.diagnosis.gp_diagnosis">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.diagnosis.</span></span><span class="sig-name descname"><span class="pre">gp_diagnosis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">igp:</span> <span class="pre">~treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting,</span> <span class="pre">container:</span> <span class="pre">~treeQuadrature.container.Container,</span> <span class="pre">criterion:</span> <span class="pre">~typing.Callable[[~treeQuadrature.container.Container],</span> <span class="pre">bool]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">default_criterion&gt;,</span> <span class="pre">plot:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/diagnosis.html#gp_diagnosis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.diagnosis.gp_diagnosis" title="Link to this definition">¶</a></dt>
+<dd><p>Check the performance of a Gaussian Process (GP) model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>igp</strong> (<a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting" title="treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting"><em>IterativeGPFitting</em></a>) – The fitted Gaussian Process model.</p></li>
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – Container object that holds the samples and boundaries.</p></li>
+<li><p><strong>criterion</strong> (<em>function</em><em>, </em><em>Optional</em>) – A function that takes a container and returns a boolean indicating
+whether to plot the posterior mean.
+Default criterion: always True</p></li>
+<li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – if true, 1D problems will be plotted
+Default: False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.gaussian_process.fit_gp">
+<span id="treequadrature-gaussian-process-fit-gp-module"></span><h2>treeQuadrature.gaussian_process.fit_gp module<a class="headerlink" href="#module-treeQuadrature.gaussian_process.fit_gp" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.GPFit">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.fit_gp.</span></span><span class="sig-name descname"><span class="pre">GPFit</span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#GPFit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.GPFit" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for fitting Gaussian Process models.</p>
+<p>Subclasses must implement the <cite>fit_GP</cite> method.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.GPFit.X_train_">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">X_train_</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.GPFit.X_train_" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the training set used to fit the model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.GPFit.create_kernel">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#GPFit.create_kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.GPFit.create_kernel" title="Link to this definition">¶</a></dt>
+<dd><p>Creates and returns a kernel for the GP model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>gp_params</strong> (<em>dict</em>) – A dictionary of parameters required to create the kernel.
+This may include parameters like <code class="docutils literal notranslate"><span class="pre">length</span></code>, <code class="docutils literal notranslate"><span class="pre">range</span></code>, <code class="docutils literal notranslate"><span class="pre">degree</span></code>,
+<code class="docutils literal notranslate"><span class="pre">coef0</span></code>, etc., depending on the kernel type.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul>
+<li><p><em>Any</em> – The kernel instance to be used in the GP model.</p></li>
+<li><p><em>Notes for Subclass Implementers</em></p></li>
+<li><p><em>——————————–</em></p></li>
+<li><ul class="simple">
+<li><p>When implementing this method in a subclass, you can use the <code class="docutils literal notranslate"><span class="pre">KernelFactory</span></code></p></li>
+</ul>
+</li>
+<li><p><em>to register and create kernels dynamically.</em></p></li>
+<li><p><em>Example of Using KernelFactory</em></p></li>
+<li><p><em>——————————-</em></p></li>
+<li><p><em>1. **Register a Kernel**</em> – To register a kernel (e.g., RBF kernel) with the <code class="docutils literal notranslate"><span class="pre">KernelFactory</span></code>,
+you can do this in the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method of your subclass:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">KernelFactory</span><span class="o">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s1">&#39;RBF&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">length</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">range_</span><span class="o">=</span><span class="mf">1e3</span><span class="p">:</span> <span class="n">RBF</span><span class="p">(</span>
+    <span class="n">length_scale</span><span class="o">=</span><span class="n">length</span><span class="p">,</span> <span class="n">length_scale_bounds</span><span class="o">=</span><span class="p">(</span><span class="n">length</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">range_</span><span class="p">),</span> <span class="n">length</span> <span class="o">*</span> <span class="n">range_</span><span class="p">)))</span>
+</pre></div>
+</div>
+</li>
+<li><p><em>2. **Create a Kernel**</em> –</p>
+<p>To create an instance of a registered kernel, use the <code class="docutils literal notranslate"><span class="pre">create_kernel</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="n">kernel_type</span> <span class="o">=</span> <span class="n">gp_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kernel_type&#39;</span><span class="p">,</span> <span class="s1">&#39;RBF&#39;</span><span class="p">)</span>  <span class="c1"># Default to RBF</span>
+    <span class="k">return</span> <span class="n">KernelFactory</span><span class="o">.</span><span class="n">create_kernel</span><span class="p">(</span><span class="n">kernel_type</span><span class="p">,</span> <span class="o">**</span><span class="n">gp_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><em>This structure allows users to easily extend the GP model with new kernels</em></p></li>
+<li><p>by registering them with the <code class="docutils literal notranslate"><span class="pre">KernelFactory</span></code> and ensuring that they can be</p></li>
+<li><p><em>instantiated based on runtime parameters.</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.GPFit.fit">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#GPFit.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.GPFit.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Each run of fit should re-define self.gp</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xs</strong> (<em>array like</em>) – the training dataset</p></li>
+<li><p><strong>ys</strong> (<em>array like</em>) – the training dataset</p></li>
+<li><p><strong>kerenl</strong> (<em>Any</em>) – the covariance (similarity measure)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>the fitted GP model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.GPFit.hyper_params">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hyper_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.GPFit.hyper_params" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the hyper-parameters of the fitted gp
+as an dictionary</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.GPFit.kernel_">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kernel_</span></span><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.GPFit.kernel_" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the kernel used in gp</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.GPFit.predict">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#GPFit.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.GPFit.predict" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xs</strong> (<em>array like</em>) – the input</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – whether return the std of the predictions or not</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>the predicted y (output) values and</em></p></li>
+<li><p><em>standard deviation if return_std = True</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.GPFit.y_train_">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">y_train_</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.GPFit.y_train_" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the training labels (outputs) used to fit the model</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.fit_gp.</span></span><span class="sig-name descname"><span class="pre">IterativeGPFitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_redraw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">performance_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'up'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit"><span class="pre">GPFit</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scoring</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_residuals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#IterativeGPFitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to perform iterative Gaussian Process (GP) fitting,
+incresaing the number of samples by <cite>n_samples</cite> each time
+until a performance criterion on
+Cross Validation r2 score is met.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gp</strong> (<a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit"><em>GPFit</em></a>) – the gp fitter storing the gp model
+default is SklearnGPFit</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – increment of number of samples each time</p></li>
+<li><p><strong>n_splits</strong> (<em>int</em><em>, </em><em>optional</em>) – number of K-fold cross-validation splits
+if n_splits = 0, K-Fold CV will not be performed.</p></li>
+<li><p><strong>scoring</strong> (<em>Callable</em><em>, </em><em>optional</em><em> (</em><em>default=predictive_ll</em><em>)</em>) – A scoring function to evaluate the predictions. It must accept two
+arguments: the true values and the predicted values.</p></li>
+<li><p><strong>max_redraw</strong> (<em>int</em>) – Maximum number of iterations for the iterative process.
+To control number of samples,
+recommended not exceed 10</p></li>
+<li><p><strong>performance_threshold</strong> (<em>float</em>) – Performance threshold for scoring to
+stop the iterative process.</p></li>
+<li><p><strong>threshold_direction</strong> (<em>str</em>) – one of ‘up’ and ‘down’.
+if ‘up’, accept the model if score &gt;= performance_threshold;
+if ‘down’, accept the model if score &gt;= performance_threshold</p></li>
+<li><p><strong>fit_residuals</strong> (<em>bool</em>) – if true, fit GP to residuals</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting.draw_samples_from_containers">
+<span class="sig-name descname"><span class="pre">draw_samples_from_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#IterativeGPFitting.draw_samples_from_containers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting.draw_samples_from_containers" title="Link to this definition">¶</a></dt>
+<dd><p>Draw samples randomly from multiple containers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>containers</strong> (<em>List</em><em>[</em><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a><em>]</em>) – The list of containers to draw samples from.</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – The total number of samples to draw.</p></li>
+<li><p><strong>f</strong> (<em>callable</em>) – The function to evaluate the samples.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>samples</strong> – A list of tuples, each containing samples, their evaluations,
+and the container they were drawn from.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Tuple[np.ndarray, np.ndarray, <a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container">Container</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#IterativeGPFitting.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting.fit" title="Link to this definition">¶</a></dt>
+<dd><p>fit GP on the container,
+the results can be accessed in self.gp</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>callable</em>) – Function to evaluate the samples.</p></li>
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a><em> or </em><em>List</em><em>[</em><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a><em>]</em>) – Container object(s) to draw samples from
+and track evaluations.</p></li>
+<li><p><strong>kernel</strong> (<em>Any</em>) – the kernel used to fit GP</p></li>
+<li><p><strong>add_sample</strong> (<em>bool</em><em>, </em><em>optional</em><em> (</em><em>default=True</em><em>)</em>) – if true, add samples to the container(s)
+iniital_samples will NOT be added</p></li>
+<li><p><strong>initial_samples</strong> (<em>tuple</em><em>, </em><em>optional</em>) – if given, start the fit using initial_samples
+(xs, ys)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>performance (float) the performance of the best GP model under KFold CV</p></li>
+<li><p>y_mean (float) mean of the final training samples</p></li>
+<li><p>new_samples (list) if add_samples is False, a list of the new samples drawn</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.KernelFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.fit_gp.</span></span><span class="sig-name descname"><span class="pre">KernelFactory</span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#KernelFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.KernelFactory" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.KernelFactory.create_kernel">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#KernelFactory.create_kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.KernelFactory.create_kernel" title="Link to this definition">¶</a></dt>
+<dd><p>Create an instance of a registered kernel.</p>
+<p>Parameters:
+- name: str : The name of the kernel to create.
+- kwargs: dict : Arguments required by the kernel’s constructor.</p>
+<p>Returns:
+- An instance of the kernel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.KernelFactory.register_kernel">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">register_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#KernelFactory.register_kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.KernelFactory.register_kernel" title="Link to this definition">¶</a></dt>
+<dd><p>Register a new kernel class with the factory.</p>
+<p>Parameters:
+- name: str : The name of the kernel to register.
+- kernel_class: Callable : A callable that returns an instance of the kernel.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.fit_gp.</span></span><span class="sig-name descname"><span class="pre">SklearnGPFit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_tuning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_warning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#SklearnGPFit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">GPFit</span></code></a></p>
+<p>Default implementation of GP fitting using
+sklearn.gaussian_process.GaussianProcessRegressor</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.gp">
+<span class="sig-name descname"><span class="pre">gp</span></span><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.gp" title="Link to this definition">¶</a></dt>
+<dd><p>the fitted Gaussian model.
+must run fit_gp before accessing gp</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sklearn.gaussian_process.GaussianProcessRegressor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.n_tuning">
+<span class="sig-name descname"><span class="pre">n_tuning</span></span><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.n_tuning" title="Link to this definition">¶</a></dt>
+<dd><p>Number of restarts of the optimizer for finding the
+kernel’s parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.ignore_warning">
+<span class="sig-name descname"><span class="pre">ignore_warning</span></span><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.ignore_warning" title="Link to this definition">¶</a></dt>
+<dd><p>If True, Convergence Warning of GP Regressor will be ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool, optional (default=True)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.optimizer">
+<span class="sig-name descname"><span class="pre">optimizer</span></span><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.optimizer" title="Link to this definition">¶</a></dt>
+<dd><p>the optimizer used to tune hyper-parameters of gp
+Default is fmin_l_bfgs_b</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>function</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span> <span class="o">=</span> <span class="n">DefaultGPFit</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kernel</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">gaussian_process</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">RBF</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">(</span><span class="mf">1e-2</span><span class="p">,</span> <span class="mf">1e2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">fit_gp</span><span class="p">(</span><span class="n">xs_train</span><span class="p">,</span> <span class="n">ys_train</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ys_pred</span> <span class="o">=</span> <span class="n">gp_fitter</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xs_train</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.X_train_">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">X_train_</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.X_train_" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the training set used to fit the model</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.alpha_">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">alpha_</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.alpha_" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.create_kernel">
+<span class="sig-name descname"><span class="pre">create_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#SklearnGPFit.create_kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.create_kernel" title="Link to this definition">¶</a></dt>
+<dd><p>Creates and returns a kernel for the GP model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>gp_params</strong> (<em>dict</em>) – A dictionary of parameters required to create the kernel.
+This may include parameters like <code class="docutils literal notranslate"><span class="pre">length</span></code>, <code class="docutils literal notranslate"><span class="pre">range</span></code>, <code class="docutils literal notranslate"><span class="pre">degree</span></code>,
+<code class="docutils literal notranslate"><span class="pre">coef0</span></code>, etc., depending on the kernel type.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul>
+<li><p><em>Any</em> – The kernel instance to be used in the GP model.</p></li>
+<li><p><em>Notes for Subclass Implementers</em></p></li>
+<li><p><em>——————————–</em></p></li>
+<li><ul class="simple">
+<li><p>When implementing this method in a subclass, you can use the <code class="docutils literal notranslate"><span class="pre">KernelFactory</span></code></p></li>
+</ul>
+</li>
+<li><p><em>to register and create kernels dynamically.</em></p></li>
+<li><p><em>Example of Using KernelFactory</em></p></li>
+<li><p><em>——————————-</em></p></li>
+<li><p><em>1. **Register a Kernel**</em> – To register a kernel (e.g., RBF kernel) with the <code class="docutils literal notranslate"><span class="pre">KernelFactory</span></code>,
+you can do this in the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method of your subclass:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">KernelFactory</span><span class="o">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s1">&#39;RBF&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">length</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">range_</span><span class="o">=</span><span class="mf">1e3</span><span class="p">:</span> <span class="n">RBF</span><span class="p">(</span>
+    <span class="n">length_scale</span><span class="o">=</span><span class="n">length</span><span class="p">,</span> <span class="n">length_scale_bounds</span><span class="o">=</span><span class="p">(</span><span class="n">length</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">range_</span><span class="p">),</span> <span class="n">length</span> <span class="o">*</span> <span class="n">range_</span><span class="p">)))</span>
+</pre></div>
+</div>
+</li>
+<li><p><em>2. **Create a Kernel**</em> –</p>
+<p>To create an instance of a registered kernel, use the <code class="docutils literal notranslate"><span class="pre">create_kernel</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="n">kernel_type</span> <span class="o">=</span> <span class="n">gp_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kernel_type&#39;</span><span class="p">,</span> <span class="s1">&#39;RBF&#39;</span><span class="p">)</span>  <span class="c1"># Default to RBF</span>
+    <span class="k">return</span> <span class="n">KernelFactory</span><span class="o">.</span><span class="n">create_kernel</span><span class="p">(</span><span class="n">kernel_type</span><span class="p">,</span> <span class="o">**</span><span class="n">gp_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><em>This structure allows users to easily extend the GP model with new kernels</em></p></li>
+<li><p>by registering them with the <code class="docutils literal notranslate"><span class="pre">KernelFactory</span></code> and ensuring that they can be</p></li>
+<li><p><em>instantiated based on runtime parameters.</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Kernel</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">GaussianProcessRegressor</span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#SklearnGPFit.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Each run of fit should re-define self.gp</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xs</strong> (<em>array like</em>) – the training dataset</p></li>
+<li><p><strong>ys</strong> (<em>array like</em>) – the training dataset</p></li>
+<li><p><strong>kerenl</strong> (<em>Any</em>) – the covariance (similarity measure)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>the fitted GP model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.hyper_params">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hyper_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.hyper_params" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the hyper-parameters of the fitted gp
+as an dictionary</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.kernel_">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kernel_</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Kernel</span></em><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.kernel_" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the kernel used in gp</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#SklearnGPFit.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.predict" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xs</strong> (<em>array like</em>) – the input</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – whether return the std of the predictions or not</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>the predicted y (output) values and</em></p></li>
+<li><p><em>standard deviation if return_std = True</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.y_train_">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">y_train_</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.SklearnGPFit.y_train_" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the training labels (outputs) used to fit the model</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.gp_kfoldCV">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.fit_gp.</span></span><span class="sig-name descname"><span class="pre">gp_kfoldCV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp:</span> <span class="pre">~treeQuadrature.gaussian_process.fit_gp.GPFit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scoring:</span> <span class="pre">~typing.Callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">r2&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#gp_kfoldCV"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.gp_kfoldCV" title="Link to this definition">¶</a></dt>
+<dd><p>Perform k-fold Cross-Validation (CV) to evaluate the
+performance of a Gaussian Process model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xs</strong> (<em>array-like</em><em>, </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Training data.</p></li>
+<li><p><strong>ys</strong> (<em>array-like</em><em>, </em><em>shape</em><em> (</em><em>n_samples</em><em>,</em><em>)</em>) – Target values.</p></li>
+<li><p><strong>kernel</strong> (<em>Any</em>) – The kernel specifying the covariance function of the GP.</p></li>
+<li><p><strong>gp_fitter</strong> (<em>GPFitBase</em>) – An instance of a GPFitBase subclass for fitting the GP.</p></li>
+<li><p><strong>n_splits</strong> (<em>int</em><em>, </em><em>optional</em><em> (</em><em>default=5</em><em>)</em>) – Number of folds for cross-validation.</p></li>
+<li><p><strong>scoring</strong> (<em>Callable</em><em>, </em><em>optional</em><em> (</em><em>default=predictive_ll</em><em>)</em>) – A scoring function to evaluate the predictions. It must accept three
+arguments: the true values, the predicted values and predicted variance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>performance</strong> – Performance measure using k-fold CV based on the provided scoring function.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.fit_gp.is_poor_fit">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.fit_gp.</span></span><span class="sig-name descname"><span class="pre">is_poor_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">performance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/fit_gp.html#is_poor_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.fit_gp.is_poor_fit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-treeQuadrature.gaussian_process.kernel_integration">
+<span id="treequadrature-gaussian-process-kernel-integration-module"></span><h2>treeQuadrature.gaussian_process.kernel_integration module<a class="headerlink" href="#module-treeQuadrature.gaussian_process.kernel_integration" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.kernel_integration.get_length_scale">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.kernel_integration.</span></span><span class="sig-name descname"><span class="pre">get_length_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/kernel_integration.html#get_length_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.kernel_integration.get_length_scale" title="Link to this definition">¶</a></dt>
+<dd><p>Attempt to retrieve the length_scale attribute from the kernel.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.kernel_integration.kernel_integration">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.kernel_integration.</span></span><span class="sig-name descname"><span class="pre">kernel_integration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">igp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting" title="treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting"><span class="pre">IterativeGPFitting</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_mean_post</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_var_post</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_post</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kernel_params</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/kernel_integration.html#kernel_integration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.kernel_integration.kernel_integration" title="Link to this definition">¶</a></dt>
+<dd><p>Estimate the integral of the RBF kernel over
+a given container and set of points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>igp</strong> (<a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting" title="treeQuadrature.gaussian_process.fit_gp.IterativeGPFitting"><em>IterativeGPFitting</em></a>) – The fitted Gaussian Process model.</p></li>
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – The container object that holds the boundaries.</p></li>
+<li><p><strong>gp_results</strong> (<em>dict</em>) – Results from gp.fit() necessary for performing the
+kernel integral.</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – When True, return the standard deviation of GP estimation.</p></li>
+<li><p><strong>kernel_mean_post</strong> (<em>function</em><em>, </em><em>optional</em>) – <p>Must be provided if not using RBF kernel.</p>
+<p>Takes a GPFit, Container, and dictionary (gp fitting results),
+and returns a float (integral estimate).</p>
+</p></li>
+<li><p><strong>kernel_var_post</strong> (<em>function</em><em>, </em><em>optional</em>) – <p>Must be provided if not using RBF kernel.</p>
+<p>Takes a GPFit, Container, and returns a float (posterior variance).</p>
+</p></li>
+<li><p><strong>kernel_post</strong> (<em>function</em><em>, </em><em>optional</em>) – <p>Alternative to kernel_mean_post, kernel_var_post.</p>
+<p>Must take GPFit, Container, dict (gp fitting results),
+and return_std : bool, and return estimate and var_post simultaneously.</p>
+</p></li>
+<li><p><strong>kernel_params</strong> (<em>dict</em><em>, </em><em>optional</em>) – Additional parameters specific to the kernel functions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>integral (float): The integral estimate.</p></li>
+<li><p>std (float): The standard deviation of the integral (if return_std is True).</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.kernel_integration.poly_post">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.kernel_integration.</span></span><span class="sig-name descname"><span class="pre">poly_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit"><span class="pre">GPFit</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000000000.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/kernel_integration.html#poly_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.kernel_integration.poly_post" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the posterior mean and variance of the integral estimate using a polynomial kernel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gp</strong> (<em>GaussianProcessRegressor</em>) – The fitted Gaussian Process model.</p></li>
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – The container object that holds the boundaries.</p></li>
+<li><p><strong>gp_results</strong> (<em>dict</em>) – Results from gp.fit() necessary for performing the kernel integral.</p></li>
+<li><p><strong>d</strong> (<em>int</em>) – The degree of the polynomial kernel.</p></li>
+<li><p><strong>c</strong> (<em>float</em>) – The coefficient in the polynomial kernel.</p></li>
+<li><p><strong>jitter</strong> (<em>float</em><em>, </em><em>optional</em>) – Small value added to the diagonal of the kernel matrix to ensure stability.
+Defaults to 1e-8.</p></li>
+<li><p><strong>threshold</strong> (<em>float</em><em>, </em><em>optional</em>) – Condition number threshold for the kernel matrix.
+Defaults to 1e10.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The posterior mean and variance of the integral estimate.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.kernel_integration.rbf_mean_post">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.kernel_integration.</span></span><span class="sig-name descname"><span class="pre">rbf_mean_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit"><span class="pre">GPFit</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/kernel_integration.html#rbf_mean_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.kernel_integration.rbf_mean_post" title="Link to this definition">¶</a></dt>
+<dd><p>calculate the posterior mean of integral using RBF kernel</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the posterior mean fo integral and partial mean of kernel</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float, numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.kernel_integration.rbf_var_post">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.kernel_integration.</span></span><span class="sig-name descname"><span class="pre">rbf_var_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit"><span class="pre">GPFit</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_tilde</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000000000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/kernel_integration.html#rbf_var_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.kernel_integration.rbf_var_post" title="Link to this definition">¶</a></dt>
+<dd><p>calculate the posterior variance of integral estimate obtained using RBF kernel</p>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.gaussian_process.kernels">
+<span id="treequadrature-gaussian-process-kernels-module"></span><h2>treeQuadrature.gaussian_process.kernels module<a class="headerlink" href="#module-treeQuadrature.gaussian_process.kernels" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.kernels.Polynomial">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.kernels.</span></span><span class="sig-name descname"><span class="pre">Polynomial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/kernels.html#Polynomial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.kernels.Polynomial" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Kernel</span></code></p>
+<p>Polynomial kernel for Gaussian Processes.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.kernels.Polynomial.clone_with_theta">
+<span class="sig-name descname"><span class="pre">clone_with_theta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/kernels.html#Polynomial.clone_with_theta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.kernels.Polynomial.clone_with_theta" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a clone of self with given hyperparameters theta.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>theta</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>n_dims</em><em>,</em><em>)</em>) – The hyperparameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.kernels.Polynomial.diag">
+<span class="sig-name descname"><span class="pre">diag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/kernels.html#Polynomial.diag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.kernels.Polynomial.diag" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the diagonal of the kernel k(X, X).</p>
+<p>The result of this method is identical to np.diag(self(X)); however,
+it can be evaluated more efficiently since only the diagonal is
+evaluated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>,</em><em>)</em>) – Left argument of the returned kernel k(X, Y)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>K_diag</strong> – Diagonal of kernel k(X, X)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (n_samples_X,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.kernels.Polynomial.is_stationary">
+<span class="sig-name descname"><span class="pre">is_stationary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/kernels.html#Polynomial.is_stationary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.kernels.Polynomial.is_stationary" title="Link to this definition">¶</a></dt>
+<dd><p>Returns whether the kernel is stationary.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.gaussian_process.scorings">
+<span id="treequadrature-gaussian-process-scorings-module"></span><h2>treeQuadrature.gaussian_process.scorings module<a class="headerlink" href="#module-treeQuadrature.gaussian_process.scorings" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.scorings.predictive_ll">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.scorings.</span></span><span class="sig-name descname"><span class="pre">predictive_ll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/scorings.html#predictive_ll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.scorings.predictive_ll" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.scorings.r2">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.scorings.</span></span><span class="sig-name descname"><span class="pre">r2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/scorings.html#r2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.scorings.r2" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-treeQuadrature.gaussian_process.visualisation">
+<span id="treequadrature-gaussian-process-visualisation-module"></span><h2>treeQuadrature.gaussian_process.visualisation module<a class="headerlink" href="#module-treeQuadrature.gaussian_process.visualisation" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="treeQuadrature.gaussian_process.visualisation.plot_gp">
+<span class="sig-prename descclassname"><span class="pre">treeQuadrature.gaussian_process.visualisation.</span></span><span class="sig-name descname"><span class="pre">plot_gp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit"><span class="pre">GPFit</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">xs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_ci</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/gaussian_process/visualisation.html#plot_gp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.gaussian_process.visualisation.plot_gp" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the Gaussian Process posterior mean and the data points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gp</strong> (<a class="reference internal" href="#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit"><em>GPFit</em></a>) – The trained GP model.</p></li>
+<li><p><strong>xs</strong> (<em>numpy.ndarray</em>) – The data points.</p></li>
+<li><p><strong>ys</strong> (<em>numpy.ndarray</em>) – The data points.</p></li>
+<li><p><strong>mins</strong> (<em>np.ndarray</em>) – The lower bounds for plotting.</p></li>
+<li><p><strong>maxs</strong> (<em>np.ndarray</em>) – The upper bounds for plotting.</p></li>
+<li><p><strong>plot_ci</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the confidence interval will be plotted. Default is True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.gaussian_process">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-treeQuadrature.gaussian_process" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="treeQuadrature.html">treeQuadrature package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="treeQuadrature.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.compare_integrators">treeQuadrature.compare_integrators module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.container">treeQuadrature.container module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.queues">treeQuadrature.queues module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.utils">treeQuadrature.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.visualisation">treeQuadrature.visualisation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">treeQuadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">tests package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="treeQuadrature.html">treeQuadrature package</a><ul>
+      <li>Previous: <a href="treeQuadrature.example_problems.html" title="previous chapter">treeQuadrature.example_problems package</a></li>
+      <li>Next: <a href="treeQuadrature.integrators.html" title="next chapter">treeQuadrature.integrators package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/treeQuadrature.gaussian_process.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

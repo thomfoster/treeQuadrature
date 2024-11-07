@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>treeQuadrature.container_integrators package &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="treeQuadrature.example_problems package" href="treeQuadrature.example_problems.html" />
+    <link rel="prev" title="treeQuadrature package" href="treeQuadrature.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="treequadrature-container-integrators-package">
+<h1>treeQuadrature.container_integrators package<a class="headerlink" href="#treequadrature-container-integrators-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-treeQuadrature.container_integrators.base_class">
+<span id="treequadrature-container-integrators-base-class-module"></span><h2>treeQuadrature.container_integrators.base_class module<a class="headerlink" href="#module-treeQuadrature.container_integrators.base_class" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.base_class.ContainerIntegral">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container_integrators.base_class.</span></span><span class="sig-name descname"><span class="pre">ContainerIntegral</span></span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/base_class.html#ContainerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract Base class for integrating a function on a container</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.base_class.ContainerIntegral.containerIntegral">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">containerIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/base_class.html#ContainerIntegral.containerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.base_class.ContainerIntegral.containerIntegral" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – the container on which the integral of f should be evaluated</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – takes X : np.ndarray and return np.ndarray,
+see pdf method of Distribution class in distributions.py</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – other arguments allowed, must set default values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>integral (float) value of the integral of f on the container</p></li>
+<li><p>and other necessary results</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.container_integrators.constant_integral">
+<span id="treequadrature-container-integrators-constant-integral-module"></span><h2>treeQuadrature.container_integrators.constant_integral module<a class="headerlink" href="#module-treeQuadrature.container_integrators.constant_integral" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.constant_integral.MedianIntegral">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container_integrators.constant_integral.</span></span><span class="sig-name descname"><span class="pre">MedianIntegral</span></span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/constant_integral.html#MedianIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.constant_integral.MedianIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerIntegral</span></code></a></p>
+<p>estimate integral by the median of samples in the container.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.constant_integral.MedianIntegral.containerIntegral">
+<span class="sig-name descname"><span class="pre">containerIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/constant_integral.html#MedianIntegral.containerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.constant_integral.MedianIntegral.containerIntegral" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – the container on which the integral of f should be evaluated</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – takes X : np.ndarray and return np.ndarray,
+see pdf method of Distribution class in distributions.py</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – other arguments allowed, must set default values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>integral (float) value of the integral of f on the container</p></li>
+<li><p>and other necessary results</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.constant_integral.MidpointIntegral">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container_integrators.constant_integral.</span></span><span class="sig-name descname"><span class="pre">MidpointIntegral</span></span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/constant_integral.html#MidpointIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.constant_integral.MidpointIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerIntegral</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.constant_integral.MidpointIntegral.containerIntegral">
+<span class="sig-name descname"><span class="pre">containerIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/constant_integral.html#MidpointIntegral.containerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.constant_integral.MidpointIntegral.containerIntegral" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – the container on which the integral of f should be evaluated</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – takes X : np.ndarray and return np.ndarray,
+see pdf method of Distribution class in distributions.py</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – other arguments allowed, must set default values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>integral (float) value of the integral of f on the container</p></li>
+<li><p>and other necessary results</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.container_integrators.gp_integral">
+<span id="treequadrature-container-integrators-gp-integral-module"></span><h2>treeQuadrature.container_integrators.gp_integral module<a class="headerlink" href="#module-treeQuadrature.container_integrators.gp_integral" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container_integrators.gp_integral.</span></span><span class="sig-name descname"><span class="pre">AdaptiveRbfIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_redraw:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_direction:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'up'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_residuals:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scoring:</span> <span class="pre">~typing.Callable</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GPFit:</span> <span class="pre">~typing.Type[~treeQuadrature.gaussian_process.fit_gp.GPFit]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'treeQuadrature.gaussian_process.fit_gp.SklearnGPFit'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp_params:</span> <span class="pre">dict</span> <span class="pre">=</span> <span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler:</span> <span class="pre">~treeQuadrature.samplers.base_class.Sampler</span> <span class="pre">=</span> <span class="pre">&lt;treeQuadrature.samplers.uniform_sampler.UniformSampler</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_samples:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_GP:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#AdaptiveRbfIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerIntegral</span></code></a></p>
+<p>Use Gaussian Process with RBF kernel,
+with length scale and search range determined
+adaptively to the container</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.n_samples">
+<span class="sig-name descname"><span class="pre">n_samples</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.n_samples" title="Link to this definition">¶</a></dt>
+<dd><p>number of samples to draw</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.n_splits">
+<span class="sig-name descname"><span class="pre">n_splits</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.n_splits" title="Link to this definition">¶</a></dt>
+<dd><p>number of K-fold cross-validation splits
+if n_splits = 0, K-Fold CV will not be performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.max_redraw">
+<span class="sig-name descname"><span class="pre">max_redraw</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.max_redraw" title="Link to this definition">¶</a></dt>
+<dd><p>maximum number of times to increase the
+number of samples in GP fitting.
+Should NOT be too large.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.scoring">
+<span class="sig-name descname"><span class="pre">scoring</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.scoring" title="Link to this definition">¶</a></dt>
+<dd><p>A scoring function to evaluate the GP predictions.
+It must accept three arguments:
+the true values, the predicted values, posterior std.
+If not provided, default is predictive log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.thershold">
+<span class="sig-name descname"><span class="pre">thershold</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.thershold" title="Link to this definition">¶</a></dt>
+<dd><p>minimum score that must be achieved by
+Gaussian Process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.threshold_direction">
+<span class="sig-name descname"><span class="pre">threshold_direction</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.threshold_direction" title="Link to this definition">¶</a></dt>
+<dd><p>one of ‘up’ and ‘down’. for iterative GP fitting
+if ‘up’, accept the model if score &gt;= performance_threshold;
+if ‘down’, accept the model if score &gt;= performance_threshold</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.GPFit">
+<span class="sig-name descname"><span class="pre">GPFit</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.GPFit" title="Link to this definition">¶</a></dt>
+<dd><p>any subclass of GPFit
+for fitting gaussian process</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type[<a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit">GPFit</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.gp_params">
+<span class="sig-name descname"><span class="pre">gp_params</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.gp_params" title="Link to this definition">¶</a></dt>
+<dd><p>The parameters for initialising
+GPFit object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.fit_residuals">
+<span class="sig-name descname"><span class="pre">fit_residuals</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.fit_residuals" title="Link to this definition">¶</a></dt>
+<dd><p>if True, GP is fitted to residuals
+instead of samples</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.sampler">
+<span class="sig-name descname"><span class="pre">sampler</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.sampler" title="Link to this definition">¶</a></dt>
+<dd><p>used for drawing samples in the container</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler">Sampler</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.keep_samples">
+<span class="sig-name descname"><span class="pre">keep_samples</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.keep_samples" title="Link to this definition">¶</a></dt>
+<dd><p>whether keep the original samples used
+to build tree or not when fitting GP</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.check_GP">
+<span class="sig-name descname"><span class="pre">check_GP</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.check_GP" title="Link to this definition">¶</a></dt>
+<dd><p>if True, generate the GP diagnostic plots</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.containerIntegral">
+<span class="sig-name descname"><span class="pre">containerIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#AdaptiveRbfIntegral.containerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.AdaptiveRbfIntegral.containerIntegral" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – the container on which the integral of f should be evaluated</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – takes X : np.ndarray and return np.ndarray</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – if True, returns the posterior std of integral estimate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>integral (float) value of the integral of f on the container</p></li>
+<li><p>std (float) standard deviation of integral, if .return_std = True</p></li>
+<li><p>hyper_params (dict) hyper-parameters of the fitted kernel</p></li>
+<li><p>performance (float) GP goodness of fit score</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container_integrators.gp_integral.</span></span><span class="sig-name descname"><span class="pre">IterativeGpIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_residuals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scoring</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GPFit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit"><span class="pre">GPFit</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><span class="pre">Sampler</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#IterativeGpIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerIntegral</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral.containerIntegral">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">containerIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#IterativeGpIntegral.containerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral.containerIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Takes previous samples and draw new samples to perform fitting again.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – the container on which the integral of f should be evaluated</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – takes X : np.ndarray and return np.ndarray,</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – if True, returns the posterior std of integral estimate</p></li>
+<li><p><strong>previous_samples</strong> (<em>tuple</em><em>, </em><em>optional</em>) – if provided, it contains (xs, ys) from the previous iteration</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>dict</em> –</p>
+<ul>
+<li><p>integral (float) value of the integral of f on the container</p></li>
+<li><p>std (float) standard deviation of integral, if .return_std = True</p></li>
+<li><p>hyper_params (dict) hyper-parameters of the fitted kernel</p></li>
+<li><p>performance (float) GP goodness of fit score</p></li>
+</ul>
+</li>
+<li><p><em>tuple(np.ndarray, np.ndarray)</em> – samples xs, ys used by this iteration</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container_integrators.gp_integral.</span></span><span class="sig-name descname"><span class="pre">IterativeRbfIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_residuals:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scoring:</span> <span class="pre">~typing.Callable</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">r2&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_direction='up'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GPFit:</span> <span class="pre">~typing.Type[~treeQuadrature.gaussian_process.fit_gp.GPFit]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'treeQuadrature.gaussian_process.fit_gp.SklearnGPFit'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp_params:</span> <span class="pre">dict</span> <span class="pre">=</span> <span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler:</span> <span class="pre">~treeQuadrature.samplers.base_class.Sampler</span> <span class="pre">=</span> <span class="pre">&lt;treeQuadrature.samplers.uniform_sampler.UniformSampler</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#IterativeRbfIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral" title="treeQuadrature.container_integrators.gp_integral.IterativeGpIntegral"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterativeGpIntegral</span></code></a></p>
+<p>A modified version of AdaptiveRbfIntegral that allows iterative
+sample drawing and fitting of the Gaussian Process model.
+This is specifically used for integrators where
+containers should be coordinating together.
+e.g. DistributedGpTreeIntegrator</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.n_samples">
+<span class="sig-name descname"><span class="pre">n_samples</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.n_samples" title="Link to this definition">¶</a></dt>
+<dd><p>number of samples to draw in each container</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.n_splits">
+<span class="sig-name descname"><span class="pre">n_splits</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.n_splits" title="Link to this definition">¶</a></dt>
+<dd><p>number of K-fold cross-validation splits
+if n_splits = 0, K-Fold CV will not be performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.scoring">
+<span class="sig-name descname"><span class="pre">scoring</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.scoring" title="Link to this definition">¶</a></dt>
+<dd><p>A scoring function to evaluate the GP predictions.
+It must accept three arguments:
+the true values, the predicted values, posterior std.
+If not provided, default is predictive log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.score_direction">
+<span class="sig-name descname"><span class="pre">score_direction</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.score_direction" title="Link to this definition">¶</a></dt>
+<dd><p>one of ‘up’ and ‘down’
+if up, higher score is better
+if down, lower score is better</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.GPFit">
+<span class="sig-name descname"><span class="pre">GPFit</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.GPFit" title="Link to this definition">¶</a></dt>
+<dd><p>any subclass of GPFit
+for fitting gaussian process</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type[<a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit">GPFit</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.gp_params">
+<span class="sig-name descname"><span class="pre">gp_params</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.gp_params" title="Link to this definition">¶</a></dt>
+<dd><p>The parameters for initialising
+GPFit object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.fit_residuals">
+<span class="sig-name descname"><span class="pre">fit_residuals</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.fit_residuals" title="Link to this definition">¶</a></dt>
+<dd><p>if True, GP is fitted to residuals
+instead of samples</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.sampler">
+<span class="sig-name descname"><span class="pre">sampler</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.sampler" title="Link to this definition">¶</a></dt>
+<dd><p>used for drawing samples in the container</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler">Sampler</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.containerIntegral">
+<span class="sig-name descname"><span class="pre">containerIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#IterativeRbfIntegral.containerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.IterativeRbfIntegral.containerIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Takes previous samples and draw new samples to perform fitting again.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – the container on which the integral of f should be evaluated</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – takes X : np.ndarray and return np.ndarray,</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – if True, returns the posterior std of integral estimate</p></li>
+<li><p><strong>previous_samples</strong> (<em>tuple</em><em>, </em><em>optional</em>) – if provided, it contains (xs, ys) from the previous iteration</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>dict</em> –</p>
+<ul>
+<li><p>integral (float) value of the integral of f on the container</p></li>
+<li><p>std (float) standard deviation of integral, if .return_std = True</p></li>
+<li><p>hyper_params (dict) hyper-parameters of the fitted kernel</p></li>
+<li><p>performance (float) GP goodness of fit score</p></li>
+</ul>
+</li>
+<li><p><em>tuple(np.ndarray, np.ndarray)</em> – samples xs, ys used by this iteration</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container_integrators.gp_integral.</span></span><span class="sig-name descname"><span class="pre">KernelIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GPFit:</span> <span class="pre">~typing.Type[~treeQuadrature.gaussian_process.fit_gp.GPFit]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'treeQuadrature.gaussian_process.fit_gp.SklearnGPFit'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp_params:</span> <span class="pre">dict</span> <span class="pre">=</span> <span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel:</span> <span class="pre">~typing.Any</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#KernelIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerIntegral</span></code></a></p>
+<p>use Gaussian process with RBF kernel by default
+to estimate the integral value on a container
+assumes uniform prior used</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.length">
+<span class="sig-name descname"><span class="pre">length</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.length" title="Link to this definition">¶</a></dt>
+<dd><p>the initial value of the length scale of RBF kernel
+default 1.0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int or float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.range">
+<span class="sig-name descname"><span class="pre">range</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.range" title="Link to this definition">¶</a></dt>
+<dd><p>GPRegressor will search hyper-parameter
+among (length * 1/range, length * range)
+Default 1e3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int or float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.thershold">
+<span class="sig-name descname"><span class="pre">thershold</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.thershold" title="Link to this definition">¶</a></dt>
+<dd><p>minimum score that must be achieved by
+Gaussian Process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.n_samples">
+<span class="sig-name descname"><span class="pre">n_samples</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.n_samples" title="Link to this definition">¶</a></dt>
+<dd><p>number of samples to be drawn in each round of IterativeGPFitting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.n_splits">
+<span class="sig-name descname"><span class="pre">n_splits</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.n_splits" title="Link to this definition">¶</a></dt>
+<dd><p>number of K-fold cross-validation splits
+if n_splits = 0, K-Fold CV will not be performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.threshold_direction">
+<span class="sig-name descname"><span class="pre">threshold_direction</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.threshold_direction" title="Link to this definition">¶</a></dt>
+<dd><p>one of ‘up’ and ‘down’.
+if ‘up’, accept the model if score &gt;= performance_threshold;
+if ‘down’, accept the model if score &gt;= performance_threshold</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.max_redraw">
+<span class="sig-name descname"><span class="pre">max_redraw</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.max_redraw" title="Link to this definition">¶</a></dt>
+<dd><p>maximum number of times to increase the
+number of samples in GP fitting.
+Should NOT be too large.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.check_GP">
+<span class="sig-name descname"><span class="pre">check_GP</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.check_GP" title="Link to this definition">¶</a></dt>
+<dd><p>if true, print diagnostics of GP
+prediction variance, mean squared error and r^2 score</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.fit_residuals">
+<span class="sig-name descname"><span class="pre">fit_residuals</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.fit_residuals" title="Link to this definition">¶</a></dt>
+<dd><p>if True, GP is fitted to residuals
+instead of samples</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.gp">
+<span class="sig-name descname"><span class="pre">gp</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.gp" title="Link to this definition">¶</a></dt>
+<dd><p>default is SklearnGPFit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit">GPFit</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.iGP">
+<span class="sig-name descname"><span class="pre">iGP</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.iGP" title="Link to this definition">¶</a></dt>
+<dd><p>the iterative fitter used by this instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>IterativeGPFit</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.KernelIntegral.containerIntegral">
+<span class="sig-name descname"><span class="pre">containerIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#KernelIntegral.containerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.KernelIntegral.containerIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Gaussian Process is fitted iteratively</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – the container on which the integral of f should be evaluated</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – takes X : np.ndarray and return np.ndarray,
+see pdf method of Distribution class in distributions.py</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – if True, returns the posterior std of integral estimate</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – other arguments allowed (see class attributes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>integral (float) the integral estimate</p></li>
+<li><p>std (float) standard deviation of integral, if return_std = True</p></li>
+<li><p>hyper_params (dict) hyper-parameters of the fitted kernel</p></li>
+<li><p>performance (float) GP goodness of fit score</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container_integrators.gp_integral.</span></span><span class="sig-name descname"><span class="pre">PolyIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">degrees:</span> <span class="pre">~typing.List[int],</span> <span class="pre">coeffs=None,</span> <span class="pre">n_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">20,</span> <span class="pre">n_splits:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4,</span> <span class="pre">max_redraw:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4,</span> <span class="pre">threshold:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">10,</span> <span class="pre">fit_residuals:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">GPFit:</span> <span class="pre">~typing.Type[~treeQuadrature.gaussian_process.fit_gp.GPFit]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'treeQuadrature.gaussian_process.fit_gp.SklearnGPFit'&gt;,</span> <span class="pre">gp_params:</span> <span class="pre">dict</span> <span class="pre">=</span> <span class="pre">{},</span> <span class="pre">sampler:</span> <span class="pre">~treeQuadrature.samplers.base_class.Sampler</span> <span class="pre">=</span> <span class="pre">&lt;treeQuadrature.samplers.uniform_sampler.UniformSampler</span> <span class="pre">object&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#PolyIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerIntegral</span></code></a></p>
+<p>Use Gaussian Process with a Polynomial kernel,
+with degree and coefficient determined by
+grid search.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.degrees">
+<span class="sig-name descname"><span class="pre">degrees</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.degrees" title="Link to this definition">¶</a></dt>
+<dd><p>degrees of polynomials to search through</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.coeffs">
+<span class="sig-name descname"><span class="pre">coeffs</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.coeffs" title="Link to this definition">¶</a></dt>
+<dd><p>range of coefficients to search from
+for polynomial kernel</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ArrayLike</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.n_samples">
+<span class="sig-name descname"><span class="pre">n_samples</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.n_samples" title="Link to this definition">¶</a></dt>
+<dd><p>number of samples drawn in each iteration</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.n_splits">
+<span class="sig-name descname"><span class="pre">n_splits</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.n_splits" title="Link to this definition">¶</a></dt>
+<dd><p>Number of K-fold cross-validation splits.
+If n_splits = 0, K-Fold CV will not be performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.max_redraw">
+<span class="sig-name descname"><span class="pre">max_redraw</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.max_redraw" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum number of times to increase the
+number of samples in GP fitting.
+Should NOT be too large.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.threshold">
+<span class="sig-name descname"><span class="pre">threshold</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.threshold" title="Link to this definition">¶</a></dt>
+<dd><p>Minimum score that must be achieved by
+Gaussian Process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.GPFit">
+<span class="sig-name descname"><span class="pre">GPFit</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.GPFit" title="Link to this definition">¶</a></dt>
+<dd><p>any subclass of GPFit
+for fitting gaussian process</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type[<a class="reference internal" href="treeQuadrature.gaussian_process.html#treeQuadrature.gaussian_process.fit_gp.GPFit" title="treeQuadrature.gaussian_process.fit_gp.GPFit">GPFit</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.gp_params">
+<span class="sig-name descname"><span class="pre">gp_params</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.gp_params" title="Link to this definition">¶</a></dt>
+<dd><p>The parameters for initialising
+GPFit object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.iGP">
+<span class="sig-name descname"><span class="pre">iGP</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.iGP" title="Link to this definition">¶</a></dt>
+<dd><p>The iterative fitter used by this instance.
+Though max_redraw = 0 in this case,
+as number of samples scale with volume of container instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>IterativeGPFit</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.fit_residuals">
+<span class="sig-name descname"><span class="pre">fit_residuals</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.fit_residuals" title="Link to this definition">¶</a></dt>
+<dd><p>If True, GP is fitted to residuals
+instead of samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.return_std">
+<span class="sig-name descname"><span class="pre">return_std</span></span><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.return_std" title="Link to this definition">¶</a></dt>
+<dd><p>If True, returns the posterior std of integral estimate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.gp_integral.PolyIntegral.containerIntegral">
+<span class="sig-name descname"><span class="pre">containerIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/gp_integral.html#PolyIntegral.containerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.gp_integral.PolyIntegral.containerIntegral" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – The container on which the integral of f should be evaluated.</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – Takes X : np.ndarray and returns np.ndarray.</p></li>
+<li><p><strong>return_std</strong> (<em>bool</em>) – If True, returns the posterior std of integral estimate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>integral (float) value of the integral of f on the container.</p></li>
+<li><p>std (float) standard deviation of integral, if return_std = True.</p></li>
+<li><p>hyper_params (dict) hyper-parameters of the fitted kernel.</p></li>
+<li><p>performance (float) GP goodness of fit score.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.container_integrators.monte_carlo_integral">
+<span id="treequadrature-container-integrators-monte-carlo-integral-module"></span><h2>treeQuadrature.container_integrators.monte_carlo_integral module<a class="headerlink" href="#module-treeQuadrature.container_integrators.monte_carlo_integral" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.monte_carlo_integral.RandomIntegral">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treeQuadrature.container_integrators.monte_carlo_integral.</span></span><span class="sig-name descname"><span class="pre">RandomIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval:</span> <span class="pre">~typing.Callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">mean&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_estimate:</span> <span class="pre">~typing.Callable</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler:</span> <span class="pre">~treeQuadrature.samplers.base_class.Sampler</span> <span class="pre">=</span> <span class="pre">&lt;treeQuadrature.samplers.uniform_sampler.UniformSampler</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/monte_carlo_integral.html#RandomIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.monte_carlo_integral.RandomIntegral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#treeQuadrature.container_integrators.base_class.ContainerIntegral" title="treeQuadrature.container_integrators.base_class.ContainerIntegral"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerIntegral</span></code></a></p>
+<p>Monte Carlo integrator:
+redraw samples, and estimate integrand
+by the a constant value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_samples</strong> (<em>int</em>) – number of samples to be redrawn for evaluating the integral.
+Default : 10</p></li>
+<li><p><strong>eval</strong> (<em>function</em>) – Should take a np.ndarray (samples of integrand)
+and return a float (aggregated value).
+Default is mean</p></li>
+<li><p><strong>error_estimate</strong> (<em>function</em>) – must be provided when eval is not mean nor median.
+Used to obtain an estimate of the uncertainty</p></li>
+<li><p><strong>sampler</strong> (<a class="reference internal" href="treeQuadrature.samplers.html#treeQuadrature.samplers.base_class.Sampler" title="treeQuadrature.samplers.base_class.Sampler"><em>Sampler</em></a>) – The sampler used to draw samples in the container
+Default is UniformSampler</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.monte_carlo_integral.RandomIntegral.containerIntegral">
+<span class="sig-name descname"><span class="pre">containerIntegral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><span class="pre">Container</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/monte_carlo_integral.html#RandomIntegral.containerIntegral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.monte_carlo_integral.RandomIntegral.containerIntegral" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="treeQuadrature.html#treeQuadrature.container.Container" title="treeQuadrature.container.Container"><em>Container</em></a>) – the container on which the integral of f should be evaluated</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – takes X : np.ndarray and return np.ndarray,
+see pdf method of Distribution class in distributions.py</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – other arguments allowed, must set default values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>integral (float) value of the integral of f on the container</p></li>
+<li><p>and other necessary results</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treeQuadrature.container_integrators.monte_carlo_integral.RandomIntegral.estimate_error">
+<span class="sig-name descname"><span class="pre">estimate_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treeQuadrature/container_integrators/monte_carlo_integral.html#RandomIntegral.estimate_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treeQuadrature.container_integrators.monte_carlo_integral.RandomIntegral.estimate_error" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-treeQuadrature.container_integrators">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-treeQuadrature.container_integrators" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="treeQuadrature.html">treeQuadrature package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="treeQuadrature.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.compare_integrators">treeQuadrature.compare_integrators module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.container">treeQuadrature.container module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.queues">treeQuadrature.queues module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.utils">treeQuadrature.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature.visualisation">treeQuadrature.visualisation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeQuadrature.html#module-treeQuadrature">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">treeQuadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">tests package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="treeQuadrature.html">treeQuadrature package</a><ul>
+      <li>Previous: <a href="treeQuadrature.html" title="previous chapter">treeQuadrature package</a></li>
+      <li>Next: <a href="treeQuadrature.example_problems.html" title="next chapter">treeQuadrature.example_problems package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/treeQuadrature.container_integrators.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

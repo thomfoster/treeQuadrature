@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>tests package &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="setup module" href="setup.html" />
+    <link rel="prev" title="treeQuadrature" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tests-package">
+<h1>tests package<a class="headerlink" href="#tests-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-tests.conftest">
+<span id="tests-conftest-module"></span><h2>tests.conftest module<a class="headerlink" href="#module-tests.conftest" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.conftest.boundary_container">
+<span class="sig-prename descclassname"><span class="pre">tests.conftest.</span></span><span class="sig-name descname"><span class="pre">boundary_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/conftest.html#boundary_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.conftest.boundary_container" title="Link to this definition">¶</a></dt>
+<dd><p>container with samples on corners of container</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.conftest.closed_container">
+<span class="sig-prename descclassname"><span class="pre">tests.conftest.</span></span><span class="sig-name descname"><span class="pre">closed_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/conftest.html#closed_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.conftest.closed_container" title="Link to this definition">¶</a></dt>
+<dd><p>container with 0 volume</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.conftest.container">
+<span class="sig-prename descclassname"><span class="pre">tests.conftest.</span></span><span class="sig-name descname"><span class="pre">container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simple_container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed_container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_container</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/conftest.html#container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.conftest.container" title="Link to this definition">¶</a></dt>
+<dd><p>Pretty hacky “Meta” container to allow the parametrization of multiple containers.
+See <a class="reference external" href="https://github.com/pytest-dev/pytest/issues/349">https://github.com/pytest-dev/pytest/issues/349</a> for more answers.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.conftest.empty_container">
+<span class="sig-prename descclassname"><span class="pre">tests.conftest.</span></span><span class="sig-name descname"><span class="pre">empty_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/conftest.html#empty_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.conftest.empty_container" title="Link to this definition">¶</a></dt>
+<dd><p>container with volume &gt; 0 but no samples</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.conftest.simple_container">
+<span class="sig-prename descclassname"><span class="pre">tests.conftest.</span></span><span class="sig-name descname"><span class="pre">simple_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/conftest.html#simple_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.conftest.simple_container" title="Link to this definition">¶</a></dt>
+<dd><p>standard populated container</p>
+</dd></dl>
+
+</section>
+<section id="module-tests.test_container">
+<span id="tests-test-container-module"></span><h2>tests.test_container module<a class="headerlink" href="#module-tests.test_container" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_container.test_add_method">
+<span class="sig-prename descclassname"><span class="pre">tests.test_container.</span></span><span class="sig-name descname"><span class="pre">test_add_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_container.html#test_add_method"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_container.test_add_method" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_container.test_infinite_container">
+<span class="sig-prename descclassname"><span class="pre">tests.test_container.</span></span><span class="sig-name descname"><span class="pre">test_infinite_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_container.html#test_infinite_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_container.test_infinite_container" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_container.test_init">
+<span class="sig-prename descclassname"><span class="pre">tests.test_container.</span></span><span class="sig-name descname"><span class="pre">test_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_container.html#test_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_container.test_init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_container.test_init_rectangle">
+<span class="sig-prename descclassname"><span class="pre">tests.test_container.</span></span><span class="sig-name descname"><span class="pre">test_init_rectangle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_container.html#test_init_rectangle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_container.test_init_rectangle" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_container.test_rvs_method">
+<span class="sig-prename descclassname"><span class="pre">tests.test_container.</span></span><span class="sig-name descname"><span class="pre">test_rvs_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_container.html#test_rvs_method"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_container.test_rvs_method" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_container.test_split_method">
+<span class="sig-prename descclassname"><span class="pre">tests.test_container.</span></span><span class="sig-name descname"><span class="pre">test_split_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_test_to_repeat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_container.html#test_split_method"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_container.test_split_method" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_container.test_volume_method">
+<span class="sig-prename descclassname"><span class="pre">tests.test_container.</span></span><span class="sig-name descname"><span class="pre">test_volume_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_container.html#test_volume_method"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_container.test_volume_method" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tests.test_distributions">
+<span id="tests-test-distributions-module"></span><h2>tests.test_distributions module<a class="headerlink" href="#module-tests.test_distributions" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_distributions.test_shapes">
+<span class="sig-prename descclassname"><span class="pre">tests.test_distributions.</span></span><span class="sig-name descname"><span class="pre">test_shapes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_distributions.html#test_shapes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_distributions.test_shapes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_distributions.test_uniform_pdf">
+<span class="sig-prename descclassname"><span class="pre">tests.test_distributions.</span></span><span class="sig-name descname"><span class="pre">test_uniform_pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uniform_dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_distributions.html#test_uniform_pdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_distributions.test_uniform_pdf" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_distributions.test_uniform_rvs">
+<span class="sig-prename descclassname"><span class="pre">tests.test_distributions.</span></span><span class="sig-name descname"><span class="pre">test_uniform_rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uniform_dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_distributions.html#test_uniform_rvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_distributions.test_uniform_rvs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_distributions.uniform_dist">
+<span class="sig-prename descclassname"><span class="pre">tests.test_distributions.</span></span><span class="sig-name descname"><span class="pre">uniform_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_distributions.html#uniform_dist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_distributions.uniform_dist" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tests.test_integrators">
+<span id="tests-test-integrators-module"></span><h2>tests.test_integrators module<a class="headerlink" href="#module-tests.test_integrators" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_integrators.test_DistributedTreeIntegrator">
+<span class="sig-prename descclassname"><span class="pre">tests.test_integrators.</span></span><span class="sig-name descname"><span class="pre">test_DistributedTreeIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_integrators.html#test_DistributedTreeIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_integrators.test_DistributedTreeIntegrator" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_integrators.test_LimitedSampleIntegrator">
+<span class="sig-prename descclassname"><span class="pre">tests.test_integrators.</span></span><span class="sig-name descname"><span class="pre">test_LimitedSampleIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighting_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_integrators.html#test_LimitedSampleIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_integrators.test_LimitedSampleIntegrator" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_integrators.test_QueueIntegrator">
+<span class="sig-prename descclassname"><span class="pre">tests.test_integrators.</span></span><span class="sig-name descname"><span class="pre">test_QueueIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighting_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_splits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopping_condition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_integrators.html#test_QueueIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_integrators.test_QueueIntegrator" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_integrators.test_SimpleIntegrator">
+<span class="sig-prename descclassname"><span class="pre">tests.test_integrators.</span></span><span class="sig-name descname"><span class="pre">test_SimpleIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_integrators.html#test_SimpleIntegrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_integrators.test_SimpleIntegrator" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_integrators.test_io">
+<span class="sig-prename descclassname"><span class="pre">tests.test_integrators.</span></span><span class="sig-name descname"><span class="pre">test_io</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrator_instance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_integrators.html#test_io"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_integrators.test_io" title="Link to this definition">¶</a></dt>
+<dd><p>Checks each integrator has the desired IO for an integrator</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_integrators.test_return_std">
+<span class="sig-prename descclassname"><span class="pre">tests.test_integrators.</span></span><span class="sig-name descname"><span class="pre">test_return_std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrator_instance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_integrators.html#test_return_std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_integrators.test_return_std" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_integrators.test_treeIntegrator_io">
+<span class="sig-prename descclassname"><span class="pre">tests.test_integrators.</span></span><span class="sig-name descname"><span class="pre">test_treeIntegrator_io</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrator_instance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_integrators.html#test_treeIntegrator_io"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_integrators.test_treeIntegrator_io" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tests">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tests" title="Link to this heading">¶</a></h2>
+<p>Package for testing the treeQuadrature package using pytest</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="treeQuadrature.html">treeQuadrature package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">treeQuadrature</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">tests package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tests.conftest">tests.conftest module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tests.test_container">tests.test_container module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tests.test_distributions">tests.test_distributions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tests.test_integrators">tests.test_integrators module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tests">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">treeQuadrature</a></li>
+      <li>Next: <a href="setup.html" title="next chapter">setup module</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/tests.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

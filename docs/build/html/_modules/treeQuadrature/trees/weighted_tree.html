@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>treeQuadrature.trees.weighted_tree &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for treeQuadrature.trees.weighted_tree</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">.base_class</span> <span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span> <span class="nn">..splits</span> <span class="kn">import</span> <span class="n">Split</span><span class="p">,</span> <span class="n">MinSseSplit</span>
+<span class="kn">from</span> <span class="nn">..queues</span> <span class="kn">import</span> <span class="n">ReservoirQueue</span>
+<span class="kn">from</span> <span class="nn">..container</span> <span class="kn">import</span> <span class="n">Container</span>
+
+
+<div class="viewcode-block" id="default_stopping_condition">
+<a class="viewcode-back" href="../../../treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.default_stopping_condition">[docs]</a>
+<span class="k">def</span> <span class="nf">default_stopping_condition</span><span class="p">(</span><span class="n">container</span><span class="p">:</span> <span class="n">Container</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="WeightedTree">
+<a class="viewcode-back" href="../../../treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree">[docs]</a>
+<span class="k">class</span> <span class="nc">WeightedTree</span><span class="p">(</span><span class="n">Tree</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Tree subclass that constructs the tree using a weighted queue mechanism</span>
+<span class="sd">    for prioritisation.</span>
+<span class="sd">    Stopping Criteria: when stopping_condition is met.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ---------</span>
+<span class="sd">    max_splits : int or np.inf</span>
+<span class="sd">        a limit on the number of splits the integrator can perform. </span>
+<span class="sd">        Default : np.inf</span>
+<span class="sd">    split : Split</span>
+<span class="sd">        the method to split the containers</span>
+<span class="sd">    weighting_function : Callable[[Container], float]</span>
+<span class="sd">        maps Container -&gt; float to give priority of container</span>
+<span class="sd">        in queue</span>
+<span class="sd">    active_N : int</span>
+<span class="sd">        the number of active samples to draw before a container is</span>
+<span class="sd">        split. </span>
+<span class="sd">        Default: 0</span>
+<span class="sd">    n_splits : int</span>
+<span class="sd">        actual number of splits </span>
+<span class="sd">    stopping_condition : Callable[[Container], bool], optional</span>
+<span class="sd">        maps Container -&gt; Bool to indicate whether</span>
+<span class="sd">        container should no longer be split</span>
+<span class="sd">    queue : ReservoirQueue, optional</span>
+<span class="sd">        where containers are pushed and popped from along with their</span>
+<span class="sd">        weights</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weighting_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Container</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span> 
+                 <span class="n">max_splits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="n">active_N</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> 
+                 <span class="n">stopping_condition</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Container</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_stopping_condition</span><span class="p">,</span>
+                 <span class="n">split</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Split</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">queue</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ReservoirQueue</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        --------</span>
+<span class="sd">        weighting_function : Callable[[Container], float]</span>
+<span class="sd">            maps Container -&gt; float to give priority of container</span>
+<span class="sd">            in queue</span>
+<span class="sd">        max_splits : int or np.inf, optional</span>
+<span class="sd">            a limit on the number of splits the integrator can perform</span>
+<span class="sd">            Default: np.inf</span>
+<span class="sd">        active_N : int, optional</span>
+<span class="sd">            the number of active samples to draw before a container is</span>
+<span class="sd">            split in each iteration.</span>
+<span class="sd">            Warning: active_N &gt; 0 will create more function evaluations. </span>
+<span class="sd">            Default: 0</span>
+<span class="sd">        stopping_condition : Callable[[Container], bool], optional</span>
+<span class="sd">            maps Container -&gt; Bool to indicate whether</span>
+<span class="sd">            container should no longer be split</span>
+<span class="sd">        split : Optional[Split], optional</span>
+<span class="sd">            the method to split the containers. </span>
+<span class="sd">            Default is MinSseSplit</span>
+<span class="sd">        queue : Optional[ReservoirQueue], optional</span>
+<span class="sd">            where containers are pushed and popped from along with their</span>
+<span class="sd">            weights. </span>
+<span class="sd">            Default: ReservoirQueue(accentuation_factor=100)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">max_splits</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="n">stopping_condition</span> <span class="o">==</span> <span class="n">default_stopping_condition</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="s2">&quot;Integrator with never terminate - either provide a stopping&quot;</span> <span class="o">+</span>
+                <span class="s2">&quot;condition or a maximum number of splits (max_splits)&quot;</span><span class="p">)</span>
+    
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_splits</span> <span class="o">=</span> <span class="n">max_splits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_N</span> <span class="o">=</span> <span class="n">active_N</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">split</span> <span class="k">if</span> <span class="n">split</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">MinSseSplit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weighting_function</span> <span class="o">=</span> <span class="n">weighting_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stopping_condition</span> <span class="o">=</span> <span class="n">stopping_condition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span> <span class="k">if</span> <span class="n">queue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ReservoirQueue</span><span class="p">(</span><span class="n">accentuation_factor</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WeightedTree.construct_tree">
+<a class="viewcode-back" href="../../../treeQuadrature.trees.html#treeQuadrature.trees.weighted_tree.WeightedTree.construct_tree">[docs]</a>
+    <span class="k">def</span> <span class="nf">construct_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">:</span> <span class="n">Container</span><span class="p">,</span> <span class="n">integrand</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span> 
+                       <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Container</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct the tree using a weighted queue mechanism.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        root : Container</span>
+<span class="sd">            The root container with all initial samples. </span>
+<span class="sd">        integrand : callable</span>
+<span class="sd">            The integrand function to be integrated.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            Whether to print verbose output, by default False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_N</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_root</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_splits</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">finished_containers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">item</span><span class="o">=</span><span class="n">root</span><span class="p">)</span> 
+
+        <span class="c1"># for verbose tracking</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">iteration_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="p">(</span><span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_splits</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_splits</span><span class="p">):</span>
+            <span class="n">iteration_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">c</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopping_condition</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+                <span class="n">finished_containers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_N</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">X</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_N</span><span class="p">)</span>
+                        <span class="n">y</span> <span class="o">=</span> <span class="n">integrand</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+                        <span class="n">child</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+                    <span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weighting_function</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+                    <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">n_splits</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">iteration_count</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>  <span class="c1"># Log every 100 iterations</span>
+                <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Iteration </span><span class="si">{</span><span class="n">iteration_count</span><span class="si">}</span><span class="s2">: Queue size = </span><span class="si">{</span><span class="n">q</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2">, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;number of containers = </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">finished_containers</span><span class="p">)</span><span class="si">}</span><span class="s2">, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Elapsed time = </span><span class="si">{</span><span class="n">elapsed_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Empty queue</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+            <span class="n">finished_containers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>        
+        
+        <span class="n">total_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total finished containers: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">finished_containers</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total iterations: </span><span class="si">{</span><span class="n">iteration_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total time taken: </span><span class="si">{</span><span class="n">total_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">finished_containers</span></div>
+</div>
+
+
+        
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../treeQuadrature.html">treeQuadrature package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

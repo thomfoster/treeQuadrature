@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tests.test_integrators &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for tests.test_integrators</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pytest</span>
+<span class="kn">import</span> <span class="nn">treeQuadrature</span> <span class="k">as</span> <span class="nn">tq</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1">######################</span>
+<span class="c1"># Initial IO checks</span>
+<span class="c1">######################</span>
+
+<div class="viewcode-block" id="test_io">
+<a class="viewcode-back" href="../../tests.html#tests.test_integrators.test_io">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;integrator_instance&quot;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">SmcIntegrator</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">VegasIntegrator</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">BayesMcIntegrator</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="p">])</span>
+<span class="k">def</span> <span class="nf">test_io</span><span class="p">(</span><span class="n">integrator_instance</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Checks each integrator has the desired IO for an integrator&quot;&quot;&quot;</span>
+
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">example_problems</span><span class="o">.</span><span class="n">SimpleGaussian</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">integrator_instance</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">integrator_instance</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">return_N</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;n_evals&#39;</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">integrator_instance</span><span class="p">,</span> <span class="s1">&#39;return_std&#39;</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">integrator_instance</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">return_N</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="test_treeIntegrator_io">
+<a class="viewcode-back" href="../../tests.html#tests.test_integrators.test_treeIntegrator_io">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;integrator_instance&quot;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span>
+        <span class="n">base_N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">integral</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">MidpointIntegral</span><span class="p">(),</span> 
+        <span class="n">tree</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">trees</span><span class="o">.</span><span class="n">LimitedSampleTree</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">active_N</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> 
+                                        <span class="n">split</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">KdSplit</span><span class="p">(),</span> 
+                                        <span class="n">weighting_function</span><span class="o">=</span><span class="k">lambda</span> <span class="n">container</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">volume</span><span class="p">)),</span> 
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span>
+        <span class="n">base_N</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">trees</span><span class="o">.</span><span class="n">WeightedTree</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">KdSplit</span><span class="p">(),</span> 
+                                               <span class="n">weighting_function</span><span class="o">=</span><span class="k">lambda</span> <span class="n">container</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">volume</span><span class="p">,</span> 
+                                               <span class="n">max_splits</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> 
+                                               <span class="n">stopping_condition</span><span class="o">=</span><span class="k">lambda</span> <span class="n">container</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">N</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">),</span> 
+        <span class="n">integral</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">MidpointIntegral</span><span class="p">()),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">trees</span><span class="o">.</span><span class="n">SimpleTree</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">KdSplit</span><span class="p">()),</span> 
+                                    <span class="n">integral</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">MidpointIntegral</span><span class="p">()),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">BatchGpIntegrator</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">trees</span><span class="o">.</span><span class="n">SimpleTree</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">KdSplit</span><span class="p">()),</span> 
+                                    <span class="n">integral</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">KernelIntegral</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<span class="p">])</span>
+<span class="k">def</span> <span class="nf">test_treeIntegrator_io</span><span class="p">(</span><span class="n">integrator_instance</span><span class="p">):</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">example_problems</span><span class="o">.</span><span class="n">SimpleGaussian</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">integrator_instance</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">integrator_instance</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">return_N</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;n_evals&#39;</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">integrator_instance</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">return_containers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;contributions&#39;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">cont</span><span class="p">,</span> <span class="n">tq</span><span class="o">.</span><span class="n">Container</span><span class="p">)</span> <span class="k">for</span> <span class="n">cont</span> <span class="ow">in</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;containers&#39;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;contributions&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;containers&#39;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="test_return_std">
+<a class="viewcode-back" href="../../tests.html#tests.test_integrators.test_return_std">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;integrator_instance&quot;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="n">integral</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">KernelIntegral</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="n">integral</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">AdaptiveRbfIntegral</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="n">integral</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">MedianIntegral</span><span class="p">()),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">integral</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">RandomIntegral</span><span class="p">()),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">BayesMcIntegrator</span><span class="p">(</span><span class="mi">200</span><span class="p">),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">SmcIntegrator</span><span class="p">(</span><span class="mi">300</span><span class="p">),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">BatchGpIntegrator</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">trees</span><span class="o">.</span><span class="n">SimpleTree</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">KdSplit</span><span class="p">()),</span> 
+                                    <span class="n">integral</span><span class="o">=</span><span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">KernelIntegral</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<span class="p">])</span>
+<span class="k">def</span> <span class="nf">test_return_std</span><span class="p">(</span><span class="n">integrator_instance</span><span class="p">):</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">example_problems</span><span class="o">.</span><span class="n">SimpleGaussian</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">integrator_instance</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;TreeIntegrator&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integrator_instance</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;BatchGpIntegrator&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integrator_instance</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">std</span> <span class="ow">in</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;stds&#39;</span><span class="p">]:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">std</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">std</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Checking all combos of inputs for simple and queue based integrators</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">splits</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">KdSplit</span><span class="p">(),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">MinSseSplit</span><span class="p">(),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">UniformSplit</span><span class="p">()</span>
+<span class="p">]</span>
+
+<span class="n">integrals</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">MedianIntegral</span><span class="p">(),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">MidpointIntegral</span><span class="p">(),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">RandomIntegral</span><span class="p">(),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">RandomIntegral</span><span class="p">(</span><span class="nb">eval</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">container_integrators</span><span class="o">.</span><span class="n">KernelIntegral</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">n_tuning</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+                                        <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                                        <span class="n">max_redraw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="n">queues</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">queues</span><span class="o">.</span><span class="n">ReservoirQueue</span><span class="p">(),</span>
+    <span class="n">tq</span><span class="o">.</span><span class="n">queues</span><span class="o">.</span><span class="n">PriorityQueue</span><span class="p">()</span>
+<span class="p">]</span>
+
+<div class="viewcode-block" id="test_SimpleIntegrator">
+<a class="viewcode-back" href="../../tests.html#tests.test_integrators.test_SimpleIntegrator">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1000</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">100</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;split&quot;</span><span class="p">,</span> <span class="n">splits</span><span class="p">)</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;integral&quot;</span><span class="p">,</span> <span class="n">integrals</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_SimpleIntegrator</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">integral</span><span class="p">):</span>
+    <span class="c1"># UniformSplit generates lot of empty containers, not suitable for MedianIntegral</span>
+    <span class="k">if</span> <span class="s2">&quot;MedianIntegral&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;UniformSplit&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">split</span><span class="p">):</span>
+        <span class="k">return</span>
+    
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">example_problems</span><span class="o">.</span><span class="n">SimpleGaussian</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">integ</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">tq</span><span class="o">.</span><span class="n">trees</span><span class="o">.</span><span class="n">SimpleTree</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="n">split</span><span class="p">),</span> 
+                                          <span class="n">integral</span><span class="o">=</span><span class="n">integral</span><span class="p">)</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">integ</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_QueueIntegrator">
+<a class="viewcode-back" href="../../tests.html#tests.test_integrators.test_QueueIntegrator">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;base_N&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1000</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;split&quot;</span><span class="p">,</span> <span class="n">splits</span><span class="p">)</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;integral&quot;</span><span class="p">,</span> <span class="n">integrals</span><span class="p">)</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;weighting_function&quot;</span><span class="p">,</span> <span class="p">[</span><span class="k">lambda</span> <span class="n">container</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">volume</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;active_N&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;max_splits&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;stopping_condition&quot;</span><span class="p">,</span> <span class="p">[</span><span class="k">lambda</span> <span class="n">container</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">N</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;queue&quot;</span><span class="p">,</span> <span class="n">queues</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_QueueIntegrator</span><span class="p">(</span>
+    <span class="n">D</span><span class="p">,</span> <span class="n">base_N</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">integral</span><span class="p">,</span> <span class="n">weighting_function</span><span class="p">,</span>
+    <span class="n">active_N</span><span class="p">,</span> <span class="n">max_splits</span><span class="p">,</span> <span class="n">stopping_condition</span><span class="p">,</span> <span class="n">queue</span><span class="p">):</span>
+
+    <span class="c1"># too slow for testing, too many containers</span>
+    <span class="k">if</span> <span class="s2">&quot;KernelIntegral&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integral</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="s2">&quot;MedianIntegral&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;UniformSplit&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">split</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">max_splits</span><span class="p">)</span> <span class="ow">and</span> <span class="n">active_N</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">example_problems</span><span class="o">.</span><span class="n">SimpleGaussian</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">trees</span><span class="o">.</span><span class="n">WeightedTree</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="n">split</span><span class="p">,</span> 
+        <span class="n">weighting_function</span><span class="o">=</span><span class="n">weighting_function</span><span class="p">,</span>
+        <span class="n">active_N</span><span class="o">=</span><span class="n">active_N</span><span class="p">,</span> <span class="n">max_splits</span><span class="o">=</span><span class="n">max_splits</span><span class="p">,</span> 
+        <span class="n">stopping_condition</span><span class="o">=</span><span class="n">stopping_condition</span><span class="p">,</span> 
+        <span class="n">queue</span><span class="o">=</span><span class="n">queue</span><span class="p">)</span>
+    <span class="n">integ</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span>
+        <span class="n">base_N</span><span class="o">=</span><span class="n">base_N</span><span class="p">,</span> <span class="n">integral</span><span class="o">=</span><span class="n">integral</span><span class="p">,</span> 
+        <span class="n">tree</span><span class="o">=</span><span class="n">tree</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">integ</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">return_N</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_containers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">fcs</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;containers&#39;</span><span class="p">]</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;n_splits&#39;</span><span class="p">]</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;n_evals&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s2">&quot;UniformSplit&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">split</span><span class="p">):</span>
+        <span class="n">n_sub_splits</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">D</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_sub_splits</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="k">if</span> <span class="s2">&quot;RandomIntegral&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integral</span><span class="p">):</span> 
+        <span class="c1"># accounts for random samples used in container integration</span>
+        <span class="k">assert</span> <span class="n">base_N</span> <span class="o">+</span> <span class="n">ns</span><span class="o">*</span><span class="n">n_sub_splits</span><span class="o">*</span><span class="n">active_N</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">fcs</span><span class="p">)</span><span class="o">*</span><span class="n">integral</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">==</span> <span class="n">N</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">base_N</span> <span class="o">+</span> <span class="n">ns</span><span class="o">*</span><span class="n">n_sub_splits</span><span class="o">*</span><span class="n">active_N</span> <span class="o">==</span> <span class="n">N</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">max_splits</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">ns</span> <span class="o">==</span> <span class="n">max_splits</span></div>
+
+
+<div class="viewcode-block" id="test_LimitedSampleIntegrator">
+<a class="viewcode-back" href="../../tests.html#tests.test_integrators.test_LimitedSampleIntegrator">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1000</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;base_N, active_N&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">)])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;split&quot;</span><span class="p">,</span> <span class="n">splits</span><span class="p">)</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;integral&quot;</span><span class="p">,</span> <span class="n">integrals</span><span class="p">)</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;weighting_function&quot;</span><span class="p">,</span> <span class="p">[</span><span class="k">lambda</span> <span class="n">container</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">volume</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;queue&quot;</span><span class="p">,</span> <span class="n">queues</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_LimitedSampleIntegrator</span><span class="p">(</span>
+    <span class="n">D</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">base_N</span><span class="p">,</span> <span class="n">active_N</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">integral</span><span class="p">,</span> <span class="n">weighting_function</span><span class="p">,</span> <span class="n">queue</span>
+    <span class="p">):</span>
+
+    <span class="c1"># too slow for testing, too many containers</span>
+    <span class="k">if</span> <span class="s2">&quot;KernelIntegral&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integral</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="s2">&quot;MedianIntegral&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;UniformSplit&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">split</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">example_problems</span><span class="o">.</span><span class="n">SimpleGaussian</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">active_tree</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">trees</span><span class="o">.</span><span class="n">LimitedSampleTree</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">,</span> <span class="n">active_N</span><span class="o">=</span><span class="n">active_N</span><span class="p">,</span> 
+                                        <span class="n">split</span><span class="o">=</span><span class="n">split</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="n">queue</span><span class="p">,</span>
+                                        <span class="n">weighting_function</span><span class="o">=</span><span class="n">weighting_function</span><span class="p">)</span>
+    <span class="n">integ</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">TreeIntegrator</span><span class="p">(</span>
+        <span class="n">base_N</span><span class="o">=</span><span class="n">base_N</span><span class="p">,</span> 
+        <span class="n">integral</span><span class="o">=</span><span class="n">integral</span><span class="p">,</span> 
+        <span class="n">tree</span><span class="o">=</span><span class="n">active_tree</span><span class="p">)</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">integ</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_DistributedTreeIntegrator">
+<a class="viewcode-back" href="../../tests.html#tests.test_integrators.test_DistributedTreeIntegrator">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;max_samples&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">15000</span><span class="p">,</span> <span class="mi">20000</span><span class="p">])</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;split&quot;</span><span class="p">,</span> <span class="n">splits</span><span class="p">)</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;integral&quot;</span><span class="p">,</span> <span class="n">integrals</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_DistributedTreeIntegrator</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">max_samples</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">integral</span><span class="p">):</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">example_problems</span><span class="o">.</span><span class="n">SimpleGaussian</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">integ</span> <span class="o">=</span> <span class="n">tq</span><span class="o">.</span><span class="n">integrators</span><span class="o">.</span><span class="n">DistributedTreeIntegrator</span><span class="p">(</span><span class="mi">7500</span><span class="p">,</span> <span class="n">max_samples</span><span class="p">,</span> <span class="n">integral</span><span class="p">,</span>
+                                                       <span class="n">max_container_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    
+    <span class="c1"># UniformSplit generates too many containers</span>
+    <span class="k">if</span> <span class="s2">&quot;UniformSplit&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">split</span><span class="p">):</span>
+        <span class="k">return</span> 
+
+    <span class="c1"># cannot control n_samples</span>
+    <span class="k">if</span> <span class="s2">&quot;MedianIntegral&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;MidpointIntegral&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">integral</span><span class="p">):</span>
+        <span class="k">return</span>
+    
+    <span class="n">res</span> <span class="o">=</span> <span class="n">integ</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">return_N</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1">## should not distribute more samples than max_samples</span>
+    <span class="k">assert</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;n_evals&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">max_samples</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../treeQuadrature.html">treeQuadrature package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

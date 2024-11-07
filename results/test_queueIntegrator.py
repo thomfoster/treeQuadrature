@@ -15,7 +15,7 @@ from tqdm import tqdm
 ########################
 
 parser = argparse.ArgumentParser(
-    description='Run the simpleIntegrator treeQuadrature method over dimensions 1,...,max_d.',
+    description='Run the TreeIntegrator using WeightedTree over dimensions 1,...,max_d.',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
 )
 
@@ -25,7 +25,7 @@ parser.add_argument('--split', type=str, default='kdSplit', help="Method used to
 parser.add_argument('--integral', type=str, default='midpointIntegral', help="Method used to integrate containers")
 parser.add_argument('--weighting_function', type=str, default='yvar', help="name of function used to assign the probability weight for a container")
 parser.add_argument('--active_N', type=int, default=0, help="Number of uniformly distributed samples to draw over each container at each splitting step")
-parser.add_argument('--num_splits', type=int, default=6000, help='limit the number of splits the integrator is allowed to perform')
+parser.add_argument('--max_splits', type=int, default=6000, help='limit the number of splits the integrator is allowed to perform')
 parser.add_argument('--stopping_condition', type=str, default="None", help="map from container -> Bool as to whether to whether to no further split this container")
 parser.add_argument('--queue', type=str,  default="PriorityQueue", help="which type of queue to use out of [PriorityQueue, ReservoirQueue]")
 parser.add_argument('--accentuation_factor', type=int, default=100, help="weights in the reservoir queue are raised to this power. The higher the value the more the reservoir becomes like a priority queue")
@@ -45,11 +45,11 @@ if args.wandb_project == "by_problem_name":
     args.wandb_project = args.problem
 
 if args.problem == 'SimpleGaussian':
-    problem = tq.exampleProblems.SimpleGaussian
+    problem = tq.example_problems.SimpleGaussian
 elif args.problem == 'Camel':
-    problem = tq.exampleProblems.Camel
+    problem = tq.example_problems.Camel
 elif args.problem == 'QuadCamel':
-    problem = tq.exampleProblems.QuadCamel
+    problem = tq.example_problems.QuadCamel
 else:
     raise Exception(f'Specified problem {args.problem} is not recognised - try CaptialisedCamelCase')
 
@@ -130,10 +130,10 @@ wandb.config.update(vars(args))
 
 for D in tqdm(Ds):
     problem_instance = problem(D)
-    integ = tq.integrators.QueueIntegrator(
-        args.base_N, split, integral, weighting_function,
-        active_N=args.active_N, num_splits=args.num_splits,
-        stopping_condition=stopping_condition,
-        queue=queue
-    )
+    tree = tq.trees.WeightedTree(split=split, max_splits=args.max_splits, 
+                                 weighting_function=weighting_function, 
+                                 stopping_condition=stopping_condition, 
+                                 queue=queue, active_N=args.active_N)
+    integ = tq.integrators.TreeIntegrator(
+        args.base_N, integral, tree=tree)
     experiment(problem_instance, integ)

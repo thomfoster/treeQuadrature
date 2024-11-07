@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>treeQuadrature.visualisation &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for treeQuadrature.visualisation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.ticker</span> <span class="k">as</span> <span class="nn">ticker</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Rectangle</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">colormaps</span>
+<span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Axes</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">.container</span> <span class="kn">import</span> <span class="n">Container</span>
+
+<div class="viewcode-block" id="plot_containers">
+<a class="viewcode-back" href="../../treeQuadrature.html#treeQuadrature.visualisation.plot_containers">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_containers</span><span class="p">(</span><span class="n">containers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Container</span><span class="p">],</span> <span class="n">contributions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> 
+                   <span class="n">xlim</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ylim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                   <span class="n">integrand</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                   <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                   <span class="n">plot_samples</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                   <span class="n">dimensions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                   <span class="n">colors</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;YlOrRd&#39;</span><span class="p">,</span>
+                   <span class="n">c_bar_labels</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;Contributions&#39;</span><span class="p">,</span> 
+                   <span class="n">font_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> 
+                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot containers and their contributions</span>
+<span class="sd">    for 1D problems, the integrand can be plotted</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    containers : list</span>
+<span class="sd">        list of Container objects</span>
+<span class="sd">    contributions : list</span>
+<span class="sd">        numerical values of contributions of each container</span>
+<span class="sd">    xlim : list of 2 floats</span>
+<span class="sd">        the range of x-axis</span>
+<span class="sd">    ylim : list of 2 floats, optional</span>
+<span class="sd">        the range of y-axis</span>
+<span class="sd">        ignored by 1D problems</span>
+<span class="sd">    integrand : function, optional</span>
+<span class="sd">        ignored by 2D problems</span>
+<span class="sd">    title : String, optional</span>
+<span class="sd">        title of the plot</span>
+<span class="sd">    plot_samples : bool, optional</span>
+<span class="sd">        if True, samples will be placed on the plot as well. </span>
+<span class="sd">        Defaults to False</span>
+<span class="sd">    dimensions : list of int, optional</span>
+<span class="sd">        The two dimensions to plot. </span>
+<span class="sd">        If None, plot all dimensions.    </span>
+<span class="sd">    colors : str, Optional</span>
+<span class="sd">        the colour map used to plot 2D </span>
+<span class="sd">        container contributions.</span>
+<span class="sd">        Default : &#39;YlOrRd&#39;</span>
+<span class="sd">    c_bar_labels : str, Optional</span>
+<span class="sd">        labels for colour bar in </span>
+<span class="sd">        2D plot. </span>
+<span class="sd">        Default : &#39;Contributions&#39;</span>
+<span class="sd">    **kwargs : Any, optional</span>
+<span class="sd">        additional arguments for _plot_containers_1D and _plot_containers_2D</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">containers</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">contributions</span><span class="p">),</span> <span class="p">(</span>
+        <span class="s1">&#39;The length of containers and contributions must be the same, &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">containers</span><span class="p">)</span><span class="si">}</span><span class="s1"> containers and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">contributions</span><span class="p">)</span><span class="si">}</span><span class="s1"> contributions&#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># check dimensions</span>
+    <span class="n">all_dimensions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">containers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">D</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">dimensions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="n">all_dimensions</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;dimensions must have length 2&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_dimensions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">all_dimensions</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">all_dimensions</span><span class="p">),</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;dimensions must be in 0, 1, ..., </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_dimensions</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">containers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">D</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">_plot_containers_1D</span><span class="p">(</span><span class="n">containers</span><span class="p">,</span> <span class="n">contributions</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> 
+                          <span class="n">integrand</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">plot_samples</span><span class="p">,</span> <span class="n">font_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">_plot_containers_2D</span><span class="p">(</span><span class="n">containers</span><span class="p">,</span> <span class="n">contributions</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> 
+                          <span class="n">plot_samples</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> 
+                          <span class="n">colors</span><span class="p">,</span> <span class="n">c_bar_labels</span><span class="p">,</span> <span class="n">font_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Only 1D and 2D plots are supported. &quot;</span>
+             <span class="s2">&quot;Please provide 2 dimensions to plot for higher dimensions&quot;</span>
+             <span class="p">)</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_plot_containers_2D</span><span class="p">(</span><span class="n">containers</span><span class="p">,</span> <span class="n">contributions</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> 
+                      <span class="n">plot_samples</span><span class="p">,</span> <span class="n">dim1</span><span class="p">,</span> <span class="n">dim2</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">c_bar_labels</span><span class="p">,</span> <span class="n">font_size</span><span class="p">,</span> 
+                      <span class="n">c_bar_tick_size</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">colormaps</span><span class="p">[</span><span class="n">colors</span><span class="p">]</span><span class="o">.</span><span class="n">resampled</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
+
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">contributions</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">contributions</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">container</span><span class="p">,</span> <span class="n">contribution</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">containers</span><span class="p">,</span> <span class="n">contributions</span><span class="p">):</span>
+        <span class="n">plot_container</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">container</span><span class="p">,</span> <span class="n">dim1</span><span class="p">,</span> <span class="n">dim2</span><span class="p">,</span> 
+                      <span class="n">plot_samples</span><span class="o">=</span><span class="n">plot_samples</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">contribution</span><span class="p">)),</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+
+    <span class="n">sm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+    <span class="n">sm</span><span class="o">.</span><span class="n">set_array</span><span class="p">([])</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sm</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">c_bar_labels</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">font_size</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="n">c_bar_tick_size</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">font_size</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Container Contributions&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">font_size</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">font_size</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">_plot_containers_1D</span><span class="p">(</span><span class="n">containers</span><span class="p">,</span> <span class="n">contributions</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="n">integrand</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">plot_samples</span><span class="p">,</span> <span class="n">font_size</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">integrand</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1">### plot the integrand</span>
+        <span class="n">x_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2000</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">y_values</span> <span class="o">=</span> <span class="n">integrand</span><span class="p">(</span><span class="n">x_values</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_values</span><span class="p">,</span> <span class="n">y_values</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Integrand&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+    
+    <span class="c1">### Plot the contributions as a bar chart</span>
+    <span class="n">container_centers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">container_widths</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">:</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">mins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">container</span><span class="o">.</span><span class="n">maxs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">maxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">container</span><span class="o">.</span><span class="n">mins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">container_centers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">center</span><span class="p">)</span>
+        <span class="n">container_widths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+    
+    <span class="c1"># scale contributions by container volume</span>
+    <span class="n">volumes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">container</span><span class="o">.</span><span class="n">volume</span> <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">container_centers</span><span class="p">,</span> <span class="n">contributions</span> <span class="o">/</span> <span class="n">volumes</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">container_widths</span><span class="p">,</span> 
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Contributions&#39;</span><span class="p">)</span>
+    
+    <span class="c1">### plot samples</span>
+    <span class="k">if</span> <span class="n">plot_samples</span><span class="p">:</span>
+        <span class="n">all_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">container</span><span class="o">.</span><span class="n">X</span> <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">containers</span> <span class="k">if</span> <span class="n">container</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">all_samples</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">all_samples</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Samples&#39;</span><span class="p">)</span>
+    
+    <span class="c1">### Setting the canvas</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
+    <span class="c1"># labels and legend</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">font_size</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Value&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">font_size</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">font_size</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Integrand and Container Contributions&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">font_size</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="n">font_size</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">font_size</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<div class="viewcode-block" id="plot_container">
+<a class="viewcode-back" href="../../treeQuadrature.html#treeQuadrature.visualisation.plot_container">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_container</span><span class="p">(</span><span class="n">ax</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span> <span class="n">container</span><span class="p">:</span> <span class="n">Container</span><span class="p">,</span> <span class="n">dim1</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dim2</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
+                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Plot a container on the provided axes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    --------</span>
+<span class="sd">    ax: Axes</span>
+<span class="sd">        the canvas</span>
+<span class="sd">    container : Container</span>
+<span class="sd">    dim1 : int</span>
+<span class="sd">        the first dimension to plot</span>
+<span class="sd">    dim2 : int</span>
+<span class="sd">        the second dimension to plot</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        plot_samples : bool</span>
+<span class="sd">            if true, produce scatter plot of samples</span>
+<span class="sd">            Defaulst to True</span>
+<span class="sd">        s : float</span>
+<span class="sd">            marker size of scatter plot. </span>
+<span class="sd">            Only valid when plot_samples = True</span>
+<span class="sd">            Defaults to 5.0</span>
+<span class="sd">        fill : bool</span>
+<span class="sd">            if true, fill the containers with colours</span>
+<span class="sd">            Defaults to True</span>
+<span class="sd">        ec : color</span>
+<span class="sd">            edge colour</span>
+<span class="sd">            Defaults to black</span>
+<span class="sd">        and any other kwargs for matplotlib.patches.Rectangle</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c1"># kwargs</span>
+    <span class="n">plot_samples</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;plot_samples&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>
+    <span class="n">fill</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;fill&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">ec</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ec&#39;</span><span class="p">,</span> <span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Plotting container samples</span>
+    <span class="k">if</span> <span class="n">plot_samples</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">X</span><span class="p">[:,</span> <span class="n">dim1</span><span class="p">],</span> <span class="n">container</span><span class="o">.</span><span class="n">X</span><span class="p">[:,</span> <span class="n">dim2</span><span class="p">],</span>
+                   <span class="n">color</span><span class="o">=</span><span class="s1">&#39;navy&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+    <span class="c1"># Plot container boundary</span>
+    <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">mins</span><span class="p">[</span><span class="n">dim1</span><span class="p">],</span> <span class="n">container</span><span class="o">.</span><span class="n">mins</span><span class="p">[</span><span class="n">dim2</span><span class="p">]</span>
+    <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">maxs</span><span class="p">[</span><span class="n">dim1</span><span class="p">],</span> <span class="n">container</span><span class="o">.</span><span class="n">maxs</span><span class="p">[</span><span class="n">dim2</span><span class="p">]</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">Rectangle</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">),</span>
+        <span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span><span class="p">,</span>
+        <span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">,</span>
+        <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">,</span>
+        <span class="n">ec</span><span class="o">=</span><span class="n">ec</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_integrand">
+<a class="viewcode-back" href="../../treeQuadrature.html#treeQuadrature.visualisation.plot_integrand">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_integrand</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> 
+                  <span class="n">file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the integrand</span>
+<span class="sd">    2D problems: Contour lines used</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    integrand : function</span>
+<span class="sd">        the function to be plotted</span>
+<span class="sd">    D : int</span>
+<span class="sd">        dimension of the input space</span>
+<span class="sd">    xlim : list of 2 floats</span>
+<span class="sd">        the range of x-axis</span>
+<span class="sd">    ylim : list of 2 floats, optional</span>
+<span class="sd">        the range of y-axis</span>
+<span class="sd">        ignored by 1D problems</span>
+<span class="sd">    n_points: int, optioanl</span>
+<span class="sd">        number of points in each dimension for </span>
+<span class="sd">        plotting the Contours</span>
+<span class="sd">        Defaults to 500</span>
+<span class="sd">    levels : int, optional</span>
+<span class="sd">        levels of the Contour plot</span>
+<span class="sd">        ignored when D = 1</span>
+<span class="sd">        Defaults to 10</span>
+<span class="sd">    file_path : str, optional</span>
+<span class="sd">        If given, the figure will be saved to </span>
+<span class="sd">        the specified path. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">D</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">_plot_integrand_1D</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="n">n_points</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">D</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">_plot_integrand_2D</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">n_points</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;only supports 1D and 2D problems&#39;</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_plot_integrand_1D</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="n">n_points</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_points</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ys</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Value&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">file_path</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;figure saved to </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">_plot_integrand_2D</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">n_points</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    plot Contour lines of a 2D distribution </span>
+<span class="sd">    Automatically adapts the grid to significant values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_points</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_points</span><span class="p">)</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">f</span><span class="p">([</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">])[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">ys</span> <span class="ow">in</span> <span class="n">y</span><span class="p">])</span>
+
+    <span class="c1">## adapt the window to PDF</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="mf">1e-3</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">Z</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+
+    <span class="c1"># Find indices of the bounding box</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">min_row</span><span class="p">,</span> <span class="n">max_row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rows</span><span class="p">)[</span><span class="mi">0</span><span class="p">][[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">min_col</span><span class="p">,</span> <span class="n">max_col</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cols</span><span class="p">)[</span><span class="mi">0</span><span class="p">][[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+    <span class="c1"># Trim the X, Y, Z arrays</span>
+    <span class="n">X_trimmed</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">min_row</span><span class="p">:</span><span class="n">max_row</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_col</span><span class="p">:</span><span class="n">max_col</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">Y_trimmed</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">min_row</span><span class="p">:</span><span class="n">max_row</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_col</span><span class="p">:</span><span class="n">max_col</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">Z_trimmed</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="n">min_row</span><span class="p">:</span><span class="n">max_row</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_col</span><span class="p">:</span><span class="n">max_col</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">contour</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">X_trimmed</span><span class="p">,</span> <span class="n">Y_trimmed</span><span class="p">,</span> <span class="n">Z_trimmed</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">contour</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">file_path</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;figure saved to </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="plot_errors">
+<a class="viewcode-back" href="../../treeQuadrature.html#treeQuadrature.visualisation.plot_errors">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_errors</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">genres</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
+                <span class="n">error_bar</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">plot_absolute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                <span class="n">plot_all_errors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> 
+                <span class="n">fill</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="n">y_lim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                <span class="n">font_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">plot_title</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
+                <span class="n">grid</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
+                <span class="n">filename_prefix</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                <span class="n">integrators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                <span class="n">display_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot errors and error_std for each genre and integrator</span>
+<span class="sd">    and save it to a file figures/filename_prefix_genre_error_plot.csv. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pd.DataFrame</span>
+<span class="sd">        The data containing the results of the integrators.</span>
+<span class="sd">    genres : list of str</span>
+<span class="sd">        List of genres to include in the plots.</span>
+<span class="sd">    error_bar : bool, optional</span>
+<span class="sd">        If True, plot error bars; otherwise plot without error bars.</span>
+<span class="sd">        Default is False</span>
+<span class="sd">    fill : bool, optional</span>
+<span class="sd">        If true, fill between the error bars, </span>
+<span class="sd">        will be ignored if error_bar = False.  </span>
+<span class="sd">        Default is False</span>
+<span class="sd">    plot_all_errors : bool, optional</span>
+<span class="sd">        If True, plot all individual errors from &#39;errors&#39; column.</span>
+<span class="sd">        Default is False</span>
+<span class="sd">    plot_absolute : bool, optional</span>
+<span class="sd">        If True and error_type is &#39;Signed Relative error&#39;, </span>
+<span class="sd">        plot the signed absolute errors.</span>
+<span class="sd">        Default is False</span>
+<span class="sd">    y_lim: list of float, optional</span>
+<span class="sd">        the upper and lower limit for plotting error. </span>
+<span class="sd">        If not given, adaptive limits applied. </span>
+<span class="sd">    font_size : int, optional</span>
+<span class="sd">        Font size for all text elements in the plot (default is 10).</span>
+<span class="sd">    offset: float, optional</span>
+<span class="sd">        offset of points to avoid visual clutter.</span>
+<span class="sd">        Default is 0.1. </span>
+<span class="sd">        Set to 0 for no offset</span>
+<span class="sd">    plot_title : bool, optional</span>
+<span class="sd">        whether add title or not (default is True).</span>
+<span class="sd">    grid : bool, optional</span>
+<span class="sd">        whether to plot the grid or not. </span>
+<span class="sd">        Default is True. </span>
+<span class="sd">    filename_prefix : str, optional</span>
+<span class="sd">        The prefix for the filenames where plots will be saved.</span>
+<span class="sd">        If not given, no prefix, </span>
+<span class="sd">    integrators : List[str, optional</span>
+<span class="sd">        List of integrators to include in the plots. </span>
+<span class="sd">        If not specified, all integrators will be plotted</span>
+<span class="sd">    display_names : List[str], optional</span>
+<span class="sd">        an option to change the names of integrators</span>
+<span class="sd">        displayed on the plots</span>
+<span class="sd">        </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The data should contain columns &#39;problem&#39;, &#39;integrator&#39;, &#39;error&#39;, </span>
+<span class="sd">    &#39;error_std&#39;, and &#39;errors&#39;. The &#39;error&#39; and &#39;error_std&#39; </span>
+<span class="sd">    columns are expected to have percentage values.</span>
+
+<span class="sd">    Usage</span>
+<span class="sd">    -----</span>
+<span class="sd">    &gt;&gt;&gt; all_data = pd.read_csv(&#39;your_data.csv&#39;)  # Load your data into a DataFrame</span>
+<span class="sd">    &gt;&gt;&gt; genres = [&quot;SimpleGaussian&quot;, &quot;Camel&quot;, &quot;QuadCamel&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; plot_errors(all_data, genres)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">all_integrators</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;integrator&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+    <span class="c1"># use all integrators if not specified</span>
+    <span class="k">if</span> <span class="n">integrators</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">integrators</span> <span class="o">=</span> <span class="n">all_integrators</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">integrator</span> <span class="ow">in</span> <span class="n">integrators</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">integrator</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_integrators</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Integrator </span><span class="si">{</span><span class="n">integrator</span><span class="si">}</span><span class="s2"> not found in data&quot;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">display_names</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">display_names</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">integrators</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;display_names&#39; should have the same length as integrators&quot;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="n">font_size</span><span class="p">})</span>
+
+    <span class="n">legend_font_size</span> <span class="o">=</span> <span class="n">font_size</span> <span class="o">-</span> <span class="mi">3</span>
+    <span class="n">axis_label_font_size</span> <span class="o">=</span> <span class="n">font_size</span> <span class="o">+</span> <span class="mi">3</span> 
+
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Dimension&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;problem&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;D=(\d+)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># Ensure the &#39;error&#39; and &#39;error_std&#39; columns are numeric</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;error_std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;error_std&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="c1"># Define a color map to ensure consistent colors for each integrator</span>
+    <span class="n">color_map</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;tab10&#39;</span><span class="p">)</span>
+    <span class="n">color_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">integrator</span><span class="p">:</span> <span class="n">color_map</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">integrator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">integrators</span><span class="p">)}</span>
+
+    <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">offset</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">integrators</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">genre</span> <span class="ow">in</span> <span class="n">genres</span><span class="p">:</span>
+        <span class="n">genre_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;problem&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">genre</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">genre_data</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Genre </span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s2"> not found in the &#39;problem&#39; column&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="n">genre_data</span><span class="p">[</span><span class="s1">&#39;Dimension&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no data available for problem </span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s2">, will be skipped&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        
+        <span class="n">dimensions</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+        <span class="n">max_error</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">min_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">integrator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">integrators</span><span class="p">):</span>
+            <span class="n">genre_integrator_data</span> <span class="o">=</span> <span class="n">genre_data</span><span class="p">[</span><span class="n">genre_data</span><span class="p">[</span><span class="s1">&#39;integrator&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">integrator</span><span class="p">]</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">error_stds</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">all_errors_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">used_dimensions</span> <span class="o">=</span> <span class="p">[]</span>
+            
+            <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">:</span>
+                <span class="n">data_dim</span> <span class="o">=</span> <span class="n">genre_integrator_data</span><span class="p">[</span><span class="n">genre_integrator_data</span><span class="p">[</span><span class="s1">&#39;Dimension&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">dim</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">data_dim</span><span class="o">.</span><span class="n">empty</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">data_dim</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="k">continue</span>
+
+                <span class="n">error_list_str</span> <span class="o">=</span> <span class="n">data_dim</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error_list_str</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">error_list_str</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">error_list_str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;[]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()))</span>
+
+                <span class="n">error_std</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">data_dim</span><span class="p">[</span><span class="s1">&#39;error_std&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">plot_absolute</span> <span class="ow">and</span> <span class="p">(</span>
+                    <span class="n">data_dim</span><span class="p">[</span><span class="s1">&#39;error_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Signed Relative error&#39;</span><span class="p">):</span>
+                    <span class="n">true_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">data_dim</span><span class="p">[</span><span class="s1">&#39;true_value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">error_list</span> <span class="o">=</span> <span class="n">true_value</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">error_list</span><span class="p">)</span> <span class="o">/</span> <span class="mf">100.0</span>
+                    <span class="n">error_std</span> <span class="o">=</span> <span class="n">true_value</span> <span class="o">*</span> <span class="n">error_std</span> <span class="o">/</span> <span class="mf">100.0</span>
+
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">error_list</span><span class="p">))</span>
+                <span class="n">error_stds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error_std</span><span class="p">)</span>
+                <span class="n">all_errors_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error_list</span><span class="p">)</span>
+                <span class="n">used_dimensions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+
+                <span class="c1"># for defining y-axis limits</span>
+                <span class="n">max_error</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_error</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">error_list</span><span class="p">)</span> <span class="o">+</span> <span class="n">error_std</span><span class="p">)</span>
+                <span class="n">min_error</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">min_error</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">error_list</span><span class="p">)</span> <span class="o">-</span> <span class="n">error_std</span><span class="p">)</span>
+
+            
+            <span class="n">color</span> <span class="o">=</span> <span class="n">color_dict</span><span class="p">[</span><span class="n">integrator</span><span class="p">]</span>
+            <span class="n">x_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">used_dimensions</span><span class="p">)</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">plot_all_errors</span><span class="p">:</span>
+                <span class="n">first_label</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">all_errors</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">used_dimensions</span><span class="p">,</span> <span class="n">all_errors_list</span><span class="p">):</span>
+                    <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">integrator</span><span class="si">}</span><span class="s1"> All Errors&#39;</span> <span class="k">if</span> <span class="n">first_label</span> <span class="k">else</span> <span class="kc">None</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="n">dim</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_errors</span><span class="p">),</span> <span class="n">all_errors</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> 
+                                <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+                    <span class="n">first_label</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="n">error_bar</span><span class="p">:</span>
+                <span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="o">-</span> <span class="n">es</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">es</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">error_stds</span><span class="p">)]</span>
+                <span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="o">+</span> <span class="n">es</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">es</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">error_stds</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">fill</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x_offset</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> 
+                                    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">integrator</span><span class="si">}</span><span class="s1"> Std&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">x_offset</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">error_stds</span><span class="p">,</span>
+                                 <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">capsize</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>    
+
+            <span class="n">label</span> <span class="o">=</span> <span class="n">display_names</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">display_names</span> <span class="k">else</span> <span class="n">integrator</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_offset</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">y_lim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">y_lim</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">plot_absolute</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="n">min_error</span> <span class="o">-</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">min_error</span><span class="p">),</span> 
+                      <span class="n">max_error</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">max_error</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">105</span><span class="p">,</span> <span class="mi">105</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="n">plot_title</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error and Error Std for </span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Dimension&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">axis_label_font_size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plot_absolute</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Absolute Error&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">axis_label_font_size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;error_type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> (%)&#39;</span><span class="p">,</span> 
+                       <span class="n">fontsize</span><span class="o">=</span><span class="n">axis_label_font_size</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">y_lim</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="n">legend_font_size</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename_prefix</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;figures/</span><span class="si">{</span><span class="n">filename_prefix</span><span class="si">}{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_error_plot.png&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Figure saved to figures/</span><span class="si">{</span><span class="n">filename_prefix</span><span class="si">}{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_error_plot.png&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;figures/</span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_error_plot.png&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Figure saved to figures/</span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_error_plot.png&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plot_times">
+<a class="viewcode-back" href="../../treeQuadrature.html#treeQuadrature.visualisation.plot_times">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_times</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">genres</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
+               <span class="n">font_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">filename_prefix</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+               <span class="n">integrators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+               <span class="n">same_figure</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">display_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the time taken for each genre and integrator, </span>
+<span class="sd">    and save it to a file </span>
+<span class="sd">    figures/filename_prefix_genre_time_plot_integrator.csv. </span>
+<span class="sd">    Used for csv files produced by test_integrators</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pd.DataFrame</span>
+<span class="sd">        The data containing the results of the integrators.</span>
+<span class="sd">    genres : list of str</span>
+<span class="sd">        List of problem genres to include in the plots.</span>
+<span class="sd">    font_size : int, optional</span>
+<span class="sd">        Font size for all text elements in the plot (default is 10).</span>
+<span class="sd">    filename_prefix : str, Optional</span>
+<span class="sd">        The prefix for the filenames where plots will be saved.</span>
+<span class="sd">        If not given, no prefix</span>
+<span class="sd">    integrators : List[str], optional</span>
+<span class="sd">        List of integrators to include in the plots. </span>
+<span class="sd">        If not specified, all integrators will be plotted</span>
+<span class="sd">    title : bool, optional</span>
+<span class="sd">        If true, plot the title</span>
+<span class="sd">    display_names : List[str], optional</span>
+<span class="sd">        an option to change the names of integrators</span>
+<span class="sd">        displayed on the plots</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The data should contain columns &#39;problem&#39;, &#39;integrator&#39;, and &#39;time_taken&#39;</span>
+
+<span class="sd">    Usage</span>
+<span class="sd">    -----</span>
+<span class="sd">    &gt;&gt;&gt; all_data = pd.read_csv(&#39;your_data.csv&#39;)  # Load your data into a DataFrame</span>
+<span class="sd">    &gt;&gt;&gt; genres = [&quot;SimpleGaussian&quot;, &quot;Camel&quot;, &quot;QuadCamel&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; plot_times(all_data, &#39;figures/time&#39;, genres)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="n">font_size</span><span class="p">})</span>
+
+    <span class="n">all_integrators</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;integrator&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+    <span class="c1"># use all integrators if not specified</span>
+    <span class="k">if</span> <span class="n">integrators</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">integrators</span> <span class="o">=</span> <span class="n">all_integrators</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">integrator</span> <span class="ow">in</span> <span class="n">integrators</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">integrator</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_integrators</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Integrator </span><span class="si">{</span><span class="n">integrator</span><span class="si">}</span><span class="s2"> not found in data&quot;</span><span class="p">)</span>
+            
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">display_names</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">integrators</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;display_names&#39; should have the same length as integrators&quot;</span><span class="p">)</span>
+
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Dimension&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;problem&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;D=(\d+)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">genre</span> <span class="ow">in</span> <span class="n">genres</span><span class="p">:</span>
+        <span class="n">genre_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;problem&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">genre</span><span class="p">)]</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="n">genre_data</span><span class="p">[</span><span class="s1">&#39;Dimension&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no data available for problem </span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s2">, will be skipped&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">dimensions</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">integrator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">integrators</span><span class="p">):</span>
+            <span class="n">genre_integrator_data</span> <span class="o">=</span> <span class="n">genre_data</span><span class="p">[</span><span class="n">genre_data</span><span class="p">[</span><span class="s1">&#39;integrator&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">integrator</span><span class="p">]</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+            
+            <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">:</span>
+                <span class="n">data_dim</span> <span class="o">=</span> <span class="n">genre_integrator_data</span><span class="p">[</span><span class="n">genre_integrator_data</span><span class="p">[</span><span class="s1">&#39;Dimension&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">dim</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">data_dim</span><span class="o">.</span><span class="n">empty</span> <span class="ow">and</span> <span class="n">data_dim</span><span class="p">[</span><span class="s1">&#39;time_taken&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">time</span> <span class="o">=</span> <span class="n">data_dim</span><span class="p">[</span><span class="s1">&#39;time_taken&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+                        <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">))</span>
+            
+            <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">ticker</span><span class="o">.</span><span class="n">MaxNLocator</span><span class="p">(</span><span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">display_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">display_names</span> <span class="k">else</span> <span class="n">integrator</span>
+
+            <span class="k">if</span> <span class="n">same_figure</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">same_figure</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Time Taken for </span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1"> </span><span class="si">{</span><span class="n">integrator</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Dimension&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Time Taken (seconds)&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">filename_prefix</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;figures/</span><span class="si">{</span><span class="n">filename_prefix</span><span class="si">}{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_time_plot_</span><span class="si">{</span><span class="n">integrator</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">)</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Figure saved to figures/</span><span class="si">{</span><span class="n">filename_prefix</span><span class="si">}{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_time_plot_</span><span class="si">{</span><span class="n">integrator</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;figures/</span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_time_plot_</span><span class="si">{</span><span class="n">integrator</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">)</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Figure saved to figures/</span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_time_plot_</span><span class="si">{</span><span class="n">integrator</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">same_figure</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Time Taken for </span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Dimension&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Time Taken (seconds)&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">filename_prefix</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;figures/</span><span class="si">{</span><span class="n">filename_prefix</span><span class="si">}{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_time_plot.png&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Figure saved to figures/</span><span class="si">{</span><span class="n">filename_prefix</span><span class="si">}{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_time_plot.png&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;figures/</span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_time_plot.png&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Figure saved to figures/</span><span class="si">{</span><span class="n">genre</span><span class="si">}</span><span class="s1">_time_plot.png&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../treeQuadrature.html">treeQuadrature package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

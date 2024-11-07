@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>treeQuadrature.example_problems.simple_problems &#8212; treeQuadrature 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for treeQuadrature.example_problems.simple_problems</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.base_class</span> <span class="kn">import</span> <span class="n">Problem</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">handle_bound</span>
+
+
+<div class="viewcode-block" id="ProductPeak">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ProductPeak">[docs]</a>
+<span class="k">class</span> <span class="nc">ProductPeak</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">D</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">a</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a product peak problem with the given parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        D : int</span>
+<span class="sd">            The dimension of the problem.</span>
+<span class="sd">        u : np.ndarray or None, optional</span>
+<span class="sd">            The location of the peaks in each dimension. If None, it is set </span>
+<span class="sd">            to be evenly spaced between 0.2 and 0.8 across the dimensions.</span>
+<span class="sd">        a : np.ndarray or None, optional</span>
+<span class="sd">            The sharpness of the peaks in each dimension. If None, it is set </span>
+<span class="sd">            to an array of ones, meaning equal sharpness in all dimensions.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        `ProductPeak` is a multidimensional integration problem where the </span>
+<span class="sd">        integrand has peaks at specific locations in each dimension, controlled by </span>
+<span class="sd">        the vector `u`. The sharpness of these peaks is determined by the vector `a`, </span>
+<span class="sd">        where larger values of `a` result in sharper peaks, meaning the function values </span>
+<span class="sd">        drop off more quickly as you move away from the peak location.</span>
+<span class="sd">        </span>
+<span class="sd">        The integration domain is always [0, 1]^D</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">lows</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">highs</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">handle_bound</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.8</span><span class="p">,</span><span class="n">D</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">u</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">)))</span>
+
+
+<div class="viewcode-block" id="ProductPeak.integrand">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ProductPeak.integrand">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Product Peak integrand function.</span>
+
+<span class="sd">        Mathematically, the integrand function is defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            f(x) = \frac{1}{\prod_{i=1}^D \left(a_i^{-2} + (x_i - u_i)^2 \right)}</span>
+
+<span class="sd">        where:</span>
+<span class="sd">        - \( x = (x_1, x_2, \dots, x_D) \) is the input vector.</span>
+<span class="sd">        - \( u = (u_1, u_2, \dots, u_D) \) is a vector representing the peak location.</span>
+<span class="sd">        - \( a = (a_1, a_2, \dots, a_D) \) is a vector controlling the </span>
+<span class="sd">            sharpness of the peak along each dimension.</span>
+<span class="sd">        - \( D \) is the dimension of the input space.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy.ndarray</span>
+<span class="sd">            Each row is an input vector.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray of shape (N, 1)</span>
+<span class="sd">            the function value evaluated at X</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_input</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">2.0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></div>
+
+    
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;ProductPeak(D=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="si">}</span><span class="s1">)&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="CornerPeak">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.CornerPeak">[docs]</a>
+<span class="k">class</span> <span class="nc">CornerPeak</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">D</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a corner peak problem with the given parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        D : int</span>
+<span class="sd">            The dimension of the problem.</span>
+<span class="sd">        a : np.ndarray or None, optional</span>
+<span class="sd">            A vector controlling the &quot;steepness&quot; of the corner peak in each dimension.</span>
+<span class="sd">            If None, it defaults to an array of ones, </span>
+<span class="sd">            meaning equal steepness in all dimensions.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        `CornerPeak` is a multidimensional integration problem where the </span>
+<span class="sd">        integrand has a peak located near the corner of the domain [0, 1]^D. </span>
+<span class="sd">        The steepness of the peak is controlled by the vector `a`. </span>
+<span class="sd">        Larger values of `a` result in a steeper </span>
+<span class="sd">        peak, meaning the function value drops off more quickly as you move away from </span>
+<span class="sd">        the corner where the peak is located.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">lows</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">highs</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">handle_bound</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_answer</span><span class="p">(</span><span class="n">a0</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CornerPeak.compute_answer">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.CornerPeak.compute_answer">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_answer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">a0</span><span class="o">*</span><span class="p">(</span><span class="n">a0</span> <span class="o">+</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">term1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_answer</span><span class="p">(</span><span class="n">a0</span> <span class="o">=</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">term2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_answer</span><span class="p">(</span><span class="n">a0</span> <span class="o">=</span> <span class="n">a0</span> <span class="o">+</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">term1</span> <span class="o">-</span> <span class="n">term2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="CornerPeak.integrand">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.CornerPeak.integrand">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Corner Peak integrand function.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        f(x) = \left(1 + \sum_{i=1}^{D} a_i \cdot x_i\right)^{-(D+1)}</span>
+
+<span class="sd">        where:</span>
+<span class="sd">        - :math:`x` is a vector of input values,</span>
+<span class="sd">        - :math:`a` is a coefficient vector,</span>
+<span class="sd">        - :math:`D` is the dimensionality of the input space.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy.ndarray</span>
+<span class="sd">            Each row is an input vector of shape (N, D), </span>
+<span class="sd">            where N is the number of samples, and D is the dimensionality.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray of shape (N, 1)</span>
+<span class="sd">            the function value evaluated at X</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_input</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">dotprods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">])</span>
+        <span class="c1"># prevent raising 0 to a power </span>
+        <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1e-13</span>
+        <span class="n">dotprods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">dotprods</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">dotprods</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></div>
+
+    
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;CornerPeak(D=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="si">}</span><span class="s1">)&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="C0">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.C0">[docs]</a>
+<span class="k">class</span> <span class="nc">C0</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">D</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">a</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the C0 problem with the given parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        D : int</span>
+<span class="sd">            The dimensionality of the problem.</span>
+<span class="sd">        u : np.ndarray or None, optional</span>
+<span class="sd">            The location parameter that shifts the peak of the function.</span>
+<span class="sd">            If None, defaults to a linearly spaced array between 0.2 and 0.8.</span>
+<span class="sd">        a : np.ndarray or None, optional</span>
+<span class="sd">            A vector controlling the rate of decay of the function. </span>
+<span class="sd">            If None, defaults to an array of ones, meaning equal decay in all dimensions.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        `C0` is a multidimensional integration problem where the </span>
+<span class="sd">        integrand is a smooth, exponentially decaying function. The function</span>
+<span class="sd">        is centered around the vector `u`, and its rate of decay is controlled</span>
+<span class="sd">        by the vector `a`. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">lows</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">highs</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">handle_bound</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">u</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">((</span><span class="mi">2</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">)</span> <span class="o">-</span> 
+                               <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">)))</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="C0.integrand">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.C0.integrand">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        C0 integrand function.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        f(X) = \exp\left(-\sum_{i=1}^{D} a_i \cdot |x_i - u_i|\right)</span>
+<span class="sd">    </span>
+<span class="sd">        where:</span>
+<span class="sd">        </span>
+<span class="sd">        - \(X = (x_1, x_2, \dots, x_D)\) is the input vector,</span>
+<span class="sd">        - \(a = (a_1, a_2, \dots, a_D)\) is a vector of coefficients,</span>
+<span class="sd">        - \(u = (u_1, u_2, \dots, u_D)\) is the vector of center points.</span>
+<span class="sd">        </span>
+<span class="sd">        The function represents an exponential decay based on the </span>
+<span class="sd">        sum of weighted absolute differences between each component </span>
+<span class="sd">        of the input vector and the corresponding component of the center vector.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy.ndarray</span>
+<span class="sd">            Each row is an input vector.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray of shape (N, 1)</span>
+<span class="sd">            the function value evaluated at X</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_input</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">)))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></div>
+
+    
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;C0function(D=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="si">}</span><span class="s1">)&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="Discontinuous">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous">[docs]</a>
+<span class="k">class</span> <span class="nc">Discontinuous</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A problem with a discontinuous integrand function.</span>
+
+<span class="sd">    The integrand is designed to be discontinuous at specified points `u1` and `u2`.</span>
+<span class="sd">    The function value drops to zero beyond these thresholds, creating a discontinuity</span>
+<span class="sd">    in the domain. </span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    D : int</span>
+<span class="sd">        Dimensionality of the problem.</span>
+<span class="sd">    a : np.ndarray</span>
+<span class="sd">        one dimensional array, </span>
+<span class="sd">        Coefficient vector for the exponential function.</span>
+<span class="sd">    u1 : float</span>
+<span class="sd">        Threshold for discontinuity in the first dimension.</span>
+<span class="sd">    u2 : float</span>
+<span class="sd">        Threshold for discontinuity in the second dimension (if D &gt; 1).</span>
+<span class="sd">    answer : float</span>
+<span class="sd">        The analytical solution of the integral for comparison.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">lows</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">highs</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">handle_bound</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">u1</span> <span class="o">=</span> <span class="mf">0.3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u2</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+        <span class="k">if</span> <span class="n">D</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">u1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">term1</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">u1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">term2</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">u2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">term3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">term1</span> <span class="o">*</span> <span class="n">term2</span> <span class="o">*</span> <span class="n">term3</span>
+
+<div class="viewcode-block" id="Discontinuous.integrand">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous.integrand">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Discontinuous integrand function.</span>
+
+<span class="sd">        The Discontinuous integrand function is defined as:</span>
+<span class="sd">    </span>
+<span class="sd">        .. math::</span>
+<span class="sd">            f(X) = </span>
+<span class="sd">            \begin{cases} </span>
+<span class="sd">            \exp\left(\sum_{i=1}^{D} a_i \cdot x_i\right) &amp; \text{if } X \text{ lies in the specified region}, \\</span>
+<span class="sd">            0 &amp; \text{otherwise}</span>
+<span class="sd">            \end{cases}</span>
+<span class="sd">        </span>
+<span class="sd">        where:</span>
+<span class="sd">        </span>
+<span class="sd">        - \(X = (x_1, x_2, \dots, x_D)\) is the input vector,</span>
+<span class="sd">        - \(a = (a_1, a_2, \dots, a_D)\) is a vector of coefficients,</span>
+<span class="sd">        - \(u_1, u_2\) are predefined thresholds.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy.ndarray</span>
+<span class="sd">            Each row is an input vector.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray of shape (N, 1)</span>
+<span class="sd">            the function value evaluated at X</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_input</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">dotprods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">u1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">])</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">dotprods</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">u1</span> <span class="ow">or</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">u2</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">])</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">dotprods</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Discontinuous(D=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="si">}</span><span class="s1">)&#39;</span>
+
+<div class="viewcode-block" id="Discontinuous.handle_input">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Discontinuous.handle_input">[docs]</a>
+    <span class="k">def</span> <span class="nf">handle_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the shape of xs and </span>
+<span class="sd">        change xs to the correct shape (N, D)</span>
+
+<span class="sd">        Parameter</span>
+<span class="sd">        --------</span>
+<span class="sd">        xs : numpy.ndarray</span>
+<span class="sd">            the array to be handled</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            the handled array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;xs must be either a list or numpy.ndarray&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">xs</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">xs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">xs</span>
+        <span class="k">elif</span> <span class="n">xs</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">xs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">:</span> <span class="c1"># array with one sample</span>
+            <span class="k">return</span> <span class="n">xs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;xs must be either two dimensional array of shape (N, D)&#39;</span>
+                             <span class="s1">&#39;or one dimensional array of shape (D,)&#39;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Pyramid">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Pyramid">[docs]</a>
+<span class="k">class</span> <span class="nc">Pyramid</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">lows</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">highs</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Pyramid.integrand">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Pyramid.integrand">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pyramid integrand function.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy.ndarray</span>
+<span class="sd">            Each row is an input vector.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            1-dimensional array of the same length as X.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ys</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Pyramid(D=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="si">}</span><span class="s1">)&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="Quadratic">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Quadratic">[docs]</a>
+<span class="k">class</span> <span class="nc">Quadratic</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Quadratic function sum x_i^2 </span>
+<span class="sd">        on [-1.0, 1.0]^D </span>
+
+<span class="sd">        Parameters </span>
+<span class="sd">        ----------</span>
+<span class="sd">        D : int</span>
+<span class="sd">            dimension </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">lows</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">highs</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exact_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">highs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Quadratic.integrand">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Quadratic.integrand">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Quadratic integrand function for the sum of squares.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy.ndarray</span>
+<span class="sd">            Each row is an input vector.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray of shape (N, 1)</span>
+<span class="sd">            the function value evaluated at X</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_input</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">xs</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Quadratic.exact_integral">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.Quadratic.exact_integral">[docs]</a>
+    <span class="k">def</span> <span class="nf">exact_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the exact integral from mins to maxs for the sum of squares polynomial.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mins : numpy.ndarray</span>
+<span class="sd">            Lower bounds of the integration.</span>
+
+<span class="sd">        maxs : numpy.ndarray</span>
+<span class="sd">            Upper bounds of the integration.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The value of the integral.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mins</span><span class="p">)</span>
+        <span class="n">integral_sum</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">D</span><span class="p">):</span>
+            <span class="n">term</span> <span class="o">=</span> <span class="p">(</span><span class="n">maxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">3</span> <span class="o">-</span> <span class="n">mins</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span>
+            <span class="n">product</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">([</span><span class="n">maxs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">mins</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">D</span><span class="p">)</span> <span class="k">if</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">i</span><span class="p">])</span>
+            <span class="n">integral_sum</span> <span class="o">+=</span> <span class="n">term</span> <span class="o">*</span> <span class="n">product</span>
+        
+        <span class="k">return</span> <span class="n">integral_sum</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Quadratic(D=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="si">}</span><span class="s1">)&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="ExponentialProduct">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ExponentialProduct">[docs]</a>
+<span class="k">class</span> <span class="nc">ExponentialProduct</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Exponential product </span>
+<span class="sd">        on [-1.0, 1.0]^D </span>
+
+<span class="sd">        Parameters </span>
+<span class="sd">        ----------</span>
+<span class="sd">        D : int</span>
+<span class="sd">            dimension </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">lows</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">highs</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exact_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">highs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ExponentialProduct.integrand">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ExponentialProduct.integrand">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Exponential product integrand function.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy.ndarray</span>
+<span class="sd">            Each row is an input vector.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            1-dimensional array of the same length as X.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_input</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ExponentialProduct.exact_integral">
+<a class="viewcode-back" href="../../../treeQuadrature.example_problems.html#treeQuadrature.example_problems.simple_problems.ExponentialProduct.exact_integral">[docs]</a>
+    <span class="k">def</span> <span class="nf">exact_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the exact integral from mins to maxs for the product of exponentials.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mins : numpy.ndarray</span>
+<span class="sd">            Lower bounds of the integration.</span>
+
+<span class="sd">        maxs : numpy.ndarray</span>
+<span class="sd">            Upper bounds of the integration.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The value of the integral.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">maxs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">mins</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mins</span><span class="p">))])</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;ExponentialProduct(D=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="si">}</span><span class="s1">)&#39;</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">treeQuadrature</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../treeQuadrature.html">treeQuadrature package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Thomas Foster, Ben Lambert.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

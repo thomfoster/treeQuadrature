@@ -361,7 +361,7 @@ class TreeIntegrator(Integrator):
         compute_std: bool = False,
         verbose: bool = False,
         **kwargs,
-    ):
+    ) -> Tuple[List[dict], List[Container]]:
         if verbose:
             print(f"integrating containers, parallel : {self.parallel}")
 

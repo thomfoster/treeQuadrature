@@ -1,6 +1,6 @@
 from .base_class import ContainerIntegral
 from .constant_integral import MidpointIntegral, MedianIntegral
-from .monte_carlo_integral import RandomIntegral
+from .monte_carlo_integral import RandomIntegral, ProgressiveRandomIntegral
 from .gp_integral import (
     KernelIntegral,
     AdaptiveRbfIntegral,
@@ -13,6 +13,7 @@ __all__ = [
     "MidpointIntegral",
     "MedianIntegral",
     "RandomIntegral",
+    "ProgressiveRandomIntegral",
     "KernelIntegral",
     "AdaptiveRbfIntegral",
     "PolyIntegral",

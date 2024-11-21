@@ -1,5 +1,6 @@
 import numpy as np
-from scipy.stats import qmc
+from scipy.stats import norm
+import itertools
 
 from .base_class import Problem
 from . import distributions as dists
@@ -148,7 +149,6 @@ class Gaussian(BayesProblem):
         """
         # Value checks
         self.mu = handle_bound(mu, D, 0)
-        # self.Sigma = Gaussian._handle_Sigma(Sigma, D)
         self.Sigma = Sigma
 
         super().__init__(
@@ -161,24 +161,13 @@ class Gaussian(BayesProblem):
 
         self.answer = self._integrate(self.lows, self.highs)
 
-    @staticmethod
-    def _handle_Sigma(value, D):
-        if value is None:
-            return np.eye(D)
-        elif isinstance(value, (int, float)):
-            return value * np.eye(D)
-        elif isinstance(value, np.ndarray) and value.shape == (D, D):
-            return value
-        else:
-            raise ValueError(
-                "value must be a number, or numpy.ndarray"
-                f"with shape ({D}, {D}) when given as a list or numpy.ndarray"
-            )
-
-    def _integrate(self, lows, highs, num_samples=8192):
+    def _integrate(self, lows, highs):
         """
         Calculate the integral of the Gaussian pdf over the
         hyper-rectangular bounds defined by lows and highs.
+        Warning: this is slow when cov is not diagonal,
+        in which case it can only be used
+        with few times in higher dimensions. (D>7)
 
         Returns
         -------
@@ -187,18 +176,28 @@ class Gaussian(BayesProblem):
         """
         # fetch to multivariate Gaussian object
         rv = self.d.d
+        cov = rv.cov
 
-        dim = len(lows)
+        if np.all(cov == np.diag(np.diagonal(cov))):
+            # integrate each dimension separately
+            std_devs = np.sqrt(np.diagonal(cov))
+            integral_value = 1.0
+            for low, high, mean, std_dev in zip(lows, highs, self.mu, std_devs):
+                # use cdf difference to calculate the integral
+                integral_value *= (norm.cdf(high, loc=mean, scale=std_dev) - 
+                                norm.cdf(low, loc=mean, scale=std_dev))
+        else:
+            # use inclusion-exclusion
+            dim = len(lows)
 
-        # Generate QMC samples within the unit hypercube
-        sampler = qmc.Sobol(d=dim, scramble=True)
-        unit_samples = sampler.random(num_samples)
-
-        samples = qmc.scale(unit_samples, lows, highs)
-
-        pdf_values = rv.pdf(samples)
-        volume = np.prod(highs - lows)
-        integral_value = np.mean(pdf_values) * volume
+            # Compute the CDF at corners of the bounds
+            integral_value = 0.0
+            for signs in itertools.product([0, 1], repeat=dim):
+                corner = [highs[j] if signs[j] else lows[j] 
+                          for j in range(dim)]
+                # Inclusion-exclusion sign (+/-)
+                sign = (-1) ** (dim - sum(signs))
+                integral_value += sign * rv.cdf(corner)
 
         return integral_value
 

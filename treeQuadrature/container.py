@@ -188,7 +188,11 @@ class Container:
 
     @property
     def N(self) -> int:
-        return sum(x.shape[0] for x in self._X)
+        N = sum(x.shape[0] for x in self._X)
+        if hasattr(self, "evaluation_samples"):
+            xs, _ = self.evaluation_samples
+            N += xs.shape[0]
+        return N
 
     @property
     def X(self) -> np.ndarray:
